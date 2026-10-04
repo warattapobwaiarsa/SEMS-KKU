@@ -1,0 +1,437 @@
+// =============================================================================
+// SEMS — Scholarship Evaluation Management System
+// Prisma schema (PostgreSQL)
+// อ้างอิง: Scope 1.3, Business Rules v1.2, FRS v0.1, NFR v0.1, TECH_STACK
+//
+// หลักการออกแบบ
+//  - ไม่มีการลบผู้ใช้/รอบทุน -> ไม่มี soft-delete (BR-USR-13, BR-RND-06)
+//  - รหัสทุกตัว auto running (FR-SYS-01)
+//  - จำนวนเงินใช้ Decimal (NFR-DAT-07)
+//  - เลขบัตรประชาชนเก็บแบบเข้ารหัส และแยกอยู่ในตาราง ApplicantContact (NFR-SEC-02, NFR-PRV-04)
+//  - อันดับ/คะแนนสุดท้าย/ยอดจัดสรรรวม/งบคงเหลือ "คำนวณ" ไม่เก็บ (BR-SCR, BR-ALC-08)
+//  - กฎที่ Prisma ทำเองไม่ได้ (CHECK constraint, partial unique) ให้ดู schema.md หัวข้อ "Constraint เพิ่มเติม (raw SQL)"
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// Enums
+// -----------------------------------------------------------------------------
+
+/// BR-USR-03: 1 = Admin, 2 = Evaluator
+enum UserRole {
+  ADMIN     // 1
+  EVALUATOR // 2
+}
+
+/// BR-RND-04: 1 = Draft, 2 = Open, 3 = Closed (เปลี่ยนทางเดียว)
+enum RoundStatus {
+  DRAFT  // 1
+  OPEN   // 2
+  CLOSED // 3
+}
+
+/// BR-CRT-02: 1 = มีคะแนน, 2 = ไม่มีคะแนน/ข้อความ
+enum SubCriteriaType {
+  SCORED // 1
+  TEXT   // 2
+}
+
+/// BR-EVL: 1 = Draft, 2 = Submitted
+enum EvaluationStatus {
+  DRAFT     // 1
+  SUBMITTED // 2
+}
+
+/// BR-ALC-11: 1 = Editing, 2 = Finalized (แยกจากสถานะรอบทุน)
+enum AllocationStatus {
+  EDITING   // 1
+  FINALIZED // 2
+}
+
+/// รายการที่ต้องบันทึก Audit Log (BR-PDP-01, FR-AUD-01)
+enum AuditAction {
+  VIEW_CITIZEN_ID          // ดูเลขบัตรเต็ม
+  EXPORT_EVALUATION_REPORT // ส่งออกรายงานสรุปผลและอันดับ
+  EXPORT_ALLOCATION_REPORT // ส่งออกรายงานผลจัดสรร
+  IMPORT_APPLICANTS        // นำเข้าผู้สมัคร
+  ROUND_STATUS_CHANGE      // เปลี่ยนสถานะรอบ (ปิดรอบ: บันทึกจำนวนที่รับทราบใน detail)
+  ALLOCATION_STATUS_CHANGE // Editing <-> Finalized
+  USER_CREATE
+  USER_UPDATE
+  USER_ACTIVATE
+  USER_DEACTIVATE
+  USER_AUTO_DEACTIVATE     // ระบบปิดบัญชีที่หมดอายุ (actor = null)
+  USER_EXTEND_EXPIRY       // ต่ออายุ Evaluator
+  CRITERIA_CREATE
+  CRITERIA_UPDATE
+  EVALUATION_SUBMIT
+  BUDGET_SET               // กำหนดงบรวมครั้งแรก
+  BUDGET_UPDATE            // แก้งบรวม
+  ALLOCATION_UPDATE        // แก้ผลจัดสรรรายบุคคล (old/new ทุกครั้ง)
+}
+
+// -----------------------------------------------------------------------------
+// ผู้ใช้และเซสชัน
+// -----------------------------------------------------------------------------
+
+model User {
+  id        Int      @id @default(autoincrement())
+  /// บัญชีผู้ใช้ = อีเมล @kku.ac.th / @kkumail.com ห้ามซ้ำ (BR-USR-02) — ตรวจโดเมนที่ Backend
+  email     String   @unique
+  name      String
+  /// เปลี่ยนไม่ได้หลังสร้าง (BR-USR-03) — บังคับที่ Backend
+  role      UserRole
+  /// 0 = ปิด, 1 = เปิด (BR-USR)
+  isActive  Boolean  @default(true)
+  /// เฉพาะ Evaluator (BR-USR-04/05); Admin = null
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session              UserSession?
+  importBatches        ImportBatch[]
+  evaluations          Evaluation[]
+  allocationStatusSets AllocationSummary[] @relation("AllocationStatusChangedBy")
+  auditLogs            AuditLog[]
+
+  @@index([role, isActive])
+  @@index([expiresAt])
+  @@map("users")
+}
+
+/// เซสชันเดียวต่อบัญชี (BR-EVL-08) และ idle timeout 60 นาที (BR-SYS-02)
+model UserSession {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @unique
+  /// ล็อกอินเครื่องใหม่ = แทนที่ค่านี้ -> เครื่องเก่าถูกตัด
+  sessionId      String   @unique
+  createdAt      DateTime @default(now())
+  lastActivityAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_sessions")
+}
+
+// -----------------------------------------------------------------------------
+// เกณฑ์การประเมิน
+// -----------------------------------------------------------------------------
+
+model Criteria {
+  id        Int      @id @default(autoincrement())
+  /// ชื่อเกณฑ์ห้ามซ้ำ (BR-CRT-01)
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subCriteria SubCriteria[]
+  rounds      ScholarshipRound[]
+
+  @@map("criteria")
+}
+
+model SubCriteria {
+  id         Int             @id @default(autoincrement())
+  criteriaId Int
+  /// ชื่อหัวข้อซ้ำได้ (BR-CRT-12) — ไม่ใช้เป็นตัวระบุ
+  title      String
+  type       SubCriteriaType
+  /// เฉพาะ SCORED: จำนวนเต็ม 1-100 (BR-CRT-05) — CHECK ใน raw SQL
+  maxScore   Int?
+  /// เฉพาะ SCORED (BR-CRT-03)
+  allowComment Boolean       @default(false)
+  /// ลำดับแสดงผล (BR-CRT-12)
+  sortOrder  Int
+
+  criteria Criteria         @relation(fields: [criteriaId], references: [id])
+  items    EvaluationItem[]
+
+  @@index([criteriaId, sortOrder])
+  @@map("sub_criteria")
+}
+
+// -----------------------------------------------------------------------------
+// รอบทุนการศึกษา
+// -----------------------------------------------------------------------------
+
+model ScholarshipRound {
+  id           Int         @id @default(autoincrement())
+  name         String
+  /// พ.ศ. 2550-2700 (BR-RND-01) — CHECK ใน raw SQL
+  academicYear Int
+  /// 1 หรือ 2 (BR-RND-02) — CHECK ใน raw SQL
+  semester     Int
+  /// 1 รอบใช้ 1 เกณฑ์ (BR-RND-07) — null ได้ระหว่าง Draft
+  criteriaId   Int?
+  status       RoundStatus @default(DRAFT)
+  createdAt    DateTime    @default(now())
+  openedAt     DateTime?
+  closedAt     DateTime?
+  updatedAt    DateTime    @updatedAt
+
+  criteria      Criteria?          @relation(fields: [criteriaId], references: [id])
+  applicants    Applicant[]
+  importBatches ImportBatch[]
+  allocation    AllocationSummary?
+
+  // ชื่อ/ปี/ภาคซ้ำได้ (BR-RND-03) จึงไม่มี unique
+  @@index([status])
+  @@index([academicYear, semester])
+  @@index([name])
+  @@index([criteriaId])
+  @@map("scholarship_rounds")
+}
+
+// -----------------------------------------------------------------------------
+// การนำเข้าและผู้สมัคร
+// -----------------------------------------------------------------------------
+
+/// ประวัติการนำเข้า (Scope 1.3.2.5) — แถวล่าสุดใช้แสดง "จำนวนแถว invalid" ตอนเปิดรอบ (BR-RND-09)
+model ImportBatch {
+  id           Int      @id @default(autoincrement())
+  roundId      Int
+  fileName     String
+  totalRows    Int
+  validRows    Int
+  invalidRows  Int
+  /// [{ row, reason }] — ห้ามมีเลขบัตรเต็ม (BR-IMP-15)
+  errorDetails Json?
+  importedById Int
+  importedAt   DateTime @default(now())
+
+  round      ScholarshipRound @relation(fields: [roundId], references: [id])
+  importedBy User             @relation(fields: [importedById], references: [id])
+  applicants Applicant[]
+
+  @@index([roundId, importedAt])
+  @@map("import_batches")
+}
+
+/// ข้อมูลผู้สมัครที่ Evaluator/Admin เห็นได้ (ไม่รวมเลขบัตร/โทรศัพท์/อีเมล)
+/// นำเข้าแบบแทนที่ทั้งชุดของรอบ (BR-IMP-13) — ทำได้เฉพาะรอบ Draft จึงลบ+สร้างใหม่ได้ปลอดภัย
+model Applicant {
+  id            Int      @id @default(autoincrement())
+  roundId       Int
+  importBatchId Int
+  /// "ลำดับ" จากระบบเดิม (BR-IMP-20) ใช้อ้างอิง ไม่ใช้เรียงอันดับ
+  legacySeq     Int?
+  /// รหัสนักศึกษา ไม่ซ้ำภายในรอบ (BR-IMP-04) ซ้ำข้ามรอบได้ (BR-IMP-09)
+  studentCode   String
+  titlePrefix   String
+  firstName     String
+  lastName      String
+  faculty       String
+  major         String
+  /// 1-4 (BR-IMP-07)
+  studyYear     Int
+  /// 0.00-4.00 (BR-IMP-05)
+  gpa           Decimal  @db.Decimal(3, 2)
+  createdAt     DateTime @default(now())
+  /// เวลาที่ผู้ดูแลฐานข้อมูล anonymize (ครบ 6 ปี) — ตั้งค่านอก SEMS (BR-PDP-10)
+  anonymizedAt  DateTime?
+
+  round          ScholarshipRound        @relation(fields: [roundId], references: [id])
+  importBatch    ImportBatch             @relation(fields: [importBatchId], references: [id])
+  contact        ApplicantContact?
+  supportingInfo ApplicantSupportingInfo?
+  evaluations    Evaluation[]
+  allocation     Allocation?
+
+  @@unique([roundId, studentCode])
+  @@index([roundId, faculty])
+  @@index([roundId, lastName, firstName])
+  @@index([importBatchId])
+  @@map("applicants")
+}
+
+/// ข้อมูลติดต่อและเลขบัตร — Admin เท่านั้น เฉพาะหน้ารายละเอียดจัดสรร/รายงานจัดสรร (BR-PDP-04/05)
+/// แยกตารางเพื่อกัน Evaluator API เผลอ select และให้ anonymize ได้ง่าย (NFR-PRV-04)
+model ApplicantContact {
+  applicantId       Int    @id
+  phone             String
+  email             String
+  /// ciphertext (เช่น base64 ของ AES-256-GCM: iv+tag+data) — อัลกอริทึม/กุญแจ [TBD] (NFR-SEC-02)
+  citizenIdEncrypted String
+  /// รูปแบบ 1-2345-XXXXX-XX-3 (BR-PDP-03) — เก็บสำเร็จรูปเพื่อไม่ต้องถอดรหัสทุกครั้งที่แสดง
+  citizenIdMasked   String
+
+  applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@map("applicant_contacts")
+}
+
+/// ข้อมูลประกอบการพิจารณา (Evaluator เห็นแบบ view-only) — ค่าว่างได้ทั้งหมด (BR-IMP-03)
+/// ใช้ String ทั้งหมดเพราะระบบไม่ตรวจเนื้อหา/ชนิด (BR-IMP-10, คำตัดสิน E5)
+/// ข้อความอิสระในตารางนี้ถูกลบ/ล้างเมื่อครบ 6 ปี (BR-PDP-10)
+model ApplicantSupportingInfo {
+  applicantId Int    @id
+
+  /// วันที่สมัคร เก็บเป็นข้อความ (BR-IMP-23)
+  applicationDate String?
+  accommodation   String? // ที่พัก
+  rent            String? // ค่าเช่าหอ/บ้าน รวมค่าน้ำ-ไฟ
+  personalExpense String? // ค่าใช้จ่ายส่วนตัว
+  studyEquipmentCost String? // ค่าอุปกรณ์การศึกษา
+  electronicDevices  String? // อุปกรณ์อิเล็กทรอนิกส์ที่มี
+  sideIncome      String? // รายได้เสริม
+
+  fatherAge        String?
+  fatherOccupation String?
+  fatherIncome     String?
+  fatherStatus     String?
+  motherAge        String?
+  motherOccupation String?
+  motherIncome     String?
+  motherStatus     String?
+  parentsStatus    String? // สภาพบิดา-มารดา
+  tuitionPayer     String? // คนออกเงินเรียน
+
+  guardianRelation   String? // อุปการะ-ความเกี่ยวข้อง
+  guardianOccupation String?
+  guardianIncome     String?
+
+  siblingsWorking    String? // พี่น้อง-ทำงาน
+  siblingsNotWorking String?
+  siblingsStudying   String?
+
+  studentLoan        String? // กยศ.
+  previousScholarships String? // ทุนที่เคยได้รับ
+  /// ลิงก์แผนที่ที่พัก (BR-IMP-22) — UI แปลงเป็นลิงก์ได้เฉพาะ http/https (FR-APP-05)
+  accommodationMapUrl String?
+
+  applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@map("applicant_supporting_info")
+}
+
+// -----------------------------------------------------------------------------
+// การประเมิน
+// -----------------------------------------------------------------------------
+
+model Evaluation {
+  id          Int              @id @default(autoincrement())
+  applicantId Int
+  evaluatorId Int
+  status      EvaluationStatus @default(DRAFT)
+  /// คะแนนรวมของผู้ประเมิน (เฉพาะ SCORED) บันทึกตอน Submit (Scope 1.3.3.6)
+  totalScore  Int?
+  createdAt   DateTime         @default(now())
+  /// วันเวลาบันทึกล่าสุด (Auto-save) (Scope 1.3.3.4)
+  updatedAt   DateTime         @updatedAt
+  submittedAt DateTime?
+
+  applicant Applicant        @relation(fields: [applicantId], references: [id])
+  evaluator User             @relation(fields: [evaluatorId], references: [id])
+  items     EvaluationItem[]
+
+  // ประเมินผู้สมัครรายเดิมซ้ำไม่ได้ (BR-EVL-02) — ผู้สมัครผูกกับรอบเดียวอยู่แล้ว
+  @@unique([evaluatorId, applicantId])
+  @@index([applicantId, status])
+  @@index([evaluatorId, status])
+  @@map("evaluations")
+}
+
+model EvaluationItem {
+  id            Int    @id @default(autoincrement())
+  evaluationId  Int
+  subCriteriaId Int
+  /// เฉพาะ SCORED: จำนวนเต็ม 0..maxScore; null = ยังไม่กรอก (ไม่ใช่ 0) (BR-EVL-07)
+  score         Int?
+  /// เฉพาะข้อที่ allowComment (BR-EVL-04) ไม่จำกัดความยาว
+  comment       String?
+  /// เฉพาะ TEXT (BR-EVL-04) ไม่บังคับ
+  textValue     String?
+
+  evaluation  Evaluation  @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  subCriteria SubCriteria @relation(fields: [subCriteriaId], references: [id])
+
+  @@unique([evaluationId, subCriteriaId])
+  @@index([subCriteriaId])
+  @@map("evaluation_items")
+}
+
+// -----------------------------------------------------------------------------
+// งบประมาณและการจัดสรรทุน
+// -----------------------------------------------------------------------------
+
+/// 1 รอบ มี summary ได้ 1 แถว สร้างตอนกำหนดงบครั้งแรก พร้อมสถานะ Editing (BR-ALC-04)
+/// ยอดจัดสรรแล้ว / งบคงเหลือ / จำนวนผู้ได้รับทุน = คำนวณจาก Allocation (BR-ALC-08)
+model AllocationSummary {
+  id                Int              @id @default(autoincrement())
+  roundId           Int              @unique
+  /// > 0 (BR-ALC-02) — CHECK ใน raw SQL
+  totalBudget       Decimal          @db.Decimal(14, 2)
+  status            AllocationStatus @default(EDITING)
+  /// ผู้ดำเนินการเปลี่ยนสถานะล่าสุด + เวลา (BR-ALC-13)
+  statusChangedById Int?
+  statusChangedAt   DateTime         @default(now())
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  round           ScholarshipRound @relation(fields: [roundId], references: [id])
+  statusChangedBy User?            @relation("AllocationStatusChangedBy", fields: [statusChangedById], references: [id])
+  allocations     Allocation[]
+
+  @@map("allocation_summaries")
+}
+
+model Allocation {
+  id          Int      @id @default(autoincrement())
+  summaryId   Int
+  applicantId Int      @unique
+  /// 0 = ไม่ได้รับทุน (ค่าเริ่มต้น), 1 = ได้รับทุน
+  isAwarded   Boolean  @default(false)
+  /// บาท ทศนิยมไม่เกิน 2 ตำแหน่ง (BR-ALC-09)
+  /// กฎ: isAwarded=true => amount>0, false => amount=0 (BR-ALC-06) — CHECK ใน raw SQL
+  amount      Decimal  @default(0) @db.Decimal(14, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  summary   AllocationSummary @relation(fields: [summaryId], references: [id])
+  applicant Applicant         @relation(fields: [applicantId], references: [id])
+
+  @@index([summaryId, isAwarded])
+  @@map("allocations")
+}
+
+// -----------------------------------------------------------------------------
+// Audit Log
+// -----------------------------------------------------------------------------
+
+/// เก็บ 6 ปี (BR-PDP-08); SEMS ไม่มีหน้าจอดู/แก้/ลบ (BR-PDP-07, FR-AUD-06)
+/// ห้ามบันทึกเลขบัตรเต็มใน oldValue/newValue/detail (NFR-PRV-02)
+/// แนะนำให้ DB role ของแอปมีสิทธิ์ INSERT เท่านั้นบนตารางนี้ (NFR-PRV-03)
+model AuditLog {
+  id         BigInt      @id @default(autoincrement())
+  /// null = ระบบดำเนินการเอง (เช่น ตัดวันหมดอายุบัญชี)
+  actorId    Int?
+  action     AuditAction
+  /// เช่น "User", "ScholarshipRound", "Allocation", "Criteria", "Evaluation"
+  entityType String
+  entityId   String?
+  /// เพื่อสืบค้นตามรอบ (ไม่ใช่ FK เพื่อไม่ผูกกับวงจรชีวิตข้อมูล)
+  roundId    Int?
+  /// ค่าเดิม/ค่าใหม่ ทุกครั้งที่แก้ไข (BR-PDP-02)
+  oldValue   Json?
+  newValue   Json?
+  /// ข้อมูลเสริม เช่น จำนวนผู้สมัครที่ยังไม่มี Submitted ที่ Admin รับทราบตอนปิดรอบ (FR-AUD-03)
+  detail     Json?
+  createdAt  DateTime    @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([createdAt])
+  @@index([action, createdAt])
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
+  @@index([roundId])
+  @@map("audit_logs")
+}
