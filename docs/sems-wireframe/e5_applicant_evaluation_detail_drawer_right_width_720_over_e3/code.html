@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+<html lang="th"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;font-family:'IBM Plex Sans Thai','IBM Plex Sans',sans-serif;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"on-primary-container":"#a3adc0","surface-container-high":"#e2e8f8","surface-container":"#e7eefe","primary":"#212b3a","primary-fixed-dim":"#bdc7db","on-tertiary-fixed-variant":"#55442b","outline":"#75777d","on-surface":"#151c27","tertiary":"#362811","on-surface-variant":"#44474c","on-primary-fixed-variant":"#3d4757","surface-container-highest":"#dce2f3","on-background":"#151c27","secondary-fixed-dim":"#c0c7d3","on-secondary-container":"#5e6570","surface":"#f9f9ff","secondary-fixed":"#dce3f0","tertiary-container":"#4e3e25","surface-tint":"#555f70","on-secondary":"#ffffff","on-primary-fixed":"#121c2a","on-tertiary-container":"#c0a989","on-tertiary-fixed":"#261905","surface-container-low":"#f0f3ff","error-container":"#ffdad6","on-secondary-fixed":"#151c25","error":"#ba1a1a","tertiary-fixed-dim":"#dbc3a2","surface-container-lowest":"#ffffff","on-secondary-fixed-variant":"#404752","surface-dim":"#d3daea","inverse-on-surface":"#ebf1ff","secondary-container":"#dce3f0","inverse-surface":"#2a313d","surface-bright":"#f9f9ff","primary-container":"#374151","on-error-container":"#93000a","inverse-primary":"#bdc7db","tertiary-fixed":"#f8dfbc","on-error":"#ffffff","background":"#f9f9ff","on-primary":"#ffffff","primary-fixed":"#d9e3f7","outline-variant":"#c5c6cc","surface-variant":"#dce2f3","secondary":"#585f6a","on-tertiary":"#ffffff"},borderRadius:{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},spacing:{"margin-tablet":"1.5rem","gutter-desktop":"1.5rem","space-sm":"0.5rem","gutter":"1rem","space-xl":"2rem","space-md":"1rem","margin-desktop":"2rem","margin":"1rem","space-lg":"1.5rem","space-xs":"0.25rem"},fontFamily:{"caption":["IBM Plex Sans"],"body-md":["IBM Plex Sans"],"body-lg":["IBM Plex Sans"],"label-md":["IBM Plex Sans"],"headline-md":["IBM Plex Sans"],"label-sm":["IBM Plex Sans"],"title-sm":["IBM Plex Sans"],"headline-lg":["IBM Plex Sans"],"headline-xl":["IBM Plex Sans"]},fontSize:{"caption":["11px",{"lineHeight":"16px","letterSpacing":"0.5px","fontWeight":"400"}],"body-md":["14px",{"lineHeight":"22.4px","fontWeight":"400"}],"body-lg":["16px",{"lineHeight":"25.6px","fontWeight":"400"}],"label-md":["14px",{"lineHeight":"20px","fontWeight":"500"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"600"}],"label-sm":["12px",{"lineHeight":"16px","fontWeight":"500"}],"title-sm":["16px",{"lineHeight":"24px","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","fontWeight":"600"}],"headline-xl":["32px",{"lineHeight":"40px","fontWeight":"600"}]}}}}</script></head><body class="bg-surface-container-lowest font-body-md text-on-surface"><aside class="fixed left-0 top-0 h-full w-[260px] bg-surface-container-low border-r border-outline-variant z-50 flex flex-col justify-between"><div class="flex flex-col"><div class="p-space-lg border-b border-outline-variant flex items-center gap-space-md"><div class="w-11 h-11 border border-primary-container bg-surface-container-lowest flex items-center justify-center font-headline-md text-headline-md text-primary font-bold tracking-tight rounded">SEMS</div><div class="flex flex-col"><span class="font-title-sm text-title-sm text-primary leading-tight font-semibold">SEMS ADMIN</span><span class="font-caption text-caption text-secondary leading-tight mt-space-xs">ระบบประเมินทุนการศึกษา</span></div></div><div class="px-space-md py-space-sm"><span class="font-caption text-caption text-secondary uppercase tracking-wider px-space-sm">การบริหารจัดการ</span></div><nav class="flex flex-col gap-space-xs px-space-sm" data-active-classes="bg-primary-container text-on-primary font-semibold"><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="users" href="#"><span class="material-symbols-outlined text-[20px]">group</span><span class="font-body-md text-body-md">ผู้ใช้งาน</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="scholarship-rounds" href="#"><span class="material-symbols-outlined text-[20px]">event_note</span><span class="font-body-md text-body-md">รอบทุนการศึกษา</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="evaluation-criteria" href="#"><span class="material-symbols-outlined text-[20px]">fact_check</span><span class="font-body-md text-body-md">เกณฑ์การประเมิน</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="applicants" href="#"><span class="material-symbols-outlined text-[20px]">assignment_ind</span><span class="font-body-md text-body-md">ผู้สมัคร</span></a><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm rounded transition-colors bg-primary-container text-on-primary font-semibold" data-path="evaluation-results" href="#"><span class="material-symbols-outlined text-[20px]">leaderboard</span><span class="font-body-md text-body-md">ผลการประเมินและอันดับ</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="scholarship-allocation" href="#"><span class="material-symbols-outlined text-[20px]">payments</span><span class="font-body-md text-body-md">การจัดสรรทุน</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="reports" href="#"><span class="material-symbols-outlined text-[20px]">summarize</span><span class="font-body-md text-body-md">รายงาน</span></a></nav></div><div class="p-space-md border-t border-outline-variant"><div class="border border-outline-variant bg-surface-container-lowest p-space-sm rounded text-center"><div class="font-caption text-caption text-secondary">คณะวิศวกรรมศาสตร์</div><div class="font-caption text-caption text-secondary font-semibold">มหาวิทยาลัยขอนแก่น</div></div></div></aside><div class="pl-[260px]"><header class="fixed top-0 left-[260px] right-0 h-16 bg-surface-container-lowest border-b border-outline-variant z-40 px-space-xl flex items-center justify-between"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-secondary text-[20px]">school</span><span class="font-title-sm text-title-sm text-primary font-semibold">ระบบบริหารจัดการการประเมินทุนการศึกษา | คณะวิศวกรรมศาสตร์ มหาวิทยาลัยขอนแก่น</span></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col text-left"><span class="font-body-md text-body-md font-medium text-primary leading-tight">นายอนุชา ผู้ดูแล</span><span class="font-caption text-caption text-secondary leading-tight">เจ้าหน้าที่บริหารระบบ</span></div></div><span class="px-space-sm py-0.5 border border-primary-container text-primary text-label-sm font-label-sm rounded uppercase">Admin</span><div class="h-6 w-px bg-outline-variant mx-space-xs"></div><a class="flex items-center gap-space-xs px-space-md py-space-sm border border-outline-variant rounded bg-surface-container-lowest text-primary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-colors" data-path="login" href="#"><span class="material-symbols-outlined text-[18px]">logout</span><span>ออกจากระบบ</span></a></div></header><main class="relative pt-16 min-h-screen bg-surface-container-lowest w-full p-[40px]"><div class="flex flex-col w-full relative">
+<!-- System Architecture Breadcrumb & Meta Bar (E3 Background Context) -->
+<div class="flex items-center justify-between pb-space-lg">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest">FRAME E5 / OVER E3</span>
+<span class="text-outline-variant">/</span>
+<span class="font-title-sm text-title-sm text-primary font-semibold">ผลการประเมินและอันดับผู้สมัครรับทุน</span>
+<span class="px-space-sm py-0.5 border border-outline text-secondary text-label-sm font-label-sm rounded uppercase">รอบที่ 1/2567</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="px-space-sm py-0.5 border border-outline text-secondary text-caption font-caption">ระบบคำนวณอัตโนมัติ (Normalized Weights)</span>
+</div>
+</div>
+<!-- Dimmed E3 Underlying Content Canvas -->
+<div class="w-full opacity-30 pointer-events-none select-none filter grayscale">
+<!-- E3 Filter Bar -->
+<div class="bg-surface-container-low border border-outline p-space-md rounded mb-space-lg flex items-center justify-between">
+<div class="flex items-center gap-space-md">
+<div class="w-64 h-9 bg-surface-container-lowest border border-outline rounded flex items-center px-space-sm text-secondary font-body-md text-body-md">ค้นหาชื่อหรือรหัสนักศึกษา...</div>
+<div class="h-9 px-space-md bg-surface-container-lowest border border-outline rounded flex items-center gap-space-xs text-primary font-body-md text-body-md">ทุกสาขาวิชา <span class="material-symbols-outlined text-[16px]">expand_more</span></div>
+<div class="h-9 px-space-md bg-surface-container-lowest border border-outline rounded flex items-center gap-space-xs text-primary font-body-md text-body-md">สถานะการประเมิน: ครบถ้วน <span class="material-symbols-outlined text-[16px]">expand_more</span></div>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="h-9 px-space-md bg-surface-container-lowest border border-outline rounded flex items-center gap-space-xs text-primary font-label-md text-label-md"><span class="material-symbols-outlined text-[18px]">download</span> ส่งออก CSV</div>
+</div>
+</div>
+<!-- E3 Results Matrix Table Container -->
+<div class="border border-outline bg-surface-container-lowest rounded overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline font-label-md text-label-md text-primary">
+<th class="p-space-md text-center w-16">อันดับ</th>
+<th class="p-space-md">รหัสนักศึกษา</th>
+<th class="p-space-md">ชื่อ - สกุล</th>
+<th class="p-space-md">สาขาวิชา</th>
+<th class="p-space-md text-center">GPAX</th>
+<th class="p-space-md text-center">สถานะผู้ประเมิน</th>
+<th class="p-space-md text-right">คะแนนรวมเฉลี่ย</th>
+<th class="p-space-md text-center w-28">การจัดการ</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-primary divide-y divide-outline-variant">
+<tr class="bg-surface-container-high font-medium">
+<td class="p-space-md text-center font-bold">1</td>
+<td class="p-space-md">6740100011</td>
+<td class="p-space-md font-semibold">นายกิตติพัฒน์ ศรีสุข</td>
+<td class="p-space-md">วิศวกรรมคอมพิวเตอร์</td>
+<td class="p-space-md text-center">3.82</td>
+<td class="p-space-md text-center"><span class="border border-primary px-2 py-0.5 rounded text-caption">Submitted (3/3)</span></td>
+<td class="p-space-md text-right font-bold text-headline-md">91.50</td>
+<td class="p-space-md text-center"><span class="border border-outline px-2 py-1 rounded text-caption bg-surface-container-lowest">ดูรายละเอียด</span></td>
+</tr>
+<tr>
+<td class="p-space-md text-center">2</td>
+<td class="p-space-md">6740100142</td>
+<td class="p-space-md">นางสาวปิยะดา สุวรรณรัตน์</td>
+<td class="p-space-md">วิศวกรรมเคมี</td>
+<td class="p-space-md text-center">3.75</td>
+<td class="p-space-md text-center"><span class="border border-primary px-2 py-0.5 rounded text-caption">Submitted (3/3)</span></td>
+<td class="p-space-md text-right font-bold">89.20</td>
+<td class="p-space-md text-center"><span class="border border-outline px-2 py-1 rounded text-caption">ดูรายละเอียด</span></td>
+</tr>
+<tr>
+<td class="p-space-md text-center">3</td>
+<td class="p-space-md">6740100205</td>
+<td class="p-space-md">นายธนกฤต ชัยมงคล</td>
+<td class="p-space-md">วิศวกรรมไฟฟ้า</td>
+<td class="p-space-md text-center">3.68</td>
+<td class="p-space-md text-center"><span class="border border-primary px-2 py-0.5 rounded text-caption">Submitted (3/3)</span></td>
+<td class="p-space-md text-right font-bold">87.40</td>
+<td class="p-space-md text-center"><span class="border border-outline px-2 py-1 rounded text-caption">ดูรายละเอียด</span></td>
+</tr>
+<tr>
+<td class="p-space-md text-center">4</td>
+<td class="p-space-md">6740100331</td>
+<td class="p-space-md">นางสาวกัญญารัตน์ วงศ์ษา</td>
+<td class="p-space-md">วิศวกรรมโยธา</td>
+<td class="p-space-md text-center">3.55</td>
+<td class="p-space-md text-center"><span class="border border-primary px-2 py-0.5 rounded text-caption">Submitted (3/3)</span></td>
+<td class="p-space-md text-right font-bold">85.65</td>
+<td class="p-space-md text-center"><span class="border border-outline px-2 py-1 rounded text-caption">ดูรายละเอียด</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Flat Scrim Overlay -->
+<div class="fixed inset-0 bg-[#374151]/40 z-50 transition-opacity" id="drawer-backdrop"></div>
+<!-- E5 Slide-Over Drawer Container (Width 720px, Fixed Right) -->
+<aside aria-labelledby="drawer-heading" class="fixed right-0 top-0 h-full w-[720px] bg-surface-container-lowest border-l border-outline z-[60] flex flex-col shadow-none overflow-hidden" id="applicant-detail-drawer">
+<!-- Drawer Fixed Header Segment -->
+<div class="p-space-xl pb-space-lg border-b border-outline bg-surface-container-lowest">
+<div class="flex items-center justify-between pb-space-md">
+<div class="flex items-center gap-space-xs text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[18px]">assessment</span>
+<span>รายละเอียดผลการประเมินผู้สมัครรายบุคคล</span>
+<span>/</span>
+<span class="text-primary font-semibold">SEMS-EV-2567-0011</span>
+</div>
+<button class="w-8 h-8 flex items-center justify-center border border-outline rounded hover:bg-surface-container-high text-primary transition-colors cursor-pointer" onclick="document.getElementById('applicant-detail-drawer').classList.add('hidden'); document.getElementById('drawer-backdrop').classList.add('hidden');" title="ปิดหน้าต่างย่อย (Close)" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-md">
+<h2 class="font-headline-lg text-headline-lg text-primary font-bold tracking-tight" id="drawer-heading">
+            นายกิตติพัฒน์ ศรีสุข
+          </h2>
+<span class="font-headline-md text-headline-md text-secondary font-normal">(6740100011)</span>
+<span class="ml-auto px-space-sm py-0.5 border-2 border-primary text-primary text-label-sm font-label-sm rounded uppercase font-semibold">
+            Finalized
+          </span>
+</div>
+<p class="font-caption text-caption text-secondary">
+          คณะวิศวกรรมศาสตร์ สาขาวิชาวิศวกรรมคอมพิวเตอร์ ชั้นปีที่ 3 | GPA 3.82 | ประเภททุน: ทุนเรียนดีแต่ขาดแคลนทุนทรัพย์
+        </p>
+</div>
+</div>
+<!-- Drawer Scrollable Content Body -->
+<div class="flex-1 overflow-y-auto p-space-xl flex flex-col gap-space-xl">
+<!-- Section 1: Summary Metric Cards (Grid 3 cols) -->
+<div class="grid grid-cols-3 gap-space-md">
+<!-- Metric 1: อันดับ -->
+<div class="bg-surface-container-low border border-outline p-space-md rounded flex flex-col justify-between">
+<div class="flex items-center justify-between text-secondary">
+<span class="font-label-sm text-label-sm">ลำดับผลการจัดสรร</span>
+<span class="material-symbols-outlined text-[18px]">military_tech</span>
+</div>
+<div class="mt-space-sm flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-primary font-bold">อันดับ 1</span>
+</div>
+<div class="font-caption text-caption text-secondary mt-space-xs">จากผู้สมัครทั้งหมด 42 ราย</div>
+</div>
+<!-- Metric 2: คะแนนสุดท้าย -->
+<div class="bg-surface-container-low border border-outline p-space-md rounded flex flex-col justify-between">
+<div class="flex items-center justify-between text-secondary">
+<span class="font-label-sm text-label-sm">คะแนนรวมเฉลี่ยสุทธิ</span>
+<span class="material-symbols-outlined text-[18px]">analytics</span>
+</div>
+<div class="mt-space-sm flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-primary font-bold tracking-tight">91.50</span>
+<span class="font-body-md text-body-md text-secondary">/ 100</span>
+</div>
+<div class="font-caption text-caption text-secondary mt-space-xs">ระดับผลลัพธ์: ดีเด่นมาก (A)</div>
+</div>
+<!-- Metric 3: ผู้ประเมิน Submitted -->
+<div class="bg-surface-container-low border border-outline p-space-md rounded flex flex-col justify-between">
+<div class="flex items-center justify-between text-secondary">
+<span class="font-label-sm text-label-sm">ผู้ประเมิน Submitted</span>
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+</div>
+<div class="mt-space-sm flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-primary font-bold">3 ท่าน</span>
+</div>
+<div class="font-caption text-caption text-secondary mt-space-xs">สถานะ: ครบ 100% (สมบูรณ์)</div>
+</div>
+</div>
+<!-- Section 2: Detailed Sub-criteria Comparison Table -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<h3 class="font-title-sm text-title-sm text-primary font-semibold">
+            ตารางเปรียบเทียบคะแนนรายเกณฑ์ย่อย (Scored Sub-criteria)
+          </h3>
+<span class="font-caption text-caption text-secondary">ค่าคะแนนดิบต่อกรรมการ (สเกลเต็มร้อย)</span>
+</div>
+<div class="border border-outline rounded overflow-hidden bg-surface-container-lowest">
+<table class="w-full text-left border-collapse font-body-md text-body-md">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline font-label-md text-label-md text-primary">
+<th class="p-space-md border-r border-outline-variant font-semibold">หัวข้อเกณฑ์ (เต็ม)</th>
+<th class="p-space-md text-center border-r border-outline-variant font-medium w-28">
+<div>ผศ.ดร.สมชาย</div>
+<div class="font-caption text-caption text-secondary font-normal">ประธาน</div>
+</th>
+<th class="p-space-md text-center border-r border-outline-variant font-medium w-28">
+<div>รศ.ดร.วิมล</div>
+<div class="font-caption text-caption text-secondary font-normal">กรรมการ</div>
+</th>
+<th class="p-space-md text-center border-r border-outline-variant font-medium w-28">
+<div>ผศ.ดร.ศิริพร</div>
+<div class="font-caption text-caption text-secondary font-normal">กรรมการ</div>
+</th>
+<th class="p-space-md text-right font-bold w-28 bg-surface-container-high/50">คะแนนเฉลี่ย</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant text-on-surface">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low/50">
+<td class="p-space-md border-r border-outline-variant">
+<div class="font-medium text-primary">1. ผลการเรียน (30)</div>
+<div class="font-caption text-caption text-secondary">เกรดเฉลี่ยสะสมและวิชาชีพหลัก</div>
+</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">28.00</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">29.00</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">28.50</td>
+<td class="p-space-md text-right font-mono font-semibold bg-surface-container-high/30">28.50</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low/50">
+<td class="p-space-md border-r border-outline-variant">
+<div class="font-medium text-primary">2. ความประพฤติและจิตอาสา (20)</div>
+<div class="font-caption text-caption text-secondary">ชั่วโมงจิตอาสาและการมีส่วนร่วมส่วนรวม</div>
+</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">19.00</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">18.50</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">19.00</td>
+<td class="p-space-md text-right font-mono font-semibold bg-surface-container-high/30">18.83</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low/50">
+<td class="p-space-md border-r border-outline-variant">
+<div class="font-medium text-primary">3. ความจำเป็นทางเศรษฐกิจ (30)</div>
+<div class="font-caption text-caption text-secondary">รายได้ครอบครัวและภาระหนี้สินทางการศึกษา</div>
+</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">26.50</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">27.00</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">26.00</td>
+<td class="p-space-md text-right font-mono font-semibold bg-surface-container-high/30">26.50</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low/50">
+<td class="p-space-md border-r border-outline-variant">
+<div class="font-medium text-primary">4. ผลงานและกิจกรรม (10)</div>
+<div class="font-caption text-caption text-secondary">การแข่งขันโครงงานและกิจกรรมวิชาการ</div>
+</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">9.00</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">9.50</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">9.00</td>
+<td class="p-space-md text-right font-mono font-semibold bg-surface-container-high/30">9.17</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-low/50">
+<td class="p-space-md border-r border-outline-variant">
+<div class="font-medium text-primary">5. การสัมภาษณ์ (10)</div>
+<div class="font-caption text-caption text-secondary">ทัศนคติ บุคลิกภาพ และความมุ่งมั่น</div>
+</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">8.50</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">9.00</td>
+<td class="p-space-md text-center font-mono border-r border-outline-variant">8.00</td>
+<td class="p-space-md text-right font-mono font-semibold bg-surface-container-high/30">8.50</td>
+</tr>
+<!-- Row คะแนนรวม (100) -->
+<tr class="bg-surface-container-high font-bold border-t-2 border-primary">
+<td class="p-space-md border-r border-outline-variant text-primary font-headline-md">
+                  คะแนนรวม (100)
+                </td>
+<td class="p-space-md text-center font-mono text-title-sm border-r border-outline-variant">91.00</td>
+<td class="p-space-md text-center font-mono text-title-sm border-r border-outline-variant">93.00</td>
+<td class="p-space-md text-center font-mono text-title-sm border-r border-outline-variant">90.50</td>
+<td class="p-space-md text-right font-mono font-bold text-headline-md text-primary bg-surface-container-highest">91.50</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Section 3: Collapsible Qualitative Evaluations per Evaluator -->
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<h3 class="font-title-sm text-title-sm text-primary font-semibold">
+            บันทึกความเห็นและการประเมินเชิงคุณภาพ (Qualitative Feedback)
+          </h3>
+<span class="font-caption text-caption text-secondary">3 ข้อคิดเห็นที่บันทึกแล้ว</span>
+</div>
+<!-- Block 1: ผศ.ดร.สมชาย ใจดี -->
+<div class="border border-outline bg-surface-container-low rounded p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between pb-space-sm border-b border-outline-variant">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[20px] text-primary">account_circle</span>
+<span class="font-label-md text-label-md text-primary font-semibold">ผศ.ดร.สมชาย ใจดี</span>
+<span class="font-caption text-caption text-secondary">(ประธานกรรมการประเมิน)</span>
+</div>
+<span class="flex items-center gap-space-xs px-2 py-0.5 border border-primary text-primary text-label-sm font-label-sm rounded uppercase">
+<span class="material-symbols-outlined text-[14px]">done</span> Submitted
+            </span>
+</div>
+<div class="flex flex-col gap-space-xs text-body-md pt-space-xs">
+<span class="font-label-sm text-label-sm text-secondary">ข้อเสนอแนะเรื่องการรับทุนต่อเนื่อง:</span>
+<p class="text-primary font-body-md bg-surface-container-lowest p-space-sm border border-outline-variant rounded">
+              "นักศึกษามีผลการเรียนดีเด่นและมีความตั้งใจสูง สมควรได้รับการสนับสนุนต่อเนื่อง มีเป้าหมายในการทำโครงงานวิจัยเพื่อชุมชนอย่างชัดเจน"
+            </p>
+</div>
+<div class="grid grid-cols-2 gap-space-md mt-space-xs">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-secondary">มูลค่าทุนที่สมควรได้รับ:</span>
+<div class="font-label-md text-label-md text-primary font-semibold flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-secondary">check_circle</span>
+                เต็มจำนวนตามเกณฑ์คณะ (60,000 บาท/ปีการศึกษา)
+              </div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-secondary">เวลาที่บันทึกผล (Audit Timestamp):</span>
+<div class="font-caption text-caption text-secondary font-mono">14 ก.ย. 2567, 10:42:18 น.</div>
+</div>
+</div>
+</div>
+<!-- Block 2: รศ.ดร.วิมล รักเรียน -->
+<div class="border border-outline bg-surface-container-low rounded p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between pb-space-sm border-b border-outline-variant">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[20px] text-primary">account_circle</span>
+<span class="font-label-md text-label-md text-primary font-semibold">รศ.ดร.วิมล รักเรียน</span>
+<span class="font-caption text-caption text-secondary">(กรรมการประเมินสาขา)</span>
+</div>
+<span class="flex items-center gap-space-xs px-2 py-0.5 border border-primary text-primary text-label-sm font-label-sm rounded uppercase">
+<span class="material-symbols-outlined text-[14px]">done</span> Submitted
+            </span>
+</div>
+<div class="flex flex-col gap-space-xs text-body-md pt-space-xs">
+<span class="font-label-sm text-label-sm text-secondary">ข้อเสนอแนะ:</span>
+<p class="text-primary font-body-md bg-surface-container-lowest p-space-sm border border-outline-variant rounded">
+              "ผลงานทางวิชาการโดดเด่น มีจิตอาสาช่วยกิจกรรมคณะสม่ำเสมอ เป็นตัวแทนแข่งขันระดับภาค ตอบคำถามสัมภาษณ์ได้กระชับและสะท้อนทัศนคติที่ดีมาก"
+            </p>
+</div>
+<div class="grid grid-cols-2 gap-space-md mt-space-xs">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-secondary">มูลค่าทุน:</span>
+<div class="font-label-md text-label-md text-primary font-semibold flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-secondary">check_circle</span>
+                เต็มจำนวน
+              </div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-secondary">เวลาที่บันทึกผล (Audit Timestamp):</span>
+<div class="font-caption text-caption text-secondary font-mono">14 ก.ย. 2567, 11:15:02 น.</div>
+</div>
+</div>
+</div>
+<!-- Block 3: ผศ.ดร.ศิริพร เจริญสุข -->
+<div class="border border-outline bg-surface-container-low rounded p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between pb-space-sm border-b border-outline-variant">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[20px] text-primary">account_circle</span>
+<span class="font-label-md text-label-md text-primary font-semibold">ผศ.ดร.ศิริพร เจริญสุข</span>
+<span class="font-caption text-caption text-secondary">(กรรมการประเมินฝ่ายพัฒนานักศึกษา)</span>
+</div>
+<span class="flex items-center gap-space-xs px-2 py-0.5 border border-primary text-primary text-label-sm font-label-sm rounded uppercase">
+<span class="material-symbols-outlined text-[14px]">done</span> Submitted
+            </span>
+</div>
+<div class="flex flex-col gap-space-xs text-body-md pt-space-xs">
+<span class="font-label-sm text-label-sm text-secondary">ข้อเสนอแนะ:</span>
+<p class="text-primary font-body-md bg-surface-container-lowest p-space-sm border border-outline-variant rounded">
+              "ตรงตามคุณสมบัติการจัดสรรทุนทุกประการ เอกสารประกอบครบถ้วนและครอบครัวมีความจำเป็นชัดเจน"
+            </p>
+</div>
+<div class="grid grid-cols-2 gap-space-md mt-space-xs">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-secondary">มูลค่าทุน:</span>
+<div class="font-label-md text-label-md text-primary font-semibold flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-secondary">check_circle</span>
+                เต็มจำนวน
+              </div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-secondary">เวลาที่บันทึกผล (Audit Timestamp):</span>
+<div class="font-caption text-caption text-secondary font-mono">14 ก.ย. 2567, 14:05:44 น.</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Drawer Fixed Footer Action Bar -->
+<div class="p-space-lg border-t border-outline bg-surface-container-low flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs text-secondary font-caption text-caption">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span>แสดงเฉพาะผลการประเมินสถานะ Submitted เท่านั้น (Audit Trail Protected)</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="px-space-md py-space-sm bg-surface-container-lowest border border-outline text-primary font-label-md text-label-md rounded hover:bg-surface-container-high transition-colors" onclick="document.getElementById('applicant-detail-drawer').classList.add('hidden'); document.getElementById('drawer-backdrop').classList.add('hidden');" type="button">
+            ปิดหน้าต่าง
+          </button>
+<button class="px-space-md py-space-sm bg-primary border border-primary text-on-primary font-label-md text-label-md rounded flex items-center gap-space-xs hover:bg-primary-container transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">print</span>
+            พิมพ์ใบบันทึกผล (PDF)
+          </button>
+</div>
+</div>
+</div>
+</aside>
+<!-- Interactive JavaScript to handle Drawer Toggle & Esc binding -->
+<script>
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        const drawer = document.getElementById('applicant-detail-drawer');
+        const backdrop = document.getElementById('drawer-backdrop');
+        if (drawer && !drawer.classList.contains('hidden')) {
+          drawer.classList.add('hidden');
+          if (backdrop) backdrop.classList.add('hidden');
+        }
+      }
+    });
+
+    const backdropEl = document.getElementById('drawer-backdrop');
+    if (backdropEl) {
+      backdropEl.addEventListener('click', function() {
+        const drawer = document.getElementById('applicant-detail-drawer');
+        if (drawer) drawer.classList.add('hidden');
+        backdropEl.classList.add('hidden');
+      });
+    }
+  </script>
+</div></main></div></body></html>
