@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>V1 – Rounds to evaluate</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'IBM Plex Sans Thai', sans-serif; font-size: 16px; line-height: 1.6; color: #374151; background-color: #ffffff; }
+  .wire-border { border: 1px solid #9CA3AF; }
+  .wire-panel { background-color: #F3F4F6; }
+  .wire-btn-primary { background-color: #374151; color: #ffffff; border: 1px solid #374151; }
+  .wire-btn-primary:hover { background-color: #1f2937; }
+  .wire-pill { border: 1px solid #9CA3AF; background-color: #ffffff; border-radius: 9999px; font-size: 14px; padding: 2px 10px; display: inline-flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body class="min-h-screen flex bg-white text-[#374151]">
+  <!-- EVALUATOR SIDEBAR -->
+  <aside class="w-[260px] min-h-screen border-r wire-border flex flex-col justify-between p-4 bg-white flex-shrink-0">
+    <div>
+      <!-- Logo Box -->
+      <div class="wire-border p-3 mb-6 bg-white">
+        <div class="font-bold text-xl tracking-tight text-[#374151]">SEMS <span class="text-xs font-normal text-gray-500">v2.4</span></div>
+        <div class="text-xs text-[#374151] mt-1 leading-snug">ระบบบริหารจัดการการประเมินทุนการศึกษา</div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="space-y-2">
+        <!-- Highlighted Active -->
+        <a href="#" class="flex items-center justify-between px-3 py-3 wire-border wire-panel font-medium rounded-sm">
+          <span>รอบทุนที่เปิดประเมิน</span>
+          <span class="text-xs">›</span>
+        </a>
+        <a href="#" class="flex items-center justify-between px-3 py-3 border border-transparent hover:border-gray-300 text-gray-700">
+          <span>ผลการประเมินของฉัน</span>
+          <span class="text-xs text-gray-400">›</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Sidebar Footer -->
+    <div class="pt-4 border-t wire-border text-xs text-gray-500">
+      คณะวิศวกรรมศาสตร์<br>มหาวิทยาลัยขอนแก่น
+    </div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- TOP BAR 64px -->
+    <header class="h-16 border-b wire-border px-8 flex items-center justify-between bg-white flex-shrink-0">
+      <div class="text-lg font-medium">รอบทุนที่เปิดประเมิน / ระบบประเมินทุนการศึกษา</div>
+      <div class="flex items-center space-x-3">
+        <span class="text-sm font-medium">ผศ.ดร.สมชาย ใจดี</span>
+        <span class="wire-pill text-xs font-semibold">Evaluator</span>
+        <button class="wire-border px-3 py-1 text-sm bg-white hover:bg-gray-100">ออกจากระบบ</button>
+      </div>
+    </header>
+
+    <!-- CONTENT 40px padding -->
+    <main class="p-10 flex-1 bg-white">
+      <!-- Breadcrumb / Header Tag -->
+      <div class="text-xs font-mono text-gray-500 mb-2">FRAME ID: V1 | EVALUATOR WORKSPACE</div>
+      <div class="flex items-center justify-between pb-4 border-b wire-border mb-8">
+        <div>
+          <h1 class="text-2xl font-bold text-[#374151]">รอบทุนที่เปิดประเมิน</h1>
+          <p class="text-sm text-gray-500 mt-1">แสดงเฉพาะรอบทุนที่มีสถานะเปิดรับการประเมิน (Open) เท่านั้น</p>
+        </div>
+        <div class="wire-pill text-xs">
+          <span>เปิดประเมิน: 1 รอบ</span>
+        </div>
+      </div>
+
+      <!-- ROUND CARDS GRID -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl">
+        <!-- Card 1 -->
+        <div class="wire-border wire-panel p-6 rounded-none flex flex-col justify-between">
+          <div>
+            <div class="flex items-start justify-between mb-3">
+              <span class="wire-pill font-mono font-semibold">Open</span>
+              <span class="text-xs text-gray-500">เกณฑ์: เกณฑ์ทุนเรียนดี 2569</span>
+            </div>
+            
+            <h2 class="text-xl font-bold mb-1">ทุนการศึกษาเรียนดี</h2>
+            <div class="text-sm font-medium text-gray-600 mb-6">ปีการศึกษา 2569 ภาคเรียนที่ 1</div>
+
+            <div class="wire-border p-4 bg-white mb-6 space-y-3">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">ผู้สมัครทั้งหมด:</span>
+                <span class="font-bold">117 คน</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">ความคืบหน้าของฉัน:</span>
+                <span class="font-bold">ประเมินแล้ว 12 / 117</span>
+              </div>
+
+              <!-- Thin Progress Bar (wireframe) -->
+              <div class="w-full bg-gray-200 h-2 border border-gray-400">
+                <div class="bg-[#374151] h-full" style="width: 10.25%;"></div>
+              </div>
+              <div class="text-right text-xs text-gray-500">คงเหลือ 105 คน</div>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <button class="w-full py-3 wire-btn-primary font-medium text-center text-sm">
+              เข้าประเมิน
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

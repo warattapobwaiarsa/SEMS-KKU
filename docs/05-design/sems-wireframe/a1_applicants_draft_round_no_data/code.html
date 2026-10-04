@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html lang="th"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={"darkMode":"class","theme":{"extend":{"colors":{"surface-bright":"#f9f9ff","on-secondary-container":"#5e6570","primary-fixed":"#d9e3f7","on-tertiary-fixed":"#261905","on-surface":"#151c27","tertiary-fixed-dim":"#dbc3a2","error-container":"#ffdad6","surface-tint":"#555f70","secondary-fixed-dim":"#c0c7d3","primary-fixed-dim":"#bdc7db","inverse-primary":"#bdc7db","outline":"#75777d","tertiary-container":"#4e3e25","secondary":"#585f6a","on-error-container":"#93000a","on-tertiary-container":"#c0a989","surface-container-low":"#f0f3ff","tertiary-fixed":"#f8dfbc","tertiary":"#362811","primary-container":"#374151","on-tertiary-fixed-variant":"#55442b","surface-container-lowest":"#ffffff","error":"#ba1a1a","outline-variant":"#c5c6cc","on-primary-fixed":"#121c2a","on-secondary":"#ffffff","surface-dim":"#d3daea","surface":"#f9f9ff","surface-variant":"#dce2f3","surface-container-high":"#e2e8f8","surface-container":"#e7eefe","on-secondary-fixed":"#151c25","secondary-container":"#dce3f0","on-background":"#151c27","on-primary-container":"#a3adc0","secondary-fixed":"#dce3f0","on-error":"#ffffff","inverse-on-surface":"#ebf1ff","inverse-surface":"#2a313d","surface-container-highest":"#dce2f3","on-secondary-fixed-variant":"#404752","on-tertiary":"#ffffff","on-surface-variant":"#44474c","background":"#f9f9ff","on-primary":"#ffffff","primary":"#212b3a","on-primary-fixed-variant":"#3d4757"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"margin":"1rem","gutter-desktop":"1.5rem","gutter":"1rem","space-xs":"0.25rem","space-sm":"0.5rem","space-md":"1rem","space-lg":"1.5rem","space-xl":"2rem","margin-tablet":"1.5rem","margin-desktop":"2rem"},"fontFamily":{"headline-lg":["IBM Plex Sans"],"body-md":["IBM Plex Sans"],"headline-xl":["IBM Plex Sans"],"caption":["IBM Plex Sans"],"body-lg":["IBM Plex Sans"],"headline-md":["IBM Plex Sans"],"label-sm":["IBM Plex Sans"],"label-md":["IBM Plex Sans"],"title-sm":["IBM Plex Sans"]},"fontSize":{"headline-lg":["24px",{"lineHeight":"32px","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"22.4px","fontWeight":"400"}],"headline-xl":["32px",{"lineHeight":"40px","fontWeight":"600"}],"caption":["11px",{"lineHeight":"16px","letterSpacing":"0.5px","fontWeight":"400"}],"body-lg":["16px",{"lineHeight":"25.6px","fontWeight":"400"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"600"}],"label-sm":["12px",{"lineHeight":"16px","fontWeight":"500"}],"label-md":["14px",{"lineHeight":"20px","fontWeight":"500"}],"title-sm":["16px",{"lineHeight":"24px","fontWeight":"600"}]}}}}</script></head><body class="bg-surface-container-lowest font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-[260px] bg-surface-container-low border-r border-outline-variant z-50 flex flex-col justify-between"><div class="flex flex-col"><div class="p-space-md border-b border-outline-variant"><div class="flex items-center gap-space-sm mb-space-xs"><div class="w-9 h-9 border border-primary-container bg-surface-container-lowest flex items-center justify-center font-headline-md text-headline-md text-primary-container">S</div><div class="font-title-sm text-title-sm text-primary-container leading-tight tracking-wide">SEMS</div></div><p class="font-caption text-caption text-on-surface-variant leading-tight">ระบบบริหารจัดการการประเมินทุนการศึกษา</p></div><nav class="flex flex-col p-space-sm gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-label-md"><a class="flex items-center gap-space-sm px-space-sm py-space-sm border border-transparent font-label-md text-label-md text-on-surface-variant hover:border-outline-variant transition-colors" data-path="users" href="#"><span class="material-symbols-outlined text-[20px]">group</span><span>ผู้ใช้งาน</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-sm border border-transparent font-label-md text-label-md text-on-surface-variant hover:border-outline-variant transition-colors" data-path="scholarship-rounds" href="#"><span class="material-symbols-outlined text-[20px]">event_note</span><span>รอบทุนการศึกษา</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-sm border border-transparent font-label-md text-label-md text-on-surface-variant hover:border-outline-variant transition-colors" data-path="evaluation-criteria" href="#"><span class="material-symbols-outlined text-[20px]">rule</span><span>เกณฑ์การประเมิน</span></a><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-space-sm border border-transparent hover:border-outline-variant transition-colors bg-primary-container text-on-primary font-label-md" data-path="applicants" href="#"><span class="material-symbols-outlined text-[20px]">assignment_ind</span><span>ผู้สมัคร</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-sm border border-transparent font-label-md text-label-md text-on-surface-variant hover:border-outline-variant transition-colors" data-path="evaluation-results-ranking" href="#"><span class="material-symbols-outlined text-[20px]">format_list_numbered</span><span>ผลการประเมินและอันดับ</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-sm border border-transparent font-label-md text-label-md text-on-surface-variant hover:border-outline-variant transition-colors" data-path="scholarship-allocation" href="#"><span class="material-symbols-outlined text-[20px]">how_to_reg</span><span>การจัดสรรทุน</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-sm border border-transparent font-label-md text-label-md text-on-surface-variant hover:border-outline-variant transition-colors" data-path="reports" href="#"><span class="material-symbols-outlined text-[20px]">summarize</span><span>รายงาน</span></a></nav></div><div class="p-space-md border-t border-outline-variant"><div class="font-caption text-caption text-on-surface-variant leading-normal">SEMS Wireframe v1.0 | KKU EN</div></div></aside><div class="pl-[260px]"><header class="fixed top-0 left-[260px] right-0 h-16 bg-surface-container-lowest border-b border-outline-variant z-40 flex items-center justify-between px-space-lg"><div class="flex items-center"><span class="font-label-md text-label-md text-primary-container tracking-tight">ระบบบริหารจัดการการประเมินทุนการศึกษา | คณะวิศวกรรมศาสตร์ มหาวิทยาลัยขอนแก่น</span></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><span class="font-label-md text-label-md text-primary-container">นายอนุชา ผู้ดูแล</span><span class="border border-outline-variant text-on-surface-variant font-label-sm text-label-sm px-space-xs py-0.5 rounded-full">Admin</span></div><button class="flex items-center gap-space-xs px-space-sm py-1 border border-outline-variant bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm hover:border-primary-container hover:text-primary-container transition-colors" type="button"><span class="material-symbols-outlined text-[16px]">logout</span><span>ออกจากระบบ</span></button></div></header><main class="w-full pt-16 bg-surface-container-lowest min-h-screen"><div class="flex flex-col w-full">
+<div class="px-gutter-desktop py-space-md border-b border-outline-variant bg-surface-container-low flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm flex-wrap">
+<span class="font-label-md text-label-md text-on-surface-variant">รหัสหน้าจอ:</span>
+<span class="px-space-xs py-0.5 border border-outline-variant bg-surface-container-lowest font-caption text-caption text-primary-container tracking-wider">A1 – Applicants, Draft round, no data</span>
+<span class="text-outline-variant">|</span>
+<span class="font-label-md text-label-md text-on-surface-variant">เมนูหลัก:</span>
+<span class="font-label-md text-label-md text-primary-container font-semibold">ผู้สมัคร (Applicants)</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+<span class="font-caption text-caption text-on-surface-variant">สถานะระบบ: โหมดร่างแบบร่างโครงสร้าง (Draft Architectural Wireframe)</span>
+</div>
+</div>
+<div class="px-gutter-desktop py-space-lg max-w-[1440px] w-full mx-auto flex flex-col gap-space-lg">
+<div class="p-space-lg border border-outline-variant bg-surface-container-lowest rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center gap-space-md">
+<label class="font-label-md text-label-md text-primary-container whitespace-nowrap flex items-center gap-space-xs" for="round-selector">
+<span class="material-symbols-outlined text-[18px] text-secondary">event_note</span>
+<span>รอบทุนการศึกษา:</span>
+</label>
+<div class="relative min-w-[280px]">
+<select class="w-full bg-surface-container-lowest border border-outline-variant rounded px-space-md py-space-sm pr-10 font-body-md text-body-md text-primary-container appearance-none focus:border-primary-container focus:outline-none cursor-pointer" id="round-selector">
+<option selected="">ทุนช่วยเหลือค่าครองชีพ (2569/1)</option>
+<option>ทุนเรียนดีวิศวกรรมศาสตร์ ประจำปีการศึกษา 2568</option>
+<option>ทุนสนับสนุนการวิจัยระดับปริญญาตรี (2568/2)</option>
+</select>
+<span class="material-symbols-outlined absolute right-space-sm top-1/2 -translate-y-1/2 text-secondary pointer-events-none text-[20px]">arrow_drop_down</span>
+</div>
+<div class="inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded-full border border-dashed border-outline-variant bg-surface-container-lowest">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-secondary">Draft</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="px-space-md py-space-sm border border-outline-variant bg-surface-container-lowest font-label-md text-label-md text-primary-container hover:bg-surface-container-low transition-colors rounded flex items-center gap-space-xs" type="button">
+<span class="material-symbols-outlined text-[18px]">history</span>
+<span>ประวัติรอบทุน</span>
+</button>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm text-secondary font-caption text-caption">
+<span>การจัดการผู้สมัคร</span>
+<span>/</span>
+<span class="text-primary-container font-medium">นำเข้าข้อมูลใหม่</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-primary-container">นำเข้าข้อมูลผู้สมัครทุนการศึกษา</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">เพิ่มรายชื่อนักศึกษาผู้ประสงค์ขอรับทุนสำหรับรอบการคัดเลือกปัจจุบันผ่านไฟล์สเปรดชีต Excel</p>
+</div>
+<div class="border border-outline-variant bg-surface-container-low p-space-md rounded-lg">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm items-center">
+<div class="flex items-center gap-space-sm p-space-sm bg-surface-container-lowest border border-primary-container rounded">
+<span class="w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-label-sm text-label-sm font-semibold">1</span>
+<span class="font-label-md text-label-md text-primary-container font-semibold">1. อัปโหลดไฟล์</span>
+<span class="ml-auto font-caption text-caption px-space-xs py-0.2 border border-primary-container text-primary-container rounded">ปัจจุบัน</span>
+</div>
+<div class="flex items-center gap-space-sm p-space-sm bg-surface-container-lowest border border-outline-variant rounded text-on-surface-variant">
+<span class="w-6 h-6 rounded-full border border-outline-variant bg-surface-container-low flex items-center justify-center font-label-sm text-label-sm">2</span>
+<span class="font-label-md text-label-md">2. ตรวจสอบข้อมูล</span>
+</div>
+<div class="flex items-center gap-space-sm p-space-sm bg-surface-container-lowest border border-outline-variant rounded text-on-surface-variant">
+<span class="w-6 h-6 rounded-full border border-outline-variant bg-surface-container-low flex items-center justify-center font-label-sm text-label-sm">3</span>
+<span class="font-label-md text-label-md">3. เสร็จสิ้น</span>
+</div>
+</div>
+</div>
+<div class="border border-outline-variant bg-surface-container-low p-space-md rounded-lg flex items-start gap-space-md" role="alert">
+<span class="material-symbols-outlined text-[24px] text-primary-container shrink-0 mt-0.5">warning</span>
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm text-primary-container font-semibold">ข้อควรระวังในการนำเข้าข้อมูล:</span>
+<p class="font-body-md text-body-md text-primary-container mt-space-xs">
+          การนำเข้าจะแทนที่ข้อมูลผู้สมัครเดิมทั้งหมดของรอบทุนนี้ หากมีการอัปโหลดไฟล์ชุดใหม่ ข้อมูลรายชื่อและแบบฟอร์มการประเมินเบื้องต้นเดิมจะถูกลบล้างและเขียนทับทั้งหมด
+        </p>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<div class="lg:col-span-8 flex flex-col gap-space-md">
+<div class="border-2 border-dashed border-outline-variant bg-surface-container-lowest rounded-lg p-space-xl flex flex-col items-center justify-center text-center gap-space-md min-h-[380px] hover:border-primary-container transition-colors cursor-pointer group" id="drop-target">
+<div class="w-16 h-16 border border-outline-variant rounded-full flex items-center justify-center bg-surface-container-low group-hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[36px] text-secondary group-hover:text-primary-container">cloud_upload</span>
+</div>
+<div class="flex flex-col items-center gap-space-xs max-w-md">
+<p class="font-title-sm text-title-sm text-primary-container">
+              ลากไฟล์ .xlsx มาวางที่นี่ หรือ
+            </p>
+<p class="font-caption text-caption text-on-surface-variant">
+              ระบบรองรับโครงสร้างตารางข้อมูลมาตรฐานตามเทมเพลตของคณะวิศวกรรมศาสตร์
+            </p>
+</div>
+<div class="flex items-center gap-space-sm mt-space-xs">
+<input accept=".xlsx" class="hidden" id="file-input" type="file"/>
+<button class="px-space-lg py-space-sm border border-outline-variant bg-surface-container-lowest font-label-md text-label-md text-primary-container rounded flex items-center gap-space-xs hover:border-primary-container hover:bg-surface-container-low transition-colors" id="browse-btn" type="button">
+<span class="material-symbols-outlined text-[20px]">folder_open</span>
+<span>เลือกไฟล์</span>
+</button>
+<a class="px-space-md py-space-sm border border-transparent font-label-md text-label-md text-secondary hover:text-primary-container underline flex items-center gap-space-xs" href="#">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>ดาวน์โหลดไฟล์แม่แบบ (.xlsx)</span>
+</a>
+</div>
+<div class="pt-space-md border-t border-outline-variant w-full max-w-sm mt-space-sm">
+<span class="font-caption text-caption text-secondary">
+              รองรับไฟล์ Microsoft Excel (.xlsx) ขนาดไม่เกิน 10MB
+            </span>
+</div>
+</div>
+<div class="hidden border border-outline-variant bg-surface-container-lowest rounded-lg p-space-md flex items-center justify-between" id="file-preview-card">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 border border-outline-variant bg-surface-container-low flex items-center justify-center rounded">
+<span class="material-symbols-outlined text-[24px] text-primary-container">description</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary-container font-semibold" id="preview-filename">applicants_data.xlsx</span>
+<span class="font-caption text-caption text-secondary" id="preview-filesize">2.4 MB - พร้อมตรวจสอบความถูกต้อง</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="p-space-xs text-on-surface-variant hover:text-error transition-colors" id="remove-file-btn" title="ลบไฟล์" type="button">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+<button class="px-space-md py-space-sm border border-primary-container bg-primary-container text-on-primary rounded font-label-md text-label-md flex items-center gap-space-xs" type="button">
+<span>ดำเนินการตรวจสอบ</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="border border-outline-variant bg-surface-container-low rounded-lg p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-primary-container font-semibold">ขั้นตอนและเงื่อนไขการนำเข้า:</span>
+<span class="font-caption text-caption text-secondary">Workflow Checklist</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm text-on-surface-variant font-caption text-caption">
+<div class="p-space-sm border border-outline-variant bg-surface-container-lowest rounded flex flex-col gap-space-xs">
+<span class="font-semibold text-primary-container">1. รูปแบบตาราง</span>
+<span>หัวตารางต้องอยู่ในแถวแรก (Row 1) ไม่มีช่องเซลล์ที่รวมกัน (Merged Cells)</span>
+</div>
+<div class="p-space-sm border border-outline-variant bg-surface-container-lowest rounded flex flex-col gap-space-xs">
+<span class="font-semibold text-primary-container">2. ค่าว่างในคอลัมน์หลัก</span>
+<span>คอลัมน์จำเป็นทุกช่องต้องมีค่า หากเว้นว่างระบบจะแจ้งเตือนข้อผิดพลาด</span>
+</div>
+<div class="p-space-sm border border-outline-variant bg-surface-container-lowest rounded flex flex-col gap-space-xs">
+<span class="font-semibold text-primary-container">3. รูปแบบข้อมูลตัวเลข</span>
+<span>GPA ต้องเป็นทศนิยม 2 ตำแหน่ง (0.00-4.00) รหัสนักศึกษา 9 หรือ 10 หลัก</span>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-4 flex flex-col gap-space-md">
+<div class="border border-outline-variant bg-surface-container-lowest rounded-lg p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center gap-space-sm border-b border-outline-variant pb-space-sm">
+<span class="material-symbols-outlined text-[20px] text-primary-container">table_view</span>
+<h2 class="font-title-sm text-title-sm text-primary-container">ข้อกำหนดโครงสร้างไฟล์ Excel</h2>
+</div>
+<div class="border border-outline-variant bg-surface-container-low p-space-md rounded flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-primary-container font-semibold flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px] text-primary-container">check_box</span>
+<span>คอลัมน์ที่ต้องมี (Required)</span>
+</span>
+<span class="font-caption text-caption border border-outline-variant px-space-xs py-0.5 rounded bg-surface-container-lowest text-primary-container">11 รายการ</span>
+</div>
+<p class="font-caption text-caption text-on-surface-variant leading-relaxed">
+              แถวหัวข้อของตาราง Excel ต้องตรงกับชื่อคอลัมน์ด้านล่างนี้ทุกประการ:
+            </p>
+<ol class="space-y-space-xs font-body-md text-body-md text-primary-container list-decimal list-inside pl-space-xs">
+<li class="py-0.5 border-b border-outline-variant/40"><span class="font-medium">รหัสนักศึกษา</span> <span class="font-caption text-caption text-secondary">(Student ID)</span></li>
+<li class="py-0.5 border-b border-outline-variant/40"><span class="font-medium">คำนำหน้า</span> <span class="font-caption text-caption text-secondary">(Title)</span></li>
+<li class="py-0.5 border-b border-outline-variant/40"><span class="font-medium">ชื่อ</span> <span class="font-caption text-caption text-secondary">(First Name)</span></li>
+<li class="py-0.5 border-b border-outline-variant/40"><span class="font-medium">สกุล</span> <span class="font-caption text-caption text-secondary">(Last Name)</span></li>
+<li class="py-0.5 border-b border-outline-variant/40"><span class="font-medium">คณะ</span> <span class="font-caption text-caption text-secondary">(Faculty)</span></li>
+<li class="py-0.5 border-b border-outline-variant/40"><span class="font-medium">สาขา</span> <span class="font-caption text-caption text-secondary">(Department/Major)</span></li>
+<li class="py-0.5 border-b border-outline-variant/40"><span class="font-medium">ชั้นปี</span> <span class="font-caption text-caption text-secondary">(Year: 1-4)</span></li>
+<li class="py-0.5 border-b border-outline-variant/40"><span class="font-medium">GPA</span> <span class="font-caption text-caption text-secondary">(Cumulative GPA)</span></li>
+<li class="py-0.5 border-b border-outline-variant/40"><span class="font-medium">โทรศัพท์</span> <span class="font-caption text-caption text-secondary">(Mobile Phone)</span></li>
+<li class="py-0.5 border-b border-outline-variant/40"><span class="font-medium">อีเมล</span> <span class="font-caption text-caption text-secondary">(KKU Mail)</span></li>
+<li class="py-0.5"><span class="font-medium">เลขบัตรประชาชน</span> <span class="font-caption text-caption text-secondary">(Citizen ID: 13 หลัก)</span></li>
+</ol>
+</div>
+<div class="border border-outline-variant bg-surface-container-low p-space-md rounded flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-primary-container font-semibold flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px] text-secondary">check_box_outline_blank</span>
+<span>คอลัมน์ข้อมูลประกอบ (ไม่บังคับ)</span>
+</span>
+<span class="font-caption text-caption text-secondary border border-dashed border-outline-variant px-space-xs py-0.5 rounded">Optional</span>
+</div>
+<p class="font-caption text-caption text-on-surface-variant leading-relaxed">
+              ข้อมูลที่ใช้ประกอบการประเมินคะแนนของคณะกรรมการ สามารถใส่เพิ่มเติมได้:
+            </p>
+<ul class="space-y-space-xs font-body-md text-body-md text-primary-container list-disc list-inside pl-space-xs">
+<li class="py-0.5"><span class="font-medium">รายได้ครอบครัว</span> <span class="font-caption text-caption text-secondary">(บาทต่อปี)</span></li>
+<li class="py-0.5"><span class="font-medium">ภาระหนี้สิน</span> <span class="font-caption text-caption text-secondary">(บาท)</span></li>
+<li class="py-0.5"><span class="font-medium">เหตุผลความจำเป็น</span> <span class="font-caption text-caption text-secondary">(ข้อความบรรยาย)</span></li>
+<li class="py-0.5"><span class="font-medium">จำนวนพี่น้อง</span> <span class="font-caption text-caption text-secondary">(คน)</span></li>
+</ul>
+</div>
+<div class="p-space-sm border border-outline-variant bg-surface-container-lowest rounded flex items-center gap-space-sm text-secondary font-caption text-caption">
+<span class="material-symbols-outlined text-[18px]">help_outline</span>
+<span>ต้องการปรับแต่งโครงสร้างเกณฑ์คะแนน? ติดต่อ ผู้ดูแลระบบหลักคณะ</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+    (function() {
+      var navLinks = document.querySelectorAll('aside nav a');
+      navLinks.forEach(function(link) {
+        if (link.getAttribute('data-path') === 'applicants') {
+          link.classList.remove('text-on-surface-variant', 'border-transparent');
+          link.classList.add('bg-primary-container', 'text-on-primary', 'border-primary-container');
+          var icon = link.querySelector('.material-symbols-outlined');
+          if (icon) {
+            icon.classList.remove('text-on-surface-variant');
+            icon.classList.add('text-on-primary');
+          }
+        }
+      });
+
+      var browseBtn = document.getElementById('browse-btn');
+      var fileInput = document.getElementById('file-input');
+      var dropTarget = document.getElementById('drop-target');
+      var previewCard = document.getElementById('file-preview-card');
+      var previewFilename = document.getElementById('preview-filename');
+      var previewFilesize = document.getElementById('preview-filesize');
+      var removeFileBtn = document.getElementById('remove-file-btn');
+
+      if (browseBtn && fileInput) {
+        browseBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          fileInput.click();
+        });
+      }
+
+      if (dropTarget) {
+        dropTarget.addEventListener('click', function() {
+          fileInput.click();
+        });
+
+        dropTarget.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          dropTarget.classList.add('border-primary-container', 'bg-surface-container-low');
+        });
+
+        dropTarget.addEventListener('dragleave', function() {
+          dropTarget.classList.remove('border-primary-container', 'bg-surface-container-low');
+        });
+
+        dropTarget.addEventListener('drop', function(e) {
+          e.preventDefault();
+          dropTarget.classList.remove('border-primary-container', 'bg-surface-container-low');
+          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleSelectedFile(e.dataTransfer.files[0]);
+          }
+        });
+      }
+
+      if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+          if (e.target.files && e.target.files.length > 0) {
+            handleSelectedFile(e.target.files[0]);
+          }
+        });
+      }
+
+      function handleSelectedFile(file) {
+        if (!file.name.endsWith('.xlsx')) {
+          alert('กรุณาเลือกไฟล์รูปแบบ .xlsx เท่านั้น');
+          return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          alert('ขนาดไฟล์เกินกว่า 10MB กรุณาตรวจสอบขนาดไฟล์');
+          return;
+        }
+
+        previewFilename.textContent = file.name;
+        var sizeKb = (file.size / 1024).toFixed(1);
+        var sizeStr = sizeKb > 1024 ? (sizeKb / 1024).toFixed(2) + ' MB' : sizeKb + ' KB';
+        previewFilesize.textContent = sizeStr + ' - ไฟล์พร้อมสำหรับการประมวลผลข้อมูล';
+        previewCard.classList.remove('hidden');
+      }
+
+      if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', function() {
+          fileInput.value = '';
+          previewCard.classList.add('hidden');
+        });
+      }
+    })();
+  </script>
+</div></main></div></body></html>

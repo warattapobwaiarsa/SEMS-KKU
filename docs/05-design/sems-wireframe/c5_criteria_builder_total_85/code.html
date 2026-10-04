@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html lang="th"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;font-family:'IBM Plex Sans Thai','IBM Plex Sans',sans-serif;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"inverse-surface":"#2a313d","outline":"#75777d","inverse-primary":"#bdc7db","on-secondary-fixed-variant":"#404752","secondary":"#585f6a","surface-container-low":"#f0f3ff","on-surface":"#151c27","secondary-fixed":"#dce3f0","surface-tint":"#555f70","primary":"#212b3a","primary-fixed-dim":"#bdc7db","on-error-container":"#93000a","background":"#f9f9ff","secondary-container":"#dce3f0","primary-container":"#374151","surface-container-lowest":"#ffffff","error-container":"#ffdad6","primary-fixed":"#d9e3f7","on-surface-variant":"#44474c","tertiary":"#362811","surface-container":"#e7eefe","on-primary-container":"#a3adc0","on-tertiary-container":"#c0a989","surface-bright":"#f9f9ff","on-primary-fixed":"#121c2a","surface-dim":"#d3daea","outline-variant":"#c5c6cc","surface-container-highest":"#dce2f3","secondary-fixed-dim":"#c0c7d3","on-tertiary":"#ffffff","surface":"#f9f9ff","on-error":"#ffffff","on-secondary-container":"#5e6570","tertiary-container":"#4e3e25","inverse-on-surface":"#ebf1ff","tertiary-fixed":"#f8dfbc","on-tertiary-fixed":"#261905","error":"#ba1a1a","on-primary-fixed-variant":"#3d4757","on-primary":"#ffffff","surface-container-high":"#e2e8f8","on-background":"#151c27","surface-variant":"#dce2f3","tertiary-fixed-dim":"#dbc3a2","on-secondary":"#ffffff","on-secondary-fixed":"#151c25","on-tertiary-fixed-variant":"#55442b"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"margin-desktop":"2rem","margin":"1rem","gutter":"1rem","space-xs":"0.25rem","space-xl":"2rem","space-md":"1rem","space-sm":"0.5rem","margin-tablet":"1.5rem","space-lg":"1.5rem","gutter-desktop":"1.5rem"},"fontFamily":{"label-md":["IBM Plex Sans"],"headline-xl":["IBM Plex Sans"],"label-sm":["IBM Plex Sans"],"headline-md":["IBM Plex Sans"],"body-lg":["IBM Plex Sans"],"title-sm":["IBM Plex Sans"],"body-md":["IBM Plex Sans"],"headline-lg":["IBM Plex Sans"],"caption":["IBM Plex Sans"]},"fontSize":{"label-md":["14px",{"lineHeight":"20px","fontWeight":"500"}],"headline-xl":["32px",{"lineHeight":"40px","fontWeight":"600"}],"label-sm":["12px",{"lineHeight":"16px","fontWeight":"500"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"25.6px","fontWeight":"400"}],"title-sm":["16px",{"lineHeight":"24px","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"22.4px","fontWeight":"400"}],"headline-lg":["24px",{"lineHeight":"32px","fontWeight":"600"}],"caption":["11px",{"lineHeight":"16px","letterSpacing":"0.5px","fontWeight":"400"}]}}}}</script></head><body class="bg-surface-container-lowest text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-[260px] bg-surface-container-lowest border-r border-outline-variant z-50 flex flex-col justify-between"><div class="flex flex-col"><div class="p-space-lg border-b border-outline-variant"><div class="flex items-center gap-space-sm mb-space-xs"><div class="w-8 h-8 border border-primary-container bg-surface-container-high flex items-center justify-center font-headline-md text-headline-md font-bold text-primary-container rounded-lg">S</div><span class="font-headline-lg text-headline-lg tracking-wider font-bold text-primary-container">SEMS</span></div><p class="font-caption text-caption text-on-surface-variant font-medium leading-tight">ระบบบริหารจัดการการประเมินทุนการศึกษา</p></div><nav class="flex flex-col py-space-md px-space-sm gap-space-xs" data-active-classes="bg-surface-container-high text-primary-container font-semibold border-l-4 border-primary-container pl-3"><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-body-md text-body-md" data-path="users" href="#"><span class="material-symbols-outlined text-[20px]">group</span><span>ผู้ใช้งาน</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-body-md text-body-md" data-path="scholarship-rounds" href="#"><span class="material-symbols-outlined text-[20px]">calendar_today</span><span>รอบทุนการศึกษา</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-body-md text-body-md" data-path="evaluation-criteria" href="#"><span class="material-symbols-outlined text-[20px]">fact_check</span><span>เกณฑ์การประเมิน</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-body-md text-body-md" data-path="applicants" href="#"><span class="material-symbols-outlined text-[20px]">person_search</span><span>ผู้สมัคร</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-body-md text-body-md" data-path="evaluation-results" href="#"><span class="material-symbols-outlined text-[20px]">format_list_numbered</span><span>ผลการประเมินและอันดับ</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-body-md text-body-md" data-path="scholarship-allocation" href="#"><span class="material-symbols-outlined text-[20px]">payments</span><span>การจัดสรรทุน</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-body-md text-body-md" data-path="reports" href="#"><span class="material-symbols-outlined text-[20px]">bar_chart</span><span>รายงาน</span></a></nav></div><div class="p-space-md border-t border-outline-variant bg-surface-container-lowest"><div class="flex items-center justify-between font-caption text-caption text-secondary border border-dashed border-outline-variant px-space-sm py-space-xs rounded-lg"><span>SEMS Wireframe v1.0</span><span class="font-semibold">KKU EN</span></div></div></aside><div class="pl-[260px]"><header class="fixed top-0 left-[260px] right-0 h-16 bg-surface-container-lowest border-b border-outline-variant z-40 flex items-center justify-between px-space-xl"><div class="flex items-center gap-space-sm"><span class="font-title-sm text-title-sm font-semibold text-primary-container">ระบบบริหารจัดการการประเมินทุนการศึกษา</span><span class="text-outline text-body-md">|</span><span class="font-caption text-caption text-secondary">คณะวิศวกรรมศาสตร์ มหาวิทยาลัยขอนแก่น</span></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><span class="font-label-md text-label-md text-primary-container font-medium">นายอนุชา ผู้ดูแล</span><span class="px-2 py-0.5 border border-outline text-secondary text-[12px] leading-tight font-medium rounded-full bg-surface-container-lowest">Admin</span></div><div class="h-4 w-px bg-outline-variant"></div><button class="flex items-center gap-space-xs px-space-sm py-1 border border-outline-variant hover:border-outline text-secondary hover:text-on-surface rounded-lg bg-surface-container-lowest transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">logout</span><span class="font-label-sm text-label-sm">ออกจากระบบ</span></button></div></header><main class="relative pt-16 bg-surface-container-lowest min-h-screen"><div class="flex flex-col w-full">
+<div class="w-full max-w-[1440px] mx-auto px-margin-desktop py-space-lg flex flex-col gap-space-lg">
+<!-- Top Alert Banner: Grayscale Warning (Score != 100) -->
+<div class="w-full bg-surface-container border border-outline p-space-md rounded-lg flex items-center justify-between" role="alert">
+<div class="flex items-center gap-space-sm text-primary-container">
+<span class="material-symbols-outlined text-[24px] text-primary-container select-none">warning</span>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-label-md text-label-md font-semibold text-primary-container">ข้อผิดพลาดของเกณฑ์:</span>
+<span class="font-body-md text-body-md text-primary-container font-semibold">ผลรวมคะแนนต้องเท่ากับ 100 (ปัจจุบัน 85)</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs font-caption text-caption text-secondary border border-outline px-space-sm py-0.5 rounded-lg bg-surface-container-lowest select-none">
+<span class="material-symbols-outlined text-[14px]">info</span>
+<span>ระบบล็อคการบันทึกจนกว่าคะแนนจะสมบูรณ์</span>
+</div>
+</div>
+<!-- Navigation Breadcrumb / Back Link -->
+<div class="flex items-center justify-between">
+<a class="inline-flex items-center gap-space-xs text-secondary hover:text-primary transition-colors font-body-md text-body-md group" href="#">
+<span class="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+<span>กลับสู่หน้ารายการเกณฑ์การประเมิน</span>
+</a>
+<span class="font-caption text-caption text-secondary uppercase tracking-widest font-mono">CODE: C5-CRITERIA-BUILDER-85</span>
+</div>
+<!-- Page Header & Global State Indicator -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md pb-space-sm border-b border-outline-variant">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="px-2 py-0.5 border border-outline font-caption text-caption uppercase text-secondary rounded-DEFAULT bg-surface-container-low font-mono">SPEC C5</span>
+<h1 class="font-headline-xl text-headline-xl font-semibold text-primary-container tracking-tight">สร้างเกณฑ์การประเมินใหม่</h1>
+</div>
+<p class="font-body-md text-body-md text-secondary">กำหนดชุดข้อเกณฑ์ย่อยและสัดส่วนคะแนนรวมสำหรับการคัดกรองทุนคณะวิศวกรรมศาสตร์</p>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="inline-flex items-center gap-space-xs px-3 py-1 rounded-full border border-primary-container bg-surface-container-lowest text-primary-container font-label-sm text-label-sm select-none">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span>สถานะ: คะแนนไม่ครบ 100</span>
+</div>
+</div>
+</div>
+<!-- 2-Column Grid Layout (8 cols vs 4 cols) -->
+<div class="grid grid-cols-12 gap-gutter-desktop items-start">
+<!-- LEFT COLUMN: 8 of 12 columns -->
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-space-lg">
+<!-- Card 1: Criteria Configuration Title -->
+<div class="bg-surface-container-lowest border border-outline rounded-lg p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between border-b border-outline-variant pb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-secondary">edit_note</span>
+<h2 class="font-title-sm text-title-sm font-semibold text-primary-container">ชื่อเกณฑ์การประเมิน</h2>
+</div>
+<span class="font-caption text-caption text-secondary font-mono">REQUIRED FIELD</span>
+</div>
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-md text-label-md font-medium text-primary-container" for="criteria-name">ชื่อชุดเกณฑ์ <span class="text-error font-mono">*</span></label>
+<input class="w-full bg-surface-container-lowest border border-outline rounded-lg px-space-md py-space-sm font-body-md text-body-md text-primary-container focus:outline-none focus:border-primary-container transition-colors" id="criteria-name" placeholder="ระบุชื่อชุดเกณฑ์การประเมิน..." type="text" value="เกณฑ์ทุนค่าครองชีพ (ร่าง)"/>
+<span class="font-caption text-caption text-secondary">ใช้สำหรับระบุในประกาศรับสมัครและหน้าบันทึกผลคะแนนของคณะกรรมการ</span>
+</div>
+</div>
+<!-- Card 2: Sub-criteria Builder (Total = 85 points) -->
+<div class="bg-surface-container-lowest border border-outline rounded-lg p-space-lg flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm border-b border-outline-variant pb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-secondary">list_alt</span>
+<h2 class="font-title-sm text-title-sm font-semibold text-primary-container">รายการเกณฑ์ย่อย</h2>
+<span class="ml-space-xs px-2 py-0.5 font-caption text-caption text-secondary border border-outline-variant rounded-full bg-surface-container-low font-mono">4 รายการ</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="inline-flex items-center gap-space-xs px-space-sm py-1 border border-outline-variant hover:border-outline text-secondary hover:text-primary-container rounded-lg bg-surface-container-lowest transition-colors font-label-sm text-label-sm" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>เพิ่มเกณฑ์แบบคะแนน</span>
+</button>
+<button class="inline-flex items-center gap-space-xs px-space-sm py-1 border border-outline-variant hover:border-outline text-secondary hover:text-primary-container rounded-lg bg-surface-container-lowest transition-colors font-label-sm text-label-sm" type="button">
+<span class="material-symbols-outlined text-[16px]">notes</span>
+<span>เพิ่มเกณฑ์ข้อความ</span>
+</button>
+</div>
+</div>
+<!-- Sub-criteria Table / Draggable Row Structure -->
+<div class="flex flex-col gap-space-sm">
+<!-- Item 1: GPA / Result (25 pts) -->
+<div class="border border-outline rounded-lg bg-surface-container-lowest p-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-md hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-sm flex-1 min-w-0">
+<div class="cursor-grab active:cursor-grabbing text-secondary hover:text-primary-container p-1 select-none flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">drag_indicator</span>
+</div>
+<div class="flex flex-col gap-space-xs flex-1">
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-0.5 border border-outline-variant text-[11px] font-mono uppercase text-secondary bg-surface-container rounded-DEFAULT">มีคะแนน</span>
+<span class="font-caption text-caption text-secondary">ลำดับที่ 1</span>
+</div>
+<input class="w-full bg-surface-container-lowest border border-outline rounded-lg px-space-sm py-1.5 font-body-md text-body-md text-primary-container focus:outline-none focus:border-primary-container" type="text" value="ผลการเรียน"/>
+</div>
+</div>
+<div class="flex items-center justify-between md:justify-end gap-space-lg pl-space-md md:pl-0 border-t md:border-t-0 border-outline-variant pt-space-xs md:pt-0">
+<div class="flex flex-col items-start md:items-end">
+<label class="font-caption text-caption text-secondary">คะแนนสูงสุด</label>
+<div class="flex items-center gap-1">
+<input class="w-20 bg-surface-container border border-outline rounded-lg px-space-sm py-1 font-body-md text-body-md text-center font-mono text-primary-container font-semibold" readonly="" type="number" value="25"/>
+<span class="font-caption text-caption text-secondary">แต้ม</span>
+</div>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-caption text-caption text-secondary mb-1">สวิตช์ใช้งาน</span>
+<div class="inline-flex items-center gap-1.5 px-2 py-1 border border-outline-variant rounded-full bg-surface-container-high text-secondary font-label-sm text-label-sm select-none" title="ปิดใช้งาน">
+<span class="w-2.5 h-2.5 rounded-full border border-secondary bg-surface-container-lowest"></span>
+<span class="text-[12px] leading-none">ปิด</span>
+</div>
+</div>
+<button class="p-2 border border-outline-variant hover:border-outline text-secondary hover:text-error rounded-lg bg-surface-container-lowest transition-colors" title="ลบรายการ" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Item 2: Economic Need (30 pts) -->
+<div class="border border-outline rounded-lg bg-surface-container-lowest p-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-md hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-sm flex-1 min-w-0">
+<div class="cursor-grab active:cursor-grabbing text-secondary hover:text-primary-container p-1 select-none flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">drag_indicator</span>
+</div>
+<div class="flex flex-col gap-space-xs flex-1">
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-0.5 border border-outline-variant text-[11px] font-mono uppercase text-secondary bg-surface-container rounded-DEFAULT">มีคะแนน</span>
+<span class="font-caption text-caption text-secondary">ลำดับที่ 2</span>
+</div>
+<input class="w-full bg-surface-container-lowest border border-outline rounded-lg px-space-sm py-1.5 font-body-md text-body-md text-primary-container focus:outline-none focus:border-primary-container" type="text" value="ความจำเป็นทางเศรษฐกิจ"/>
+</div>
+</div>
+<div class="flex items-center justify-between md:justify-end gap-space-lg pl-space-md md:pl-0 border-t md:border-t-0 border-outline-variant pt-space-xs md:pt-0">
+<div class="flex flex-col items-start md:items-end">
+<label class="font-caption text-caption text-secondary">คะแนนสูงสุด</label>
+<div class="flex items-center gap-1">
+<input class="w-20 bg-surface-container border border-outline rounded-lg px-space-sm py-1 font-body-md text-body-md text-center font-mono text-primary-container font-semibold" readonly="" type="number" value="30"/>
+<span class="font-caption text-caption text-secondary">แต้ม</span>
+</div>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-caption text-caption text-secondary mb-1">สวิตช์ใช้งาน</span>
+<div class="inline-flex items-center gap-1.5 px-2 py-1 border border-primary-container rounded-full bg-surface-container-lowest text-primary-container font-label-sm text-label-sm select-none" title="เปิดใช้งาน">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>
+<span class="text-[12px] leading-none font-semibold">เปิด</span>
+</div>
+</div>
+<button class="p-2 border border-outline-variant hover:border-outline text-secondary hover:text-error rounded-lg bg-surface-container-lowest transition-colors" title="ลบรายการ" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Item 3: Volunteer & Conduct (20 pts) -->
+<div class="border border-outline rounded-lg bg-surface-container-lowest p-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-md hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-sm flex-1 min-w-0">
+<div class="cursor-grab active:cursor-grabbing text-secondary hover:text-primary-container p-1 select-none flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">drag_indicator</span>
+</div>
+<div class="flex flex-col gap-space-xs flex-1">
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-0.5 border border-outline-variant text-[11px] font-mono uppercase text-secondary bg-surface-container rounded-DEFAULT">มีคะแนน</span>
+<span class="font-caption text-caption text-secondary">ลำดับที่ 3</span>
+</div>
+<input class="w-full bg-surface-container-lowest border border-outline rounded-lg px-space-sm py-1.5 font-body-md text-body-md text-primary-container focus:outline-none focus:border-primary-container" type="text" value="ความประพฤติและจิตอาสา"/>
+</div>
+</div>
+<div class="flex items-center justify-between md:justify-end gap-space-lg pl-space-md md:pl-0 border-t md:border-t-0 border-outline-variant pt-space-xs md:pt-0">
+<div class="flex flex-col items-start md:items-end">
+<label class="font-caption text-caption text-secondary">คะแนนสูงสุด</label>
+<div class="flex items-center gap-1">
+<input class="w-20 bg-surface-container border border-outline rounded-lg px-space-sm py-1 font-body-md text-body-md text-center font-mono text-primary-container font-semibold" readonly="" type="number" value="20"/>
+<span class="font-caption text-caption text-secondary">แต้ม</span>
+</div>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-caption text-caption text-secondary mb-1">สวิตช์ใช้งาน</span>
+<div class="inline-flex items-center gap-1.5 px-2 py-1 border border-primary-container rounded-full bg-surface-container-lowest text-primary-container font-label-sm text-label-sm select-none" title="เปิดใช้งาน">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>
+<span class="text-[12px] leading-none font-semibold">เปิด</span>
+</div>
+</div>
+<button class="p-2 border border-outline-variant hover:border-outline text-secondary hover:text-error rounded-lg bg-surface-container-lowest transition-colors" title="ลบรายการ" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Item 4: Interview (10 pts) -->
+<div class="border border-outline rounded-lg bg-surface-container-lowest p-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-md hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-sm flex-1 min-w-0">
+<div class="cursor-grab active:cursor-grabbing text-secondary hover:text-primary-container p-1 select-none flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">drag_indicator</span>
+</div>
+<div class="flex flex-col gap-space-xs flex-1">
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-0.5 border border-outline-variant text-[11px] font-mono uppercase text-secondary bg-surface-container rounded-DEFAULT">มีคะแนน</span>
+<span class="font-caption text-caption text-secondary">ลำดับที่ 4</span>
+</div>
+<input class="w-full bg-surface-container-lowest border border-outline rounded-lg px-space-sm py-1.5 font-body-md text-body-md text-primary-container focus:outline-none focus:border-primary-container" type="text" value="การสัมภาษณ์"/>
+</div>
+</div>
+<div class="flex items-center justify-between md:justify-end gap-space-lg pl-space-md md:pl-0 border-t md:border-t-0 border-outline-variant pt-space-xs md:pt-0">
+<div class="flex flex-col items-start md:items-end">
+<label class="font-caption text-caption text-secondary">คะแนนสูงสุด</label>
+<div class="flex items-center gap-1">
+<input class="w-20 bg-surface-container border border-outline rounded-lg px-space-sm py-1 font-body-md text-body-md text-center font-mono text-primary-container font-semibold" readonly="" type="number" value="10"/>
+<span class="font-caption text-caption text-secondary">แต้ม</span>
+</div>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-caption text-caption text-secondary mb-1">สวิตช์ใช้งาน</span>
+<div class="inline-flex items-center gap-1.5 px-2 py-1 border border-primary-container rounded-full bg-surface-container-lowest text-primary-container font-label-sm text-label-sm select-none" title="เปิดใช้งาน">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>
+<span class="text-[12px] leading-none font-semibold">เปิด</span>
+</div>
+</div>
+<button class="p-2 border border-outline-variant hover:border-outline text-secondary hover:text-error rounded-lg bg-surface-container-lowest transition-colors" title="ลบรายการ" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Add Row Footnote / Structural helper -->
+<div class="p-space-sm border border-dashed border-outline-variant rounded-lg bg-surface-container-low flex items-center justify-between">
+<span class="font-caption text-caption text-secondary">สามารถคลิกค้างที่สัญลักษณ์ [::] เพื่อลากจัดลำดับการประเมิน</span>
+<button class="font-label-sm text-label-sm text-primary-container hover:underline flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">add_circle</span>
+<span>เพิ่มเกณฑ์ย่อยแถวใหม่</span>
+</button>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: 4 of 12 columns (Sticky Summary Panel) -->
+<div class="col-span-12 lg:col-span-4 sticky top-20 flex flex-col gap-space-lg">
+<div class="bg-surface-container-lowest border border-outline rounded-lg p-space-lg flex flex-col gap-space-md">
+<!-- Card Header -->
+<div class="flex items-center justify-between border-b border-outline pb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-primary-container">analytics</span>
+<h3 class="font-title-sm text-title-sm font-semibold text-primary-container">สรุปคะแนนรวม</h3>
+</div>
+<span class="px-2 py-0.5 border border-outline font-mono text-[11px] uppercase rounded-DEFAULT bg-surface-container-low text-secondary font-semibold">AUTO CALC</span>
+</div>
+<!-- Score Metrics Display -->
+<div class="flex flex-col gap-space-xs py-space-xs">
+<div class="flex items-baseline justify-between">
+<span class="font-caption text-caption uppercase text-secondary font-mono tracking-wider">AGGREGATE WEIGHT</span>
+<span class="font-caption text-caption font-semibold text-secondary font-mono">TARGET: 100</span>
+</div>
+<div class="flex items-baseline gap-space-sm">
+<h2 class="font-headline-xl text-headline-xl font-bold font-mono text-primary-container tracking-tight">85</h2>
+<span class="font-headline-lg text-headline-lg font-mono text-secondary">/ 100</span>
+</div>
+<!-- Wireframe Progress Bar (Height 12px, outline 1px #9CA3AF, 85% filled with #374151) -->
+<div class="w-full h-3 border border-outline bg-surface-container-low rounded-DEFAULT overflow-hidden p-0.5 mt-space-xs">
+<div class="h-full bg-primary-container rounded-DEFAULT transition-all duration-300" style="width: 85%;"></div>
+</div>
+</div>
+<!-- Helper Explanations -->
+<div class="p-space-sm border border-outline-variant bg-surface-container-low rounded-lg flex flex-col gap-space-xs">
+<p class="font-caption text-caption text-secondary leading-normal">
+              คำนวณโดยระบบ แก้ไขโดยตรงไม่ได้ ไม่รวมเกณฑ์ย่อยแบบข้อความ
+            </p>
+</div>
+<!-- Grayscale Notice Box -->
+<div class="border border-outline bg-surface-container p-space-sm rounded-lg flex items-start gap-space-xs">
+<span class="text-primary-container font-mono text-[14px] leading-tight select-none">⚠️</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm font-semibold text-primary-container leading-tight">ขาดอีก 15 คะแนน เพื่อให้ครบ 100 คะแนน</span>
+<span class="font-caption text-caption text-secondary mt-0.5">ระบบไม่อนุญาตให้ใช้เกณฑ์ที่มีสัดส่วนคะแนนรวมไม่สมบูรณ์ในการประเมิน</span>
+</div>
+</div>
+<!-- Sub-breakdown Summary List -->
+<div class="flex flex-col gap-space-xs border-t border-outline-variant pt-space-sm font-mono text-[12px]">
+<div class="flex justify-between text-secondary">
+<span>1. ผลการเรียน</span>
+<span class="text-primary-container">25 แต้ม</span>
+</div>
+<div class="flex justify-between text-secondary">
+<span>2. ความจำเป็นทางเศรษฐกิจ</span>
+<span class="text-primary-container">30 แต้ม</span>
+</div>
+<div class="flex justify-between text-secondary">
+<span>3. ความประพฤติและจิตอาสา</span>
+<span class="text-primary-container">20 แต้ม</span>
+</div>
+<div class="flex justify-between text-secondary">
+<span>4. การสัมภาษณ์</span>
+<span class="text-primary-container">10 แต้ม</span>
+</div>
+<div class="border-t border-dashed border-outline-variant my-1"></div>
+<div class="flex justify-between font-bold text-primary-container text-body-md">
+<span class="font-sans">ยอดรวมปัจจุบัน</span>
+<span>85 / 100</span>
+</div>
+</div>
+<!-- Action Division -->
+<div class="border-t border-outline pt-space-md flex flex-col gap-space-sm">
+<!-- Primary Button: Strictly DISABLED per Spec -->
+<button aria-disabled="true" class="w-full py-space-sm px-space-md rounded-lg font-label-md text-label-md font-semibold text-outline bg-surface-container border border-dashed border-outline cursor-not-allowed flex items-center justify-center gap-space-xs select-none" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+<span>บันทึกเกณฑ์</span>
+</button>
+<button class="w-full py-space-sm px-space-md rounded-lg font-label-md text-label-md font-medium text-secondary hover:text-primary-container bg-surface-container-lowest border border-outline-variant hover:border-outline transition-colors text-center" type="button">
+              บันทึกเป็นแบบร่าง (ชั่วคราว)
+            </button>
+<a class="text-center font-caption text-caption text-secondary hover:underline pt-space-xs" href="#">
+              ยกเลิกและย้อนกลับ
+            </a>
+</div>
+</div>
+<!-- Wireframe Technical Meta Box -->
+<div class="border border-dashed border-outline-variant p-space-sm rounded-lg bg-surface-container-lowest font-mono text-[11px] text-secondary flex flex-col gap-1">
+<div class="flex justify-between">
+<span>VALIDATION:</span>
+<span class="text-primary-container font-semibold">FAILED (85 != 100)</span>
+</div>
+<div class="flex justify-between">
+<span>SAVING PERMIT:</span>
+<span>BLOCKED</span>
+</div>
+<div class="flex justify-between">
+<span>LAST MODIFIED:</span>
+<span>TODAY, 14:32</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html lang="th"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;font-family:'IBM Plex Sans Thai','IBM Plex Sans',sans-serif;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"on-primary-container":"#a3adc0","surface-container-high":"#e2e8f8","surface-container":"#e7eefe","primary":"#212b3a","primary-fixed-dim":"#bdc7db","on-tertiary-fixed-variant":"#55442b","outline":"#75777d","on-surface":"#151c27","tertiary":"#362811","on-surface-variant":"#44474c","on-primary-fixed-variant":"#3d4757","surface-container-highest":"#dce2f3","on-background":"#151c27","secondary-fixed-dim":"#c0c7d3","on-secondary-container":"#5e6570","surface":"#f9f9ff","secondary-fixed":"#dce3f0","tertiary-container":"#4e3e25","surface-tint":"#555f70","on-secondary":"#ffffff","on-primary-fixed":"#121c2a","on-tertiary-container":"#c0a989","on-tertiary-fixed":"#261905","surface-container-low":"#f0f3ff","error-container":"#ffdad6","on-secondary-fixed":"#151c25","error":"#ba1a1a","tertiary-fixed-dim":"#dbc3a2","surface-container-lowest":"#ffffff","on-secondary-fixed-variant":"#404752","surface-dim":"#d3daea","inverse-on-surface":"#ebf1ff","secondary-container":"#dce3f0","inverse-surface":"#2a313d","surface-bright":"#f9f9ff","primary-container":"#374151","on-error-container":"#93000a","inverse-primary":"#bdc7db","tertiary-fixed":"#f8dfbc","on-error":"#ffffff","background":"#f9f9ff","on-primary":"#ffffff","primary-fixed":"#d9e3f7","outline-variant":"#c5c6cc","surface-variant":"#dce2f3","secondary":"#585f6a","on-tertiary":"#ffffff"},borderRadius:{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},spacing:{"margin-tablet":"1.5rem","gutter-desktop":"1.5rem","space-sm":"0.5rem","gutter":"1rem","space-xl":"2rem","space-md":"1rem","margin-desktop":"2rem","margin":"1rem","space-lg":"1.5rem","space-xs":"0.25rem"},fontFamily:{"caption":["IBM Plex Sans"],"body-md":["IBM Plex Sans"],"body-lg":["IBM Plex Sans"],"label-md":["IBM Plex Sans"],"headline-md":["IBM Plex Sans"],"label-sm":["IBM Plex Sans"],"title-sm":["IBM Plex Sans"],"headline-lg":["IBM Plex Sans"],"headline-xl":["IBM Plex Sans"]},fontSize:{"caption":["11px",{"lineHeight":"16px","letterSpacing":"0.5px","fontWeight":"400"}],"body-md":["14px",{"lineHeight":"22.4px","fontWeight":"400"}],"body-lg":["16px",{"lineHeight":"25.6px","fontWeight":"400"}],"label-md":["14px",{"lineHeight":"20px","fontWeight":"500"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"600"}],"label-sm":["12px",{"lineHeight":"16px","fontWeight":"500"}],"title-sm":["16px",{"lineHeight":"24px","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","fontWeight":"600"}],"headline-xl":["32px",{"lineHeight":"40px","fontWeight":"600"}]}}}}</script></head><body class="bg-surface-container-lowest font-body-md text-on-surface"><aside class="fixed left-0 top-0 h-full w-[260px] bg-surface-container-low border-r border-outline-variant z-50 flex flex-col justify-between"><div class="flex flex-col"><div class="p-space-lg border-b border-outline-variant flex items-center gap-space-md"><div class="w-11 h-11 border border-primary-container bg-surface-container-lowest flex items-center justify-center font-headline-md text-headline-md text-primary font-bold tracking-tight rounded">SEMS</div><div class="flex flex-col"><span class="font-title-sm text-title-sm text-primary leading-tight font-semibold">SEMS ADMIN</span><span class="font-caption text-caption text-secondary leading-tight mt-space-xs">ระบบประเมินทุนการศึกษา</span></div></div><div class="px-space-md py-space-sm"><span class="font-caption text-caption text-secondary uppercase tracking-wider px-space-sm">การบริหารจัดการ</span></div><nav class="flex flex-col gap-space-xs px-space-sm" data-active-classes="bg-primary-container text-on-primary font-semibold"><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="users" href="#"><span class="material-symbols-outlined text-[20px]">group</span><span class="font-body-md text-body-md">ผู้ใช้งาน</span></a><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm rounded transition-colors bg-primary-container text-on-primary font-semibold" data-path="scholarship-rounds" href="#"><span class="material-symbols-outlined text-[20px]">event_note</span><span class="font-body-md text-body-md">รอบทุนการศึกษา</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="evaluation-criteria" href="#"><span class="material-symbols-outlined text-[20px]">fact_check</span><span class="font-body-md text-body-md">เกณฑ์การประเมิน</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="applicants" href="#"><span class="material-symbols-outlined text-[20px]">assignment_ind</span><span class="font-body-md text-body-md">ผู้สมัคร</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="evaluation-results" href="#"><span class="material-symbols-outlined text-[20px]">leaderboard</span><span class="font-body-md text-body-md">ผลการประเมินและอันดับ</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="scholarship-allocation" href="#"><span class="material-symbols-outlined text-[20px]">payments</span><span class="font-body-md text-body-md">การจัดสรรทุน</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="reports" href="#"><span class="material-symbols-outlined text-[20px]">summarize</span><span class="font-body-md text-body-md">รายงาน</span></a></nav></div><div class="p-space-md border-t border-outline-variant"><div class="border border-outline-variant bg-surface-container-lowest p-space-sm rounded text-center"><div class="font-caption text-caption text-secondary">คณะวิศวกรรมศาสตร์</div><div class="font-caption text-caption text-secondary font-semibold">มหาวิทยาลัยขอนแก่น</div></div></div></aside><div class="pl-[260px]"><header class="fixed top-0 left-[260px] right-0 h-16 bg-surface-container-lowest border-b border-outline-variant z-40 px-space-xl flex items-center justify-between"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-secondary text-[20px]">school</span><span class="font-title-sm text-title-sm text-primary font-semibold">ระบบบริหารจัดการการประเมินทุนการศึกษา | คณะวิศวกรรมศาสตร์ มหาวิทยาลัยขอนแก่น</span></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col text-left"><span class="font-body-md text-body-md font-medium text-primary leading-tight">นายอนุชา ผู้ดูแล</span><span class="font-caption text-caption text-secondary leading-tight">เจ้าหน้าที่บริหารระบบ</span></div></div><span class="px-space-sm py-0.5 border border-primary-container text-primary text-label-sm font-label-sm rounded uppercase">Admin</span><div class="h-6 w-px bg-outline-variant mx-space-xs"></div><a class="flex items-center gap-space-xs px-space-md py-space-sm border border-outline-variant rounded bg-surface-container-lowest text-primary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-colors" data-path="login" href="#"><span class="material-symbols-outlined text-[18px]">logout</span><span>ออกจากระบบ</span></a></div></header><main class="relative pt-16 min-h-screen bg-surface-container-lowest w-full p-[40px]"><div class="flex flex-col w-full relative">
+<!-- Frame Label Overlay -->
+<div class="flex items-center justify-between pb-space-md mb-space-lg border-b border-outline-variant">
+<div class="flex items-center gap-space-sm">
+<span class="font-caption text-caption px-space-xs py-0.5 bg-surface-container text-primary font-semibold rounded">FRAME</span>
+<span class="font-body-md text-body-md font-semibold text-primary">X1 – Close round, no pending applicants</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="inline-block w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-caption text-caption text-secondary">โหมดตรวจสอบกระบวนการ: ปิดรอบทุน (พร้อมส่งผล 100%)</span>
+</div>
+</div>
+<!-- Background Layer: Detailed Round Detail (Open State) -->
+<div class="w-full pointer-events-none select-none opacity-40 transition-opacity">
+<!-- Breadcrumb & Top Bar -->
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs text-secondary font-body-md text-body-md">
+<span>รอบทุนการศึกษา</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span>ภาคการศึกษา 1/2567</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-primary font-medium">ทุนการศึกษาเพื่อการพัฒนานักศึกษาขาดแคลนทุนทรัพย์</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="px-space-sm py-0.5 rounded-full border border-primary text-primary font-label-sm text-label-sm">OPEN</span>
+<div class="px-space-md py-space-sm bg-primary-container text-on-primary font-label-md text-label-md rounded flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+<span>ปิดรอบการประเมิน</span>
+</div>
+</div>
+</div>
+<!-- Summary Bounding Box Grid -->
+<div class="grid grid-cols-4 gap-space-md mb-space-xl">
+<div class="p-space-lg bg-surface-container-lowest border border-outline-variant rounded">
+<div class="font-caption text-caption text-secondary uppercase">จำนวนผู้สมัครทั้งหมด</div>
+<div class="font-headline-xl text-headline-xl text-primary font-semibold mt-space-xs">8 <span class="font-body-md text-body-md text-secondary font-normal">คน</span></div>
+<div class="font-caption text-caption text-secondary mt-space-xs">ส่งเอกสารสมบูรณ์ครบถ้วน</div>
+</div>
+<div class="p-space-lg bg-surface-container-lowest border border-outline-variant rounded">
+<div class="font-caption text-caption text-secondary uppercase">ประเมินเสร็จสิ้น (Submitted)</div>
+<div class="font-headline-xl text-headline-xl text-primary font-semibold mt-space-xs">8 <span class="font-body-md text-body-md text-secondary font-normal">คน</span></div>
+<div class="font-caption text-caption text-primary font-medium mt-space-xs">เสร็จสิ้นสมบูรณ์ 100%</div>
+</div>
+<div class="p-space-lg bg-surface-container-lowest border border-outline-variant rounded">
+<div class="font-caption text-caption text-secondary uppercase">รอดำเนินการประเมิน (Pending)</div>
+<div class="font-headline-xl text-headline-xl text-primary font-semibold mt-space-xs">0 <span class="font-body-md text-body-md text-secondary font-normal">คน</span></div>
+<div class="font-caption text-caption text-secondary mt-space-xs">ไม่มีผู้สมัครตกค้าง</div>
+</div>
+<div class="p-space-lg bg-surface-container-lowest border border-outline-variant rounded">
+<div class="font-caption text-caption text-secondary uppercase">งบประมาณจัดสรรรอบนี้</div>
+<div class="font-headline-xl text-headline-xl text-primary font-semibold mt-space-xs">240,000 <span class="font-body-md text-body-md text-secondary font-normal">บาท</span></div>
+<div class="font-caption text-caption text-secondary mt-space-xs">จำนวนโควตา 8 ทุน</div>
+</div>
+</div>
+<!-- Mock Applicant Evaluation Matrix Table -->
+<div class="border border-outline-variant rounded bg-surface-container-lowest overflow-hidden">
+<div class="p-space-md bg-surface-container-low border-b border-outline-variant flex justify-between items-center">
+<div class="font-title-sm text-title-sm font-semibold text-primary">รายชื่อผู้สมัครและการประเมินรายบุคคล (8 ราย)</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-caption text-caption text-secondary">กรองสถานะ: ผู้สมัครทั้งหมด</span>
+</div>
+</div>
+<table class="w-full text-left font-body-md text-body-md">
+<thead>
+<tr class="bg-surface-container border-b border-outline-variant text-primary font-label-md text-label-md">
+<th class="py-space-sm px-space-md">รหัสนักศึกษา</th>
+<th class="py-space-sm px-space-md">ชื่อ-นามสกุล</th>
+<th class="py-space-sm px-space-md">สาขาวิชา</th>
+<th class="py-space-sm px-space-md text-center">เกรดเฉลี่ย (GPAX)</th>
+<th class="py-space-sm px-space-md text-center">คะแนนรวมเฉลี่ย</th>
+<th class="py-space-sm px-space-md text-center">สถานะผลการประเมิน</th>
+</tr>
+</thead>
+<tbody class="text-on-surface">
+<tr class="border-b border-outline-variant">
+<td class="py-space-sm px-space-md font-mono">643040120-1</td>
+<td class="py-space-sm px-space-md">นายกิตติภูมิ มิ่งมงคล</td>
+<td class="py-space-sm px-space-md">วิศวกรรมคอมพิวเตอร์</td>
+<td class="py-space-sm px-space-md text-center">3.42</td>
+<td class="py-space-sm px-space-md text-center font-semibold">88.50</td>
+<td class="py-space-sm px-space-md text-center">
+<span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full border border-primary text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">check</span> SUBMITTED
+              </span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="py-space-sm px-space-md font-mono">643040255-8</td>
+<td class="py-space-sm px-space-md">นางสาวชลธิชา สิทธิผล</td>
+<td class="py-space-sm px-space-md">วิศวกรรมเคมี</td>
+<td class="py-space-sm px-space-md text-center">3.15</td>
+<td class="py-space-sm px-space-md text-center font-semibold">86.20</td>
+<td class="py-space-sm px-space-md text-center">
+<span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full border border-primary text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">check</span> SUBMITTED
+              </span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="py-space-sm px-space-md font-mono">643040312-3</td>
+<td class="py-space-sm px-space-md">นายธีรพงศ์ อุดมสุข</td>
+<td class="py-space-sm px-space-md">วิศวกรรมไฟฟ้า</td>
+<td class="py-space-sm px-space-md text-center">2.98</td>
+<td class="py-space-sm px-space-md text-center font-semibold">84.75</td>
+<td class="py-space-sm px-space-md text-center">
+<span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full border border-primary text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">check</span> SUBMITTED
+              </span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="py-space-sm px-space-md font-mono">653040089-4</td>
+<td class="py-space-sm px-space-md">นางสาวพรสวรรค์ แก้ววิจิตร</td>
+<td class="py-space-sm px-space-md">วิศวกรรมโยธา</td>
+<td class="py-space-sm px-space-md text-center">3.60</td>
+<td class="py-space-sm px-space-md text-center font-semibold">83.10</td>
+<td class="py-space-sm px-space-md text-center">
+<span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full border border-primary text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">check</span> SUBMITTED
+              </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Modal Backdrop Layer (Dimmed copy overlay) -->
+<div class="fixed inset-0 left-[260px] top-16 bg-[#374151]/40 flex items-center justify-center p-space-md z-50">
+<!-- Centered Modal Box (width: 560px, white bg, 1px #9CA3AF border, padding: 32px) -->
+<div class="w-[560px] max-w-full bg-surface-container-lowest border border-outline rounded p-space-xl flex flex-col box-border">
+<!-- Icon & Headline -->
+<div class="flex items-start gap-space-md mb-space-md">
+<div class="w-12 h-12 border border-outline rounded flex items-center justify-center bg-surface-container-lowest flex-shrink-0 text-primary">
+<span class="material-symbols-outlined text-[28px]">lock</span>
+</div>
+<div class="flex flex-col">
+<h2 class="font-headline-lg text-headline-lg font-semibold text-primary leading-tight">ปิดรอบทุนการศึกษา?</h2>
+<span class="font-caption text-caption text-secondary mt-0.5">ยืนยันการสิ้นสุดขั้นตอนการให้คะแนนและปิดรับการประเมิน</span>
+</div>
+</div>
+<!-- Warning Body Paragraph -->
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-space-md">
+        ผู้สมัครทุกรายมีผลการประเมิน <span class="font-semibold text-primary">Submitted</span> แล้ว เมื่อปิดรอบจะไม่สามารถแก้ไขหรือยืนยันส่งผลการประเมินได้ และไม่สามารถย้อนสถานะ
+      </p>
+<!-- Info Note Box (bg #F3F4F6 equivalent to surface-container-low, border 1px #9CA3AF, padding 16px) -->
+<div class="bg-surface-container-low border border-outline rounded p-space-md mb-space-lg">
+<ul class="flex flex-col gap-space-xs font-body-md text-body-md text-primary">
+<li class="flex items-start gap-space-xs">
+<span class="leading-relaxed select-none">•</span>
+<span class="leading-relaxed">ผู้สมัครทั้งหมด 8 รายได้รับการประเมินครบถ้วน 100%</span>
+</li>
+<li class="flex items-start gap-space-xs">
+<span class="leading-relaxed select-none">•</span>
+<span class="leading-relaxed">ระบบจะทำการประมวลผลคะแนนสุดท้าย (Final Score) และจัดอันดับเพื่อเตรียมจัดสรรทุน</span>
+</li>
+<li class="flex items-start gap-space-xs">
+<span class="leading-relaxed select-none">•</span>
+<span class="leading-relaxed">สถานะรอบทุนจะเปลี่ยนเป็น <span class="font-semibold">Closed</span> และล็อกการแก้ไขถาวร</span>
+</li>
+</ul>
+</div>
+<!-- Action Buttons Row (pt 24px, gap 12px, justify-end) -->
+<div class="pt-space-lg border-t border-outline-variant flex items-center justify-end gap-[12px]">
+<button class="px-space-md py-space-sm bg-surface-container-lowest text-primary border border-outline rounded font-label-md text-label-md hover:bg-surface-container transition-colors cursor-pointer" type="button">
+          ยกเลิก
+        </button>
+<button class="px-space-md py-space-sm bg-primary-container text-on-primary border border-primary-container rounded font-label-md text-label-md hover:bg-primary transition-colors cursor-pointer flex items-center gap-space-xs" type="button">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+<span>ยืนยันปิดรอบ</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Ensure "รอบทุนการศึกษา" navigation state in the Shell
+  document.addEventListener("DOMContentLoaded", function () {
+    const navLinks = document.querySelectorAll("aside nav a");
+    navLinks.forEach((link) => {
+      if (link.getAttribute("data-path") === "scholarship-rounds") {
+        link.classList.add("bg-primary-container", "text-on-primary", "font-semibold");
+        link.classList.remove("text-on-surface-variant");
+      } else {
+        link.classList.remove("bg-primary-container", "text-on-primary", "font-semibold");
+      }
+    });
+  });
+</script></main></div></body></html>
