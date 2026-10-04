@@ -1,0 +1,74 @@
+name: 🐛 Bug Report (แจ้งข้อผิดพลาด)
+description: รายงานปัญหา ข้อผิดพลาด หรือพฤติกรรมที่ไม่ถูกต้องของระบบ SEMS
+title: "[Bug]: "
+labels: ["bug"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ขอบคุณสำหรับการรายงานข้อผิดพลาดในระบบ **SEMS-KKU**!
+        โปรดให้ข้อมูลขั้นตอนอย่างละเอียดเพื่อให้ทีมสามารถจำลองปัญหาและแก้ไขได้อย่างรวดเร็ว
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 🚨 ระดับความรุนแรงของปัญหา (Severity)
+      options:
+        - "Critical - ระบบใช้งานไม่ได้ / ข้อมูลผิดพลาดอย่างรุนแรง / ปัญหาความปลอดภัย PDPA"
+        - "High - ฟังก์ชันหลักทำงานไม่ได้ ไม่มีวิธีแก้ขัด (Workaround)"
+        - "Medium - ฟังก์ชันทำงานผิดพลาด แต่มีวิธีแก้ขัดชั่วคราวได้"
+        - "Low - ปัญหาการแสดงผล UI เล็กน้อย / ข้อความผิด"
+    validations:
+      required: true
+
+  - type: input
+    id: related_module
+    attributes:
+      label: 🔗 โมดูลหรือฟังก์ชันที่พบปัญหา
+      placeholder: "ตัวอย่าง: รอบทุนการศึกษา (Rounds), นำเข้า Excel, คำนวณคะแนน, จัดสรรทุน"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: 🔄 ขั้นตอนการจำลองปัญหา (Steps to Reproduce)
+      description: ระบุขั้นตอน 1, 2, 3 ทีละสเต็ปที่ทำให้เกิดปัญหานี้
+      value: |
+        1. ไปที่หน้า '...'
+        2. กดปุ่ม '...'
+        3. กรอกข้อมูล '...'
+        4. พบข้อผิดพลาด
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: 🎯 ผลลัพธ์ที่คาดหวัง (Expected Behavior)
+      description: อธิบายสิ่งที่ระบบควรจะตอบสนองหรือทำงานตามปกติ
+      placeholder: "เช่น ข้อมูลควรถูกบันทึกสำเร็จและแสดงข้อความแจ้งเตือนสีเขียว..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: ❌ ผลลัพธ์ที่เกิดขึ้นจริง (Actual Behavior)
+      description: อธิบายสิ่งที่เกิดขึ้นจริง ข้อความ Error หรือภาพหน้าจอประกอบ
+      placeholder: "เช่น ขึ้น Error 500 หรือคะแนนไม่ถูกคำนวณ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment_info
+    attributes:
+      label: 💻 สภาพแวดล้อมที่พบ (Environment)
+      description: เบราว์เซอร์ อุปกรณ์ หรือข้อมูลบัญชีทดสอบที่ใช้
+      value: |
+        - **Browser:** Chrome / Edge / Firefox / Safari
+        - **Device:** Desktop / Mobile (ระบุขนาดหน้าจอ)
+        - **User Role:** Admin / Evaluator
+    validations:
+      required: false
