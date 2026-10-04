@@ -13,7 +13,8 @@ docs/
 ├── 01-planning/         # แผนงานและการติดตามความครอบคลุม (Traceability)
 ├── 02-requirements/     # ข้อกำหนดและความต้องการของระบบ (BR, FRS, NFR, UC, Flow)
 ├── 03-architecture/     # สถาปัตยกรรมระบบ สแตกเทคโนโลยี และการออกแบบฐานข้อมูล
-└── 04-development/      # ทรัพยากรสำหรับงานพัฒนาและโค้ดต้นแบบ (Prisma schema)
+├── 04-development/      # ทรัพยากรสำหรับงานพัฒนาและโค้ดต้นแบบ (Prisma schema)
+└── 05-design/           # การออกแบบ UI/UX, Design System และ Wireframes
 ```
 
 ---
@@ -50,3 +51,9 @@ docs/
 
 ### 📂 `04-development/` (งานพัฒนาและสคีมาโค้ด)
 * [sems-schema.prisma](file:///d:/SEMS-KKU/docs/04-development/sems-schema.prisma) — **Prisma Schema:** ไฟล์ schema สำหรับ PostgreSQL ORM ที่ใช้ในการ Migrate ฐานข้อมูลและการสร้าง Prisma Client จริง
+
+---
+
+### 📂 `05-design/` (การออกแบบ UI/UX และ Wireframes)
+* [DESIGN.md](file:///d:/SEMS-KKU/docs/05-design/sems-wireframe/sems_wireframe_system/DESIGN.md) — **Design System:** ข้อกำหนดสี Typography และ Component Styles สำหรับ SEMS
+* [sems-wireframe/](file:///d:/SEMS-KKU/docs/05-design/sems-wireframe) — **UI Wireframes & Mockups:** หน้าจอต้นแบบ HTML และรูปภาพตัวอย่าง 50+ หน้าจอ ครบทุก Use Case (Admin, Evaluator, Authentication, Error States)
