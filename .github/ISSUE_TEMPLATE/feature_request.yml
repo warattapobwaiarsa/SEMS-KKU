@@ -1,0 +1,65 @@
+name: 🚀 Feature Request (ขอเพิ่มฟังก์ชันใหม่)
+description: เสนอฟังก์ชันการทำงานใหม่ตามขอบเขตและข้อกำหนดของ SEMS
+title: "[Feature]: "
+labels: ["enhancement", "feature"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ขอบคุณสำหรับการเสนอไอเดียและฟีเจอร์ใหม่สำหรับระบบ **SEMS-KKU**! 
+        โปรดระบุรายละเอียดและรหัสความต้องการ (Traceability ID) เพื่อให้สอดคล้องกับมาตรฐาน ISO/IEC 29110
+
+  - type: input
+    id: requirement_id
+    attributes:
+      label: 🔗 รหัสความต้องการที่เกี่ยวข้อง (Traceability ID)
+      description: ระบุรหัส Functional Requirement, Business Rule หรือ Use Case ที่เกี่ยวข้อง (ถ้ามี)
+      placeholder: "ตัวอย่าง: FR-RND-04, BR-CRT-02, UC-08"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: user_role
+    attributes:
+      label: 👤 บทบาทผู้ใช้งานที่ได้รับผลกระทบ (Target Role)
+      description: เลือกกลุ่มผู้ใช้งานหลักของฟีเจอร์นี้
+      options:
+        - "ผู้ดูแลระบบ (Admin)"
+        - "ผู้ประเมิน (Evaluator)"
+        - "ระบบอัตโนมัติ / เบื้องหลัง (System / Background)"
+        - "ผู้ใช้งานทั้งหมด (All Roles)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 📌 รายละเอียดฟังก์ชันที่ต้องการ (Description)
+      description: อธิบายสิ่งที่ต้องการให้ระบบทำ และปัญหาที่ฟังก์ชันนี้ช่วยแก้ไข
+      placeholder: "อธิบายภาพรวมและวัตถุประสงค์ของฟีเจอร์นี้..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: ✅ เกณฑ์การตรวจรับ (Acceptance Criteria)
+      description: ระบุเงื่อนไขที่บ่งบอกว่าฟังก์ชันนี้ทำงานสำเร็จสมบูรณ์
+      value: |
+        - [ ] 
+        - [ ] 
+        - [ ] 
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: pdpa_security
+    attributes:
+      label: 🛡️ การประเมินด้านความปลอดภัยและ PDPA
+      description: ตรวจสอบข้อกำหนดด้านความปลอดภัย
+      options:
+        - label: "ไม่มีการเปิดเผยเลขประจำตัวประชาชน (Citizen ID) แบบเต็มโดยไม่ได้รับอนุญาต"
+          required: false
+        - label: "มีการตรวจสอบสิทธิ์ (RBAC Guards) ระหว่าง Admin และ Evaluator อย่างเคร่งครัด"
+          required: false

@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📖 สารบัญเอกสารข้อกำหนดโครงการ (SEMS Documentation)
+    url: https://github.com/warattapobwaiarsa/SEMS-KKU/tree/develop/docs
+    about: ตรวจสอบขอบเขตโครงการ (Scope), Business Rules, FRS, NFR และสถาปัตยกรรมระบบ
