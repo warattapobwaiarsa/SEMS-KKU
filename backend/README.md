@@ -1,98 +1,117 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# SEMS Backend API (ระบบบริการ REST API หลังบ้าน)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> **บริการ REST API สำหรับระบบบริหารจัดการการประเมินทุนการศึกษา มหาวิทยาลัยขอนแก่น (SEMS-KKU)**  
+> พัฒนาด้วย NestJS, TypeScript, Prisma ORM และฐานข้อมูล PostgreSQL
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🚀 ภาพรวมระบบ (Overview)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+**SEMS Backend API** รับผิดชอบการประมวลผลตรรกะทางธุรกิจหลัก (Business Logic), ระบบยืนยันตัวตน (Authentication & KKU SSO), การควบคุมสิทธิ์การเข้าถึงตามบทบาท (RBAC), การบันทึกและคำนวณคะแนนประเมินตามเกณฑ์รูบริก, การควบคุม State Machine ของรอบทุนและการจัดสรรทุน, การนำเข้าและส่งออกข้อมูล (Excel Import/Export) และระบบบันทึกประวัติการใช้งาน (Audit Logging) สำหรับ SEMS-KKU
 
-## Project setup
+---
 
-```bash
-$ npm install
+## 🛠️ สแตกเทคโนโลยีและไลบรารีหลัก (Tech Stack & Dependencies)
+
+* **เฟรมเวิร์ก:** [NestJS](https://nestjs.org/) (TypeScript)
+* **ORM:** [Prisma](https://www.prisma.io/)
+* **ฐานข้อมูล:** PostgreSQL 16
+* **การตรวจสอบความถูกต้องของข้อมูล (Validation):** `class-validator`, `class-transformer`
+* **ความปลอดภัย (Security):** `@nestjs/throttler`, `helmet`, การเข้ารหัส AES-256-GCM (Node.js crypto)
+* **การทดสอบ (Testing):** Jest
+
+---
+
+## 📁 โครงสร้างโฟลเดอร์ (Directory Structure)
+
+```text
+backend/
+├── prisma/
+│   ├── schema.prisma        # โมเดลฐานข้อมูลและความสัมพันธ์ (Entities & Relations)
+│   └── migrations/          # ประวัติการทำ Database Migration
+├── src/
+│   ├── prisma/              # PrismaService และ PrismaModule
+│   ├── app.controller.ts    # คอนโทรลเลอร์ราก (Root Controller)
+│   ├── app.module.ts        # โมดูลหลัก (Root Module)
+│   ├── app.service.ts       # เซอร์วิสหลัก (Root Service)
+│   └── main.ts              # จุดเริ่มต้นการรันระบบ (Bootstrap & Global Pipes)
+├── test/                    # ชุดทดสอบ End-to-End (E2E Tests)
+├── .env.example             # ไฟล์ตัวอย่าง Environment Variables
+└── package.json
 ```
 
-## Compile and run the project
+---
 
+## ⚙️ ขั้นตอนการติดตั้งและเริ่มต้นระบบ (Getting Started)
+
+### 1. สิ่งที่ต้องเตรียม (Prerequisites)
+ตรวจสอบให้แน่ใจว่าได้เปิดใช้งานฐานข้อมูล PostgreSQL เรียบร้อยแล้ว (สามารถเปิดผ่าน Docker Compose จาก Root โฟลเดอร์ได้):
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+docker compose up -d
 ```
 
-## Run tests
-
+### 2. ตั้งค่าสภาพแวดล้อม (Environment Setup)
+คัดลอกไฟล์ `.env.example` เป็น `.env` ภายในโฟลเดอร์ `backend/`:
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+cp .env.example .env
+```
+ตรวจสอบและตั้งค่า `DATABASE_URL` ให้ตรงกับ PostgreSQL:
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/sems_db?schema=public"
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### 3. ติดตั้ง Dependencies
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 4. ซิงค์ฐานข้อมูลด้วย Prisma Migration & Generate Client
+```bash
+# รัน Migration ปรับปรุงโครงสร้างฐานข้อมูล
+npx prisma migrate dev
 
-## Resources
+# สั่งสร้าง Prisma Client
+npx prisma generate
 
-Check out a few resources that may come in handy when working with NestJS:
+# (ทางเลือกเสริม) เปิดดูและจัดการข้อมูลผ่าน Prisma Studio UI
+npx prisma studio
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### 5. เริ่มต้นรันเซิร์ฟเวอร์ (Start Application)
+```bash
+# โหมดพัฒนา (Watch mode - รีโหลดอัตโนมัติเมื่อโค้ดเปลี่ยน)
+npm run start:dev
 
-## Support
+# คอมไพล์และรันในโหมด Production
+npm run build
+npm run start:prod
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+ระบบ REST API จะพร้อมให้บริการที่ `http://localhost:4000` (หรือพอร์ตที่ระบุไว้ในคอนฟิก)
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 🧪 การรันชุดทดสอบ (Testing)
 
-## License
+```bash
+# รัน Unit Tests ทั้งหมด
+npm run test
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# รัน Unit Tests แบบเฝ้าดูการเปลี่ยนแปลง (Watch mode)
+npm run test:watch
+
+# ตรวจสอบเปอร์เซ็นต์ความครอบคลุมของการทดสอบ (Coverage)
+npm run test:cov
+
+# รัน End-to-End Tests (E2E)
+npm run test:e2e
+```
+
+---
+
+## 🛡️ แนวปฏิบัติด้านความปลอดภัยและ PDPA
+
+* **การควบคุมสิทธิ์ตามบทบาท (RBAC):** ตรวจสอบและบังคับใช้สิทธิ์ระหว่าง `Admin` และ `Evaluator` อย่างเคร่งครัดในระดับ Controller และ Route Guard
+* **การปกป้องข้อมูลส่วนบุคคล:** ข้อมูลเลขประจำตัวประชาชนต้องได้รับการเข้ารหัสด้วย AES-256-GCM ก่อนจัดเก็บลงฐานข้อมูลเสมอ
+* **การบันทึกประวัติ (Audit Trail):** บันทึกการกระทำสำคัญ เช่น การล็อกอิน, การเปลี่ยนสิทธิ์, การส่งออกข้อมูลรายงาน, และการเปิด/ปิดรอบทุน ลงตาราง Audit Log เสมอ
+* **ห้ามเปิดเผย Secrets:** ห้าม Commit ข้อมูล `.env` หรือ Credential ที่เป็นความลับขึ้นสู่ Git Repository
