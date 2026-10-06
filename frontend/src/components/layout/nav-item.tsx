@@ -46,17 +46,17 @@ export function NavItem({ item, onItemClick }: NavItemProps) {
     <Link
       href={item.href}
       onClick={onItemClick}
-      className={`group flex items-center justify-between gap-3 px-3 py-2.5 rounded-sm transition-all duration-150 text-[15px] font-medium ${
+      className={`group flex items-center justify-between gap-3 px-3 py-2.5 rounded-md transition-all duration-150 text-[14.5px] font-medium ${
         isActive
-          ? "bg-[#F3F4F6] text-[#212B3A] font-semibold border-l-4 border-[#374151] pl-2.5 shadow-none"
-          : "text-[#585F6A] hover:bg-[#F3F4F6] hover:text-[#1A1C1C] border-l-4 border-transparent"
+          ? "bg-blue-50/90 text-blue-700 font-semibold border-l-4 border-blue-600 pl-2.5 shadow-xs"
+          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent pl-3"
       }`}
       aria-current={isActive ? "page" : undefined}
     >
       <div className="flex items-center gap-3 min-w-0">
         <Icon
           className={`w-5 h-5 shrink-0 transition-colors ${
-            isActive ? "text-[#374151]" : "text-[#75777D] group-hover:text-[#374151]"
+            isActive ? "text-blue-600" : "text-slate-400 group-hover:text-slate-700"
           }`}
           aria-hidden="true"
         />
@@ -64,7 +64,7 @@ export function NavItem({ item, onItemClick }: NavItemProps) {
       </div>
 
       {item.badge && (
-        <span className="shrink-0 text-xs px-2 py-0.5 rounded-full border border-[#9CA3AF] bg-[#FFFFFF] text-[#585F6A]">
+        <span className="shrink-0 text-xs px-2 py-0.5 rounded-full border border-slate-200 bg-white text-slate-600 font-mono">
           {item.badge}
         </span>
       )}

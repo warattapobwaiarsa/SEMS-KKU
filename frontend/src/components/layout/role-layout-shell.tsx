@@ -21,7 +21,7 @@ export function RoleLayoutShell({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#FFFFFF] text-[#374151]">
+    <div className="flex h-screen overflow-hidden bg-slate-50/60 text-slate-800">
       {/* Desktop Sidebar (Persistent 260px) */}
       <AppSidebar
         items={items}
@@ -46,7 +46,7 @@ export function RoleLayoutShell({
         />
 
         {/* Dynamic Route Content */}
-        <main className="flex-1 overflow-y-auto bg-[#FFFFFF] p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50/50">
           {children}
         </main>
       </div>

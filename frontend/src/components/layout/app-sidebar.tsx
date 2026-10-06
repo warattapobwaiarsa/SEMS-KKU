@@ -22,36 +22,36 @@ export function AppSidebar({
 
   return (
     <aside
-      className={`w-[260px] h-full bg-[#FFFFFF] border-r border-[#9CA3AF] flex flex-col justify-between shrink-0 select-none ${className}`}
+      className={`w-[260px] h-full bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 select-none ${className}`}
       aria-label="เมนูหลัก"
     >
       <div className="flex flex-col min-h-0">
         {/* Brand / Logo Area */}
-        <div className="p-4 border-b border-[#9CA3AF]">
+        <div className="p-4 border-b border-slate-200">
           <Link
             href={role === "admin" ? "/admin/scholarship-rounds" : "/evaluator/rounds"}
             className="flex items-center gap-2.5 group"
           >
-            <div className="w-8 h-8 rounded-sm bg-[#374151] text-[#FFFFFF] flex items-center justify-center font-bold text-lg border border-[#374151] group-hover:bg-[#212B3A] transition-colors">
+            <div className="w-8 h-8 rounded-md bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-xs group-hover:bg-blue-700 transition-colors">
               S
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-lg text-[#212B3A] tracking-tight">
+                <span className="font-bold text-lg text-slate-900 tracking-tight">
                   {SYSTEM_CONFIG.name}
                 </span>
-                <span className="text-[11px] font-mono font-medium px-1.5 py-0.2 rounded border border-[#9CA3AF] text-[#6B7280] bg-[#F3F4F6]">
+                <span className="text-[11px] font-mono font-medium px-1.5 py-0.5 rounded border border-slate-200 text-slate-600 bg-slate-100">
                   {SYSTEM_CONFIG.version}
                 </span>
               </div>
             </div>
           </Link>
-          <p className="text-xs text-[#585F6A] mt-2 leading-tight">
+          <p className="text-xs text-slate-500 mt-2 leading-tight">
             {SYSTEM_CONFIG.fullName}
           </p>
-          <div className="mt-2.5 pt-2 border-t border-dashed border-[#E5E7EB] flex items-center justify-between text-[11px] text-[#6B7280]">
+          <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
             <span>พื้นที่ปฏิบัติงาน:</span>
-            <span className="font-medium text-[#374151]">{roleLabel}</span>
+            <span className="font-medium text-slate-800">{roleLabel}</span>
           </div>
         </div>
 
@@ -67,14 +67,14 @@ export function AppSidebar({
       </div>
 
       {/* Sidebar Footer */}
-      <div className="p-3.5 border-t border-[#9CA3AF] bg-[#FFFFFF] space-y-2">
-        <div className="text-[12px] text-[#585F6A] leading-tight">
-          <p className="font-medium text-[#374151]">{SYSTEM_CONFIG.faculty}</p>
-          <p className="text-[#6B7280]">{SYSTEM_CONFIG.university}</p>
+      <div className="p-3.5 border-t border-slate-200 bg-slate-50/70 space-y-2">
+        <div className="text-[12px] text-slate-600 leading-tight">
+          <p className="font-medium text-slate-800">{SYSTEM_CONFIG.faculty}</p>
+          <p className="text-slate-500">{SYSTEM_CONFIG.university}</p>
         </div>
-        <div className="pt-2 border-t border-dashed border-[#E5E7EB] flex items-center justify-between text-[11px] text-[#9CA3AF]">
-          <span>SEMS Architecture</span>
-          <span className="font-mono">EN-KKU</span>
+        <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px] text-slate-400">
+          <span>Enterprise Architecture</span>
+          <span className="font-mono text-slate-500">KKU-EN</span>
         </div>
       </div>
     </aside>
