@@ -51,9 +51,11 @@ docs/
 
 ### 📂 `04-development/` (งานพัฒนาและสคีมาโค้ด)
 * [sems-schema.prisma](file:///d:/SEMS-KKU/docs/04-development/sems-schema.prisma) — **Prisma Schema:** ไฟล์ schema สำหรับ PostgreSQL ORM ที่ใช้ในการ Migrate ฐานข้อมูลและการสร้าง Prisma Client จริง
+* [sample-prompt-templates-for-programming-projects.md](file:///d:/SEMS-KKU/docs/sample-prompt-templates-for-programming-projects.md) — **AI Prompt Templates for Software Engineering:** รวมแม่แบบ Prompt สำเร็จรูปสำหรับการพัฒนาโครงการเว็บแอปพลิเคชันตามกระบวนการ SE
 
 ---
 
 ### 📂 `05-design/` (การออกแบบ UI/UX และ Wireframes)
 * [DESIGN.md](file:///d:/SEMS-KKU/docs/05-design/sems-wireframe/sems_wireframe_system/DESIGN.md) — **Design System:** ข้อกำหนดสี Typography และ Component Styles สำหรับ SEMS
+* [ui-navigation-and-layout.md](file:///d:/SEMS-KKU/docs/05-design/ui-navigation-and-layout.md) — **UI Layout & Navigation Architecture:** สถาปัตยกรรม Shell Layout, ระบบเมนู 2 บทบาท (Admin & Evaluator), ธีม Modern Executive Slate และระบบ Responsive Collapsible Sidebar
 * [sems-wireframe/](file:///d:/SEMS-KKU/docs/05-design/sems-wireframe) — **UI Wireframes & Mockups:** หน้าจอต้นแบบ HTML และรูปภาพตัวอย่าง 50+ หน้าจอ ครบทุก Use Case (Admin, Evaluator, Authentication, Error States)
