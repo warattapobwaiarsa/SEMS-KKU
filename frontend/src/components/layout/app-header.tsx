@@ -28,7 +28,7 @@ export function AppHeader({ user, onMenuToggle }: AppHeaderProps) {
         <button
           type="button"
           onClick={onMenuToggle}
-          className="lg:hidden p-2 rounded-md border border-slate-200 hover:bg-slate-100 text-slate-700 transition-colors"
+          className="md:hidden p-2 rounded-md border border-slate-200 hover:bg-slate-100 text-slate-700 transition-colors"
           aria-label="เปิดเมนูนำทาง"
         >
           <Menu className="w-5 h-5" aria-hidden="true" />

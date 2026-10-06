@@ -19,17 +19,20 @@ export function RoleLayoutShell({
   children,
 }: RoleLayoutShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50/60 text-slate-800">
-      {/* Desktop Sidebar (Persistent 260px) */}
+      {/* Desktop & Tablet Sidebar (Persistent - Toggleable between 260px and 68px) */}
       <AppSidebar
         items={items}
         role={user.role}
-        className="hidden lg:flex"
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
+        className="hidden md:flex"
       />
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer (< 768px) */}
       <MobileSidebar
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
