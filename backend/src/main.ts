@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
 
 async function bootstrap() {
@@ -21,6 +22,10 @@ async function bootstrap() {
   // ครอบผลลัพธ์ที่สำเร็จทุกตัวให้อยู่ใน Envelope มาตรฐาน
   // (REST API spec หัวข้อ 2.2: { success, statusCode, data, meta? })
   app.useGlobalInterceptors(new ResponseTransformInterceptor());
+
+  // แปลง error ทุกชนิดให้เป็น error envelope มาตรฐาน
+  // (REST API spec หัวข้อ 2.2: { success, statusCode, errorCode, error, params, timestamp })
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   app.enableCors();
   app.setGlobalPrefix('api/v1');
