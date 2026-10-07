@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
-import Link from 'next/link';
-import { Calendar, ChevronDown, ExternalLink, Layers, X, ShieldAlert, Sparkles } from 'lucide-react';
+import { ChevronDown, Layers, X } from 'lucide-react';
 import { RoundUsageItem } from '@/types/criteria';
 
 interface RoundBadgesProps {
@@ -43,13 +42,13 @@ export function RoundBadges({ rounds = [], maxVisible = 2, compact = false }: Ro
     left: 0,
     placement: 'bottom',
   });
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Calculate position precisely using trigger bounding client rect
   const updatePosition = () => {

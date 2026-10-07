@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { RoundsService } from './rounds.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -21,7 +25,9 @@ describe('RoundsService', () => {
     auditLog: {
       create: jest.fn(),
     },
-    $transaction: jest.fn((cb: (tx: unknown) => unknown) => cb(mockPrismaService)),
+    $transaction: jest.fn((cb: (tx: unknown) => unknown) =>
+      cb(mockPrismaService),
+    ),
   };
 
   beforeEach(async () => {
