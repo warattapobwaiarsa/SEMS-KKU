@@ -232,8 +232,18 @@ describe('CriteriaService', () => {
           name: 'เกณฑ์เดิม',
           rounds: [],
           subCriteria: [
-            { id: 101, title: 'ข้อเดิม 1', type: SubCriteriaType.SCORED, maxScore: 50 },
-            { id: 102, title: 'ข้อเดิม 2 ที่จะถูกลบ', type: SubCriteriaType.SCORED, maxScore: 50 },
+            {
+              id: 101,
+              title: 'ข้อเดิม 1',
+              type: SubCriteriaType.SCORED,
+              maxScore: 50,
+            },
+            {
+              id: 102,
+              title: 'ข้อเดิม 2 ที่จะถูกลบ',
+              type: SubCriteriaType.SCORED,
+              maxScore: 50,
+            },
           ],
         })
         // 2. Duplicate name check (same name, so skipped or returned null)
@@ -243,8 +253,20 @@ describe('CriteriaService', () => {
           name: 'เกณฑ์เดิม',
           rounds: [],
           subCriteria: [
-            { id: 101, title: 'ข้อเดิม 1 (อัปเดต)', type: SubCriteriaType.SCORED, maxScore: 70, sortOrder: 1 },
-            { id: 103, title: 'ข้อใหม่', type: SubCriteriaType.SCORED, maxScore: 30, sortOrder: 2 },
+            {
+              id: 101,
+              title: 'ข้อเดิม 1 (อัปเดต)',
+              type: SubCriteriaType.SCORED,
+              maxScore: 70,
+              sortOrder: 1,
+            },
+            {
+              id: 103,
+              title: 'ข้อใหม่',
+              type: SubCriteriaType.SCORED,
+              maxScore: 30,
+              sortOrder: 2,
+            },
           ],
         });
 

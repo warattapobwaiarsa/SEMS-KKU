@@ -91,7 +91,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
         message = String(res);
       }
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
-      this.logger.error(`Prisma error [${exception.code}]: ${exception.message}`);
+      this.logger.error(
+        `Prisma error [${exception.code}]: ${exception.message}`,
+      );
       if (exception.code === 'P2002') {
         status = HttpStatus.CONFLICT;
         errorCode = 'UNIQUE_CONSTRAINT_FAILED';
@@ -112,7 +114,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
         message = 'เกิดข้อผิดพลาดในการประมวลผลข้อมูลฐานข้อมูล';
       }
     } else if (exception instanceof Error) {
-      this.logger.error(`Unhandled error: ${exception.message}`, exception.stack);
+      this.logger.error(
+        `Unhandled error: ${exception.message}`,
+        exception.stack,
+      );
       message =
         process.env.NODE_ENV === 'production'
           ? 'Internal server error'

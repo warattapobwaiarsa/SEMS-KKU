@@ -3,7 +3,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateCriteriaDto } from './dto/create-criteria.dto';
 import { UpdateCriteriaDto } from './dto/update-criteria.dto';
 import { BusinessException } from '../common/http-exception.filter';
-import { SubCriteriaType, RoundStatus, AuditAction, Prisma } from '@prisma/client';
+import {
+  SubCriteriaType,
+  RoundStatus,
+  AuditAction,
+  Prisma,
+} from '@prisma/client';
 
 @Injectable()
 export class CriteriaService {
@@ -209,7 +214,8 @@ export class CriteriaService {
               sortOrder: sub.sortOrder,
               title: sub.title.trim(),
               type: sub.type,
-              maxScore: sub.type === SubCriteriaType.SCORED ? sub.maxScore : null,
+              maxScore:
+                sub.type === SubCriteriaType.SCORED ? sub.maxScore : null,
               allowComment:
                 sub.type === SubCriteriaType.SCORED
                   ? (sub.allowComment ?? false)
