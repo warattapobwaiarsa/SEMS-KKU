@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { CriteriaDetail } from '@/types/criteria';
 import { fetchCriteriaList } from '@/services/criteria.service';
-import { PageHeader, StatusBadge, Pagination } from '@/components/ui';
+import { PageHeader, StatusBadge, Pagination, RoundBadges } from '@/components/ui';
 import { 
   FileCheck2, 
   Plus, 
@@ -161,23 +161,9 @@ export default function EvaluationCriteriaPage() {
                         {criteria.subCriteria.length} ข้อ
                       </span>
                     </div>
-                    <div className="col-span-2 border-t border-border/40 pt-1.5 mt-0.5">
+                    <div className="col-span-2 border-t border-border/40 pt-2 mt-0.5">
                       <span className="block text-[10px] text-muted-foreground/80 mb-1">รอบทุนที่นำไปใช้</span>
-                      {criteria.usedByRounds && criteria.usedByRounds.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {criteria.usedByRounds.map((r) => (
-                            <span
-                              key={r.id}
-                              className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border border-border bg-background text-foreground"
-                            >
-                              <Calendar className="h-2.5 w-2.5" />
-                              {r.name}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground italic text-xs">ยังไม่มีรอบทุนที่ใช้งาน</span>
-                      )}
+                      <RoundBadges rounds={criteria.usedByRounds} compact={true} maxVisible={2} />
                     </div>
                   </div>
 
@@ -240,27 +226,7 @@ export default function EvaluationCriteriaPage() {
                         {criteria.subCriteria.length} ข้อ
                       </td>
                       <td className="py-4 px-5">
-                        {criteria.usedByRounds && criteria.usedByRounds.length > 0 ? (
-                          <div className="flex flex-wrap gap-1.5">
-                            {criteria.usedByRounds.map((r) => (
-                              <span
-                                key={r.id}
-                                className={`inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full border shadow-2xs ${
-                                  r.status === 'OPEN'
-                                    ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
-                                    : r.status === 'CLOSED'
-                                    ? 'border-slate-300 bg-slate-50 text-slate-700'
-                                    : 'border-amber-300 bg-amber-50 text-amber-800'
-                                }`}
-                              >
-                                <Calendar className="h-3 w-3" />
-                                {r.name}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground italic">ยังไม่มีรอบทุนที่ใช้งาน</span>
-                        )}
+                        <RoundBadges rounds={criteria.usedByRounds} maxVisible={2} />
                       </td>
                       <td className="py-4 px-4 text-center">
                         {criteria.isLocked ? (
