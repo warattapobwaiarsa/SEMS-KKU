@@ -166,28 +166,28 @@ export default function EditOrViewCriteriaPage() {
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-16">
       {/* Top Breadcrumb & Status */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/80 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4">
         <Link
           href="/admin/evaluation-criteria"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition hover:-translate-x-0.5"
         >
           <ArrowLeft className="h-4 w-4" />
           กลับสู่หน้ารายการเกณฑ์การประเมิน
         </Link>
         <div className="flex items-center gap-2">
           {isLocked ? (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
-              <Lock className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-slate-100 text-slate-800 border border-slate-300 shadow-2xs">
+              <Lock className="h-3.5 w-3.5 text-slate-600" />
               เกณฑ์ถูกล็อก (ใช้งานในรอบทุน Open/Closed แล้ว)
             </span>
           ) : isScoreValid ? (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300">
-              <CheckCircle2 className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-2xs">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
               สถานะ: พร้อมบันทึก (100 คะแนน)
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-300">
-              <AlertCircle className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs">
+              <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
               สถานะ: ขาด/เกิน {Math.abs(100 - totalScore)} คะแนน
             </span>
           )}
@@ -196,20 +196,22 @@ export default function EditOrViewCriteriaPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
           {isLocked ? 'รายละเอียดเกณฑ์การประเมิน' : 'แก้ไขเกณฑ์การประเมิน'}
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-1.5 text-sm font-medium text-slate-500">
           รหัสอ้างอิง: CRT-{criteriaId.toString().padStart(4, '0')}
         </p>
       </div>
 
       {isLocked && (
-        <div className="rounded-xl border border-slate-300 bg-slate-50 p-4 text-sm text-slate-800 flex items-start gap-3">
-          <Lock className="h-5 w-5 shrink-0 mt-0.5 text-slate-600" />
+        <div className="rounded-2xl border border-slate-300 bg-white p-5 text-sm text-slate-800 flex items-start gap-3.5 shadow-sm">
+          <div className="p-2 rounded-xl bg-slate-100 border border-slate-200 shrink-0">
+            <Lock className="h-5 w-5 text-slate-700" />
+          </div>
           <div>
-            <h4 className="font-semibold text-slate-900">เกณฑ์นี้ถูกล็อกการแก้ไขตามกฎ BR-CRT-09</h4>
-            <p className="mt-0.5 text-slate-600">
+            <h4 className="font-bold text-slate-900 text-base">เกณฑ์นี้ถูกล็อกการแก้ไขตามกฎ BR-CRT-09</h4>
+            <p className="mt-1 text-slate-600 leading-relaxed">
               เนื่องจากชุดเกณฑ์นี้ถูกนำไปใช้ในรอบทุนที่เปิดรับประเมิน (Open) หรือปิดรอบแล้ว (Closed) เพื่อรักษาความถูกต้องของข้อมูลประเมิน หากต้องการเปลี่ยนแปลงเกณฑ์ ให้สร้างชุดเกณฑ์ใหม่
             </p>
           </div>
@@ -217,11 +219,11 @@ export default function EditOrViewCriteriaPage() {
       )}
 
       {errorMessage && (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+        <div className="rounded-2xl border border-rose-300 bg-rose-50/90 p-4 text-sm text-rose-900 flex items-start gap-3 shadow-xs">
+          <AlertCircle className="h-5 w-5 shrink-0 mt-0.5 text-rose-600" />
           <div>
-            <h4 className="font-semibold">เกิดข้อผิดพลาด</h4>
-            <p className="mt-0.5">{errorMessage}</p>
+            <h4 className="font-bold">เกิดข้อผิดพลาด</h4>
+            <p className="mt-0.5 font-medium">{errorMessage}</p>
           </div>
         </div>
       )}
@@ -382,37 +384,37 @@ export default function EditOrViewCriteriaPage() {
 
         {/* Right Column */}
         <div className="lg:col-span-4 sticky top-20 flex flex-col gap-4">
-          <div className="bg-card border border-border rounded-xl p-5 shadow-xs space-y-5">
-            <h3 className="text-base font-semibold text-foreground border-b border-border pb-3">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-5">
+            <h3 className="text-base font-bold text-slate-900 border-b border-slate-200 pb-3">
               ผลรวมคะแนนเกณฑ์
             </h3>
 
             <div
-              className={`rounded-xl p-5 text-center border transition ${
+              className={`rounded-2xl p-6 text-center border transition shadow-xs ${
                 isScoreValid
-                  ? 'bg-emerald-50/60 border-emerald-300 text-emerald-800'
-                  : 'bg-rose-50/60 border-rose-300 text-rose-800'
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-900 ring-2 ring-emerald-500/20'
+                  : 'bg-rose-50 border-rose-300 text-rose-900 ring-2 ring-rose-500/20'
               }`}
             >
-              <div className="text-xs font-medium uppercase tracking-wider mb-1">คะแนนรวม</div>
+              <div className="text-xs font-bold uppercase tracking-wider mb-1.5 opacity-80">คะแนนรวมทั้งหมด</div>
               <div className="text-5xl font-extrabold font-mono tracking-tight">
                 {totalScore}
-                <span className="text-lg font-normal ml-1">/ 100</span>
+                <span className="text-lg font-normal ml-1.5 opacity-70">/ 100</span>
               </div>
             </div>
 
             {/* Rounds Using This Criteria */}
             {criteria?.usedByRounds && criteria.usedByRounds.length > 0 && (
-              <div className="space-y-2 text-xs border-t border-border pt-3">
-                <div className="font-semibold text-foreground">รอบทุนที่นำเกณฑ์ไปใช้:</div>
-                <div className="flex flex-col gap-1.5">
+              <div className="space-y-2.5 text-xs border-t border-slate-200 pt-3.5">
+                <div className="font-bold text-slate-800">รอบทุนที่นำเกณฑ์นี้ไปใช้:</div>
+                <div className="flex flex-col gap-2">
                   {criteria.usedByRounds.map((r) => (
                     <div
                       key={r.id}
-                      className="flex items-center justify-between p-2 rounded-lg bg-muted/40 border border-border text-xs"
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
                     >
-                      <span className="font-medium">{r.name}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-background border font-mono">
+                      <span className="font-semibold text-slate-800">{r.name}</span>
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-white border border-slate-300 font-mono font-bold text-slate-700 shadow-2xs">
                         {r.status}
                       </span>
                     </div>
@@ -426,10 +428,10 @@ export default function EditOrViewCriteriaPage() {
                 <button
                   type="submit"
                   disabled={!isFormValid || saving}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary py-2.5 px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-3 px-5 text-sm font-bold shadow-md shadow-blue-600/25 transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
                 >
                   <Save className="h-4 w-4" />
-                  {saving ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}
+                  {saving ? 'กำลังบันทึกข้อมูล...' : 'บันทึกการเปลี่ยนแปลงเกณฑ์'}
                 </button>
               </div>
             )}
