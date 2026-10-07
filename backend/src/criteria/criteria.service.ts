@@ -3,7 +3,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateCriteriaDto } from './dto/create-criteria.dto';
 import { UpdateCriteriaDto } from './dto/update-criteria.dto';
 import { BusinessException } from '../common/http-exception.filter';
-import { SubCriteriaType, RoundStatus, Prisma } from '@prisma/client';
+import {
+  SubCriteriaType,
+  RoundStatus,
+  AuditAction,
+  Prisma,
+} from '@prisma/client';
 
 @Injectable()
 export class CriteriaService {
@@ -200,34 +205,52 @@ export class CriteriaService {
     }
 
     // 3. Create Criteria with SubCriteria in a transaction
-    const created = await this.prisma.criteria.create({
-      data: {
-        name: dto.name.trim(),
-        subCriteria: {
-          create: dto.subCriteria.map((sub) => ({
-            sortOrder: sub.sortOrder,
-            title: sub.title.trim(),
-            type: sub.type,
-            maxScore: sub.type === SubCriteriaType.SCORED ? sub.maxScore : null,
-            allowComment:
-              sub.type === SubCriteriaType.SCORED
-                ? (sub.allowComment ?? false)
-                : false,
-          })),
-        },
-      },
-      include: {
-        subCriteria: {
-          orderBy: { sortOrder: 'asc' },
-        },
-        rounds: {
-          select: {
-            id: true,
-            name: true,
-            status: true,
+    const created = await this.prisma.$transaction(async (tx) => {
+      const item = await tx.criteria.create({
+        data: {
+          name: dto.name.trim(),
+          subCriteria: {
+            create: dto.subCriteria.map((sub) => ({
+              sortOrder: sub.sortOrder,
+              title: sub.title.trim(),
+              type: sub.type,
+              maxScore:
+                sub.type === SubCriteriaType.SCORED ? sub.maxScore : null,
+              allowComment:
+                sub.type === SubCriteriaType.SCORED
+                  ? (sub.allowComment ?? false)
+                  : false,
+            })),
           },
         },
-      },
+        include: {
+          subCriteria: {
+            orderBy: { sortOrder: 'asc' },
+          },
+          rounds: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+            },
+          },
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          actorId: null,
+          action: AuditAction.CRITERIA_CREATE,
+          entityType: 'Criteria',
+          entityId: String(item.id),
+          newValue: {
+            name: item.name,
+            subCriteriaCount: item.subCriteria.length,
+          },
+        },
+      });
+
+      return item;
     });
 
     const totalScore = created.subCriteria
@@ -343,6 +366,20 @@ export class CriteriaService {
       await tx.criteria.update({
         where: { id },
         data: { name: dto.name.trim() },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          actorId: null,
+          action: AuditAction.CRITERIA_UPDATE,
+          entityType: 'Criteria',
+          entityId: String(id),
+          oldValue: { name: existing.name },
+          newValue: { name: dto.name.trim() },
+          detail: {
+            subCriteriaCount: dto.subCriteria.length,
+          },
+        },
       });
     });
 

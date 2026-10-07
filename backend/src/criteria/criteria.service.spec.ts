@@ -24,6 +24,9 @@ describe('CriteriaService', () => {
       update: jest.fn(),
       deleteMany: jest.fn(),
     },
+    auditLog: {
+      create: jest.fn(),
+    },
     $transaction: jest.fn((cb: (tx: any) => any) => cb(mockPrismaService)),
   };
 
@@ -191,6 +194,107 @@ describe('CriteriaService', () => {
       expect(result.totalScore).toBe(100);
       expect(result.isLocked).toBe(false);
       expect(result.subCriteria.length).toBe(2);
+    });
+  });
+
+  describe('update', () => {
+    it('should throw CRITERIA_LOCKED if criteria is used in OPEN or CLOSED round (BR-CRT-09)', async () => {
+      mockPrismaService.criteria.findUnique.mockResolvedValueOnce({
+        id: 1,
+        name: 'เกณฑ์ที่ถูกล็อก',
+        rounds: [{ status: 'OPEN' }],
+        subCriteria: [{ id: 10, type: SubCriteriaType.SCORED, maxScore: 100 }],
+      });
+
+      try {
+        await service.update(1, {
+          name: 'เกณฑ์แก้ไข',
+          subCriteria: [
+            {
+              sortOrder: 1,
+              title: 'ผลการเรียน',
+              type: SubCriteriaType.SCORED,
+              maxScore: 100,
+            },
+          ],
+        });
+      } catch (err: unknown) {
+        const error = err as BusinessException;
+        expect(error.errorCode).toBe('CRITERIA_LOCKED');
+      }
+    });
+
+    it('should reconcile sub-criteria on successful update', async () => {
+      mockPrismaService.criteria.findUnique
+        // 1. Initial lookup in update()
+        .mockResolvedValueOnce({
+          id: 1,
+          name: 'เกณฑ์เดิม',
+          rounds: [],
+          subCriteria: [
+            {
+              id: 101,
+              title: 'ข้อเดิม 1',
+              type: SubCriteriaType.SCORED,
+              maxScore: 50,
+            },
+            {
+              id: 102,
+              title: 'ข้อเดิม 2 ที่จะถูกลบ',
+              type: SubCriteriaType.SCORED,
+              maxScore: 50,
+            },
+          ],
+        })
+        // 2. Duplicate name check (same name, so skipped or returned null)
+        // 3. findOne(id) call at the end of update()
+        .mockResolvedValueOnce({
+          id: 1,
+          name: 'เกณฑ์เดิม',
+          rounds: [],
+          subCriteria: [
+            {
+              id: 101,
+              title: 'ข้อเดิม 1 (อัปเดต)',
+              type: SubCriteriaType.SCORED,
+              maxScore: 70,
+              sortOrder: 1,
+            },
+            {
+              id: 103,
+              title: 'ข้อใหม่',
+              type: SubCriteriaType.SCORED,
+              maxScore: 30,
+              sortOrder: 2,
+            },
+          ],
+        });
+
+      const result = await service.update(1, {
+        name: 'เกณฑ์เดิม',
+        subCriteria: [
+          {
+            id: 101,
+            sortOrder: 1,
+            title: 'ข้อเดิม 1 (อัปเดต)',
+            type: SubCriteriaType.SCORED,
+            maxScore: 70,
+          },
+          {
+            sortOrder: 2,
+            title: 'ข้อใหม่',
+            type: SubCriteriaType.SCORED,
+            maxScore: 30,
+          },
+        ],
+      });
+
+      expect(mockPrismaService.subCriteria.deleteMany).toHaveBeenCalledWith({
+        where: { id: { in: [102] }, criteriaId: 1 },
+      });
+      expect(mockPrismaService.subCriteria.update).toHaveBeenCalled();
+      expect(mockPrismaService.subCriteria.create).toHaveBeenCalled();
+      expect(result.totalScore).toBe(100);
     });
   });
 });

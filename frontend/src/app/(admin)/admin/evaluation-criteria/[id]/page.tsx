@@ -14,7 +14,11 @@ import {
   AlertCircle, 
   Save, 
   Lock, 
-  MessageSquare
+  MessageSquare,
+  ChevronUp,
+  ChevronDown,
+  Calendar,
+  Layers,
 } from 'lucide-react';
 
 interface SubCriteriaRow {
@@ -114,6 +118,26 @@ export default function EditOrViewCriteriaPage() {
     if (isLocked || subCriteria.length <= 1) return;
     const filtered = subCriteria.filter((row) => row.tempId !== tempId);
     const reordered = filtered.map((row, idx) => ({ ...row, sortOrder: idx + 1 }));
+    setSubCriteria(reordered);
+  };
+
+  const handleMoveUp = (index: number) => {
+    if (isLocked || index <= 0) return;
+    const items = [...subCriteria];
+    const temp = items[index];
+    items[index] = items[index - 1];
+    items[index - 1] = temp;
+    const reordered = items.map((row, idx) => ({ ...row, sortOrder: idx + 1 }));
+    setSubCriteria(reordered);
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (isLocked || index >= subCriteria.length - 1) return;
+    const items = [...subCriteria];
+    const temp = items[index];
+    items[index] = items[index + 1];
+    items[index + 1] = temp;
+    const reordered = items.map((row, idx) => ({ ...row, sortOrder: idx + 1 }));
     setSubCriteria(reordered);
   };
 
@@ -280,7 +304,7 @@ export default function EditOrViewCriteriaPage() {
 
             {/* Rows */}
             <div className="space-y-3">
-              {subCriteria.map((row) => (
+              {subCriteria.map((row, idx) => (
                 <div
                   key={row.tempId}
                   className={`border rounded-xl p-4 transition ${
@@ -289,8 +313,25 @@ export default function EditOrViewCriteriaPage() {
                 >
                   <div className="flex items-start gap-3">
                     {!isLocked && (
-                      <div className="mt-2 text-muted-foreground cursor-grab">
-                        <GripVertical className="h-4 w-4" />
+                      <div className="flex flex-col gap-0.5 mt-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleMoveUp(idx)}
+                          disabled={idx === 0}
+                          title="เลื่อนขึ้น"
+                          className="p-1 text-slate-400 hover:text-slate-800 disabled:opacity-20 rounded hover:bg-slate-100 transition cursor-pointer"
+                        >
+                          <ChevronUp className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveDown(idx)}
+                          disabled={idx === subCriteria.length - 1}
+                          title="เลื่อนลง"
+                          className="p-1 text-slate-400 hover:text-slate-800 disabled:opacity-20 rounded hover:bg-slate-100 transition cursor-pointer"
+                        >
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     )}
 
@@ -405,20 +446,43 @@ export default function EditOrViewCriteriaPage() {
 
             {/* Rounds Using This Criteria */}
             {criteria?.usedByRounds && criteria.usedByRounds.length > 0 && (
-              <div className="space-y-2.5 text-xs border-t border-slate-200 pt-3.5">
-                <div className="font-bold text-slate-800">รอบทุนที่นำเกณฑ์นี้ไปใช้:</div>
-                <div className="flex flex-col gap-2">
-                  {criteria.usedByRounds.map((r) => (
-                    <div
-                      key={r.id}
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
-                    >
-                      <span className="font-semibold text-slate-800">{r.name}</span>
-                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-white border border-slate-300 font-mono font-bold text-slate-700 shadow-2xs">
-                        {r.status}
-                      </span>
-                    </div>
-                  ))}
+              <div className="space-y-3 text-xs border-t border-slate-200 pt-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <Layers className="h-4 w-4 text-primary" />
+                    รอบทุนที่นำเกณฑ์นี้ไปใช้
+                  </span>
+                  <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                    {criteria.usedByRounds.length} รอบ
+                  </span>
+                </div>
+                <div className="max-h-52 overflow-y-auto pr-1 flex flex-col gap-1.5 focus:outline-none">
+                  {criteria.usedByRounds.map((r) => {
+                    const statusConfig = {
+                      OPEN: { border: 'border-emerald-200', bg: 'bg-emerald-50/70', text: 'text-emerald-800', dot: 'bg-emerald-500', label: 'เปิดรับ' },
+                      CLOSED: { border: 'border-slate-200', bg: 'bg-slate-50', text: 'text-slate-600', dot: 'bg-slate-400', label: 'ปิดรับ' },
+                      DRAFT: { border: 'border-amber-200', bg: 'bg-amber-50/70', text: 'text-amber-800', dot: 'bg-amber-500', label: 'ฉบับร่าง' },
+                    }[r.status] || { border: 'border-slate-200', bg: 'bg-slate-50', text: 'text-slate-600', dot: 'bg-slate-400', label: r.status };
+
+                    return (
+                      <div
+                        key={r.id}
+                        className="flex items-center justify-between p-2 rounded-xl bg-slate-50/80 hover:bg-slate-100/80 border border-slate-200/80 transition-colors text-xs"
+                      >
+                        <div className="flex items-center gap-2 min-w-0 pr-2">
+                          <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${statusConfig.dot}`} />
+                          <span className="font-medium text-slate-800 truncate" title={r.name}>
+                            {r.name}
+                          </span>
+                        </div>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full border shrink-0 font-medium ${statusConfig.border} ${statusConfig.bg} ${statusConfig.text}`}
+                        >
+                          {statusConfig.label}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   Query,
+  Headers,
   ParseIntPipe,
   UsePipes,
   ValidationPipe,
@@ -31,7 +32,10 @@ export class RoundsController {
     @Query('academicYear') academicYear?: number,
     @Query('semester') semester?: number,
     @Query('status') status?: RoundStatus,
+    @Headers('x-user-role') roleHeader?: string,
+    @Query('userRole') roleQuery?: string,
   ) {
+    const userRole = roleHeader || roleQuery;
     return this.roundsService.findAll({
       page,
       limit,
@@ -39,6 +43,7 @@ export class RoundsController {
       academicYear,
       semester,
       status,
+      userRole,
     });
   }
 
@@ -49,8 +54,13 @@ export class RoundsController {
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.roundsService.findOne(id);
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers('x-user-role') roleHeader?: string,
+    @Query('userRole') roleQuery?: string,
+  ) {
+    const userRole = roleHeader || roleQuery;
+    return this.roundsService.findOne(id, userRole);
   }
 
   @Patch(':id')

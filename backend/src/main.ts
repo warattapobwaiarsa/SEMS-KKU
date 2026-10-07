@@ -6,7 +6,22 @@ import { TransformInterceptor } from './common/transform.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
+
+  const corsOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+    : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+
+  app.enableCors({
+    origin: corsOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'x-user-role',
+    ],
+  });
   app.setGlobalPrefix('api/v1');
 
   app.useGlobalPipes(

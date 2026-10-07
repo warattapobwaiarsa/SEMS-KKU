@@ -4,8 +4,10 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { Prisma } from '@prisma/client';
 
 export interface BusinessExceptionOptions {
   errorCode: string;
@@ -42,6 +44,8 @@ interface ErrorResponseBody {
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(HttpExceptionFilter.name);
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -86,8 +90,38 @@ export class HttpExceptionFilter implements ExceptionFilter {
       } else {
         message = String(res);
       }
+    } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+      this.logger.error(
+        `Prisma error [${exception.code}]: ${exception.message}`,
+      );
+      if (exception.code === 'P2002') {
+        status = HttpStatus.CONFLICT;
+        errorCode = 'UNIQUE_CONSTRAINT_FAILED';
+        message = 'ข้อมูลซ้ำกับที่มีอยู่ในระบบ';
+        params = { target: exception.meta?.target };
+      } else if (exception.code === 'P2025') {
+        status = HttpStatus.NOT_FOUND;
+        errorCode = 'NOT_FOUND';
+        message = 'ไม่พบข้อมูลที่ระบุในระบบ';
+      } else if (exception.code === 'P2003') {
+        status = HttpStatus.UNPROCESSABLE_ENTITY;
+        errorCode = 'FOREIGN_KEY_CONSTRAINT_FAILED';
+        message = 'ไม่สามารถดำเนินการได้เนื่องจากมีข้อมูลอื่นเชื่อมโยงอยู่';
+        params = { field: exception.meta?.field_name };
+      } else {
+        status = HttpStatus.BAD_REQUEST;
+        errorCode = `DB_ERROR_${exception.code}`;
+        message = 'เกิดข้อผิดพลาดในการประมวลผลข้อมูลฐานข้อมูล';
+      }
     } else if (exception instanceof Error) {
-      message = exception.message;
+      this.logger.error(
+        `Unhandled error: ${exception.message}`,
+        exception.stack,
+      );
+      message =
+        process.env.NODE_ENV === 'production'
+          ? 'Internal server error'
+          : exception.message;
     }
 
     const timestamp = new Date().toISOString();
