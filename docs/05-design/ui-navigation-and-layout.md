@@ -69,9 +69,36 @@ flowchart TD
 ---
 
 ## 4. ประสบการณ์ Responsive & Micro-interactions
-
+ 
 | อุปกรณ์ / ขนาดหน้าจอ | รูปแบบ Sidebar & Navigation | ประโยชน์การใช้งาน |
 |---|---|---|
 | **Desktop (>= 1024px)** | Sidebar เต็ม `260px` พร้อมปุ่มพับเก็บเป็น Mini Rail | ใช้งานสะดวก สามารถพับเก็บเพื่อเพิ่มพื้นที่ดูตารางได้ |
 | **Tablet (768px - 1023px)** | Sidebar ปรับขนาดได้ พับเป็น Mini Rail `68px` พร้อม Hover Tooltip | คืนพื้นที่หน้าจอแนวนอนสำหรับกรอกคะแนนและตรวจทานเอกสาร |
 | **Mobile (< 768px)** | Slide-over Drawer `270px` พร้อมฉากหลัง `backdrop-blur-xs` | ลื่นไหลระดับ Native App, แตะเมนูปิดอัตโนมัติ, Touch target >= 44px |
+
+---
+
+## 5. รูปแบบการแสดงผลข้อมูลแบบ Dual-View และ Progressive Disclosure
+
+เพื่อรองรับการใช้งานบนข้อมูลขนาดใหญ่และชุดข้อมูลหนาแน่นสูง (Data-dense table):
+* **Dual-View Pattern:** 
+  - บน Desktop (`>= md`): แสดงผลด้วยตารางเต็มรูปแบบ (`table`) จัดวางคอลัมน์ชัดเจน
+  - บน Mobile (`< md`): สลับไปใช้ Responsive Card View ที่แบ่งส่วนข้อมูลอย่างกะทัดรัด
+* **Progressive Disclosure (คอมโพเนนต์ `RoundBadges`):**
+  - เมื่อชุดเกณฑ์ถูกผูกกับหลายรอบทุน (> 2 รอบ) ระบบจะไม่แสดง Badge ยืดยาวจนตารางเสียทรง แต่จะแสดงเป็น 2 รอบสำคัญ + ป้ายสรุปกะทัดรัด `+N รอบ ▾`
+  - การกดเปิดรายการทั้งหมดทำงานผ่าน **React 19 Portal (`createPortal`)** โดย Mount ตัวกล่องลอยไปยัง `document.body` เพื่อแก้ปัญหา CSS Overflow Clipping ที่มักเกิดขึ้นในตารางแบบ `overflow-x-auto` ได้ 100%
+  - มี Boundary Guard ป้องกันการล้นขอบจอทั้งแกนตั้ง (สลับเปิดบน-ล่างอัตโนมัติ) และแกนนอน
+
+---
+
+## 6. หลักการออกแบบการเคลื่อนไหว (Motion Design: Framer Motion & Apple HIG)
+
+1. **Spring Physics (`spring-pop`):**
+   - กล่อง Popover และ Dialog ใช้การขยายตัวแบบ Overshoot สไตล์ Spring:
+     `animation: spring-pop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.15)`
+   - เชื่อมต่อ Transform Origin ตามทิศทางของปุ่ม Trigger (`origin-top` / `origin-bottom`) ให้ความรู้สึกผุดเด้งอย่างเป็นธรรมชาติ ไม่เลื่อนเอื่อย
+2. **Tactile Feedback (`.btn-interactive`):**
+   - ปุ่มและองค์ประกอบที่กดได้ (Interactive elements) มีแรงต้านทางกายภาพ `active:scale-[0.96]` เพื่อมอบ Touch Feedback คล้าย Native iOS
+3. **Accessibility (ความครอบคลุมสำหรับทุกคน):**
+   - ปฏิบัติตามมาตรฐาน Accessibility ด้วยการรองรับ `@media (prefers-reduced-motion: reduce)` ปิดแอนิเมชันสำหรับผู้ใช้ที่ต้องการความนิ่งของหน้าจอ
+   - ขยาย Touch Targets สำหรับปุ่มบน Pagination และ Action Bar ให้มีความสูงอย่างน้อย `36px - 44px` ตามมาตรฐาน Apple HIG
