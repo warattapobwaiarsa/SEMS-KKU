@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   Query,
+  Headers,
   ParseIntPipe,
   UsePipes,
   ValidationPipe,
@@ -28,8 +29,13 @@ export class CriteriaController {
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.criteriaService.findOne(id);
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers('x-user-role') roleHeader?: string,
+    @Query('userRole') roleQuery?: string,
+  ) {
+    const userRole = roleHeader || roleQuery;
+    return this.criteriaService.findOne(id, userRole);
   }
 
   @Post()

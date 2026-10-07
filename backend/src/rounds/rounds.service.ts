@@ -11,6 +11,7 @@ import {
   RoundStatus,
   SubCriteriaType,
   EvaluationStatus,
+  AuditAction,
   Prisma,
 } from '@prisma/client';
 
@@ -372,7 +373,7 @@ export class RoundsService {
     };
   }
 
-  async openRound(id: number) {
+  async openRound(id: number, actorId?: number) {
     const check = await this.checkOpenReadiness(id);
     if (!check.isReady) {
       throw new BusinessException({
@@ -383,27 +384,43 @@ export class RoundsService {
       });
     }
 
-    const round = await this.prisma.scholarshipRound.findUnique({
-      where: { id },
-    });
-    if (!round || round.status !== RoundStatus.DRAFT) {
-      throw new BusinessException({
-        errorCode: 'INVALID_ROUND_STATUS',
-        statusCode: HttpStatus.CONFLICT,
-        message: 'เปิดรอบได้เฉพาะรอบในสถานะร่าง (Draft) เท่านั้น',
-        params: { status: round?.status, action: 'open_round' },
+    await this.prisma.$transaction(async (tx) => {
+      const round = await tx.scholarshipRound.findUnique({
+        where: { id },
       });
-    }
+      if (!round || round.status !== RoundStatus.DRAFT) {
+        throw new BusinessException({
+          errorCode: 'INVALID_ROUND_STATUS',
+          statusCode: HttpStatus.CONFLICT,
+          message: 'เปิดรอบได้เฉพาะรอบในสถานะร่าง (Draft) เท่านั้น',
+          params: { status: round?.status, action: 'open_round' },
+        });
+      }
 
-    const updated = await this.prisma.scholarshipRound.update({
-      where: { id },
-      data: {
-        status: RoundStatus.OPEN,
-        openedAt: new Date(),
-      },
+      const openedAt = new Date();
+      await tx.scholarshipRound.update({
+        where: { id },
+        data: {
+          status: RoundStatus.OPEN,
+          openedAt,
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          actorId: actorId ?? null,
+          action: AuditAction.ROUND_STATUS_CHANGE,
+          entityType: 'ScholarshipRound',
+          entityId: String(id),
+          roundId: id,
+          oldValue: { status: RoundStatus.DRAFT },
+          newValue: { status: RoundStatus.OPEN, openedAt },
+          detail: { applicantCount: check.applicantCount },
+        },
+      });
     });
 
-    return this.findOne(updated.id);
+    return this.findOne(id);
   }
 
   async checkCloseStatus(id: number) {
@@ -450,58 +467,102 @@ export class RoundsService {
     };
   }
 
-  async closeRound(id: number, dto: CloseRoundDto) {
-    const round = await this.prisma.scholarshipRound.findUnique({
-      where: { id },
-    });
-
-    if (!round || round.status !== RoundStatus.OPEN) {
-      throw new BusinessException({
-        errorCode: 'INVALID_ROUND_STATUS',
-        statusCode: HttpStatus.CONFLICT,
-        message: 'ปิดรอบได้เฉพาะรอบในสถานะเปิดรับสมัคร (Open) เท่านั้น',
-        params: { status: round?.status, action: 'close_round' },
+  async closeRound(id: number, dto: CloseRoundDto, actorId?: number) {
+    await this.prisma.$transaction(async (tx) => {
+      const round = await tx.scholarshipRound.findUnique({
+        where: { id },
+        include: {
+          applicants: {
+            select: {
+              id: true,
+              studentCode: true,
+              titlePrefix: true,
+              firstName: true,
+              lastName: true,
+              evaluations: {
+                where: { status: EvaluationStatus.SUBMITTED },
+                select: { id: true },
+              },
+            },
+          },
+        },
       });
-    }
 
-    const closeCheck = await this.checkCloseStatus(id);
-
-    if (closeCheck.unsubmittedCount > 0) {
-      if (!dto.acknowledged || dto.acknowledgedCount === undefined) {
+      if (!round || round.status !== RoundStatus.OPEN) {
         throw new BusinessException({
-          errorCode: 'ROUND_CLOSE_ACK_REQUIRED',
-          statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-          message:
-            'มีผู้สมัครที่ยังไม่มีผลประเมิน ต้องกดยืนยันรับทราบก่อนปิดรอบ',
-          params: {
-            count: closeCheck.unsubmittedCount,
-            applicants: closeCheck.applicants,
-          },
-        });
-      }
-
-      if (dto.acknowledgedCount !== closeCheck.unsubmittedCount) {
-        throw new BusinessException({
-          errorCode: 'ROUND_CLOSE_STATE_CHANGED',
+          errorCode: 'INVALID_ROUND_STATUS',
           statusCode: HttpStatus.CONFLICT,
-          message:
-            'จำนวนผู้สมัครที่ไม่มีผลประเมินเปลี่ยนแปลงไปจากที่รับทราบ กรุณาตรวจสอบใหม่',
-          params: {
-            count: closeCheck.unsubmittedCount,
-            applicants: closeCheck.applicants,
-          },
+          message: 'ปิดรอบได้เฉพาะรอบในสถานะเปิดรับสมัคร (Open) เท่านั้น',
+          params: { status: round?.status, action: 'close_round' },
         });
       }
-    }
 
-    const updated = await this.prisma.scholarshipRound.update({
-      where: { id },
-      data: {
-        status: RoundStatus.CLOSED,
-        closedAt: new Date(),
-      },
+      const unsubmittedApplicants = round.applicants
+        .filter((a) => a.evaluations.length === 0)
+        .map((a) => ({
+          applicantId: a.id,
+          studentCode: a.studentCode,
+          titlePrefix: a.titlePrefix,
+          firstName: a.firstName,
+          lastName: a.lastName,
+        }));
+
+      const unsubmittedCount = unsubmittedApplicants.length;
+
+      if (unsubmittedCount > 0) {
+        if (!dto.acknowledged || dto.acknowledgedCount === undefined) {
+          throw new BusinessException({
+            errorCode: 'ROUND_CLOSE_ACK_REQUIRED',
+            statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+            message:
+              'มีผู้สมัครที่ยังไม่มีผลประเมิน ต้องกดยืนยันรับทราบก่อนปิดรอบ',
+            params: {
+              count: unsubmittedCount,
+              applicants: unsubmittedApplicants,
+            },
+          });
+        }
+
+        if (dto.acknowledgedCount !== unsubmittedCount) {
+          throw new BusinessException({
+            errorCode: 'ROUND_CLOSE_STATE_CHANGED',
+            statusCode: HttpStatus.CONFLICT,
+            message:
+              'จำนวนผู้สมัครที่ไม่มีผลประเมินเปลี่ยนแปลงไปจากที่รับทราบ กรุณาตรวจสอบใหม่',
+            params: {
+              count: unsubmittedCount,
+              applicants: unsubmittedApplicants,
+            },
+          });
+        }
+      }
+
+      const closedAt = new Date();
+      await tx.scholarshipRound.update({
+        where: { id },
+        data: {
+          status: RoundStatus.CLOSED,
+          closedAt,
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          actorId: actorId ?? null,
+          action: AuditAction.ROUND_STATUS_CHANGE,
+          entityType: 'ScholarshipRound',
+          entityId: String(id),
+          roundId: id,
+          oldValue: { status: RoundStatus.OPEN },
+          newValue: { status: RoundStatus.CLOSED, closedAt },
+          detail: {
+            unsubmittedCount,
+            acknowledged: dto.acknowledged ?? false,
+          },
+        },
+      });
     });
 
-    return this.findOne(updated.id);
+    return this.findOne(id);
   }
 }

@@ -38,6 +38,7 @@ export default function RoundDetailPage() {
 
   const [round, setRound] = useState<ScholarshipRoundDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [errorBanner, setErrorBanner] = useState<string | null>(null);
 
   // Criteria Linking
   const [criteriaList, setCriteriaList] = useState<CriteriaDetail[]>([]);
@@ -59,6 +60,7 @@ export default function RoundDetailPage() {
     if (!roundId) return;
     try {
       setLoading(true);
+      setErrorBanner(null);
       const [roundRes, criteriaRes] = await Promise.all([
         fetchRoundById(roundId),
         fetchCriteriaList({ limit: 100 }),
@@ -70,6 +72,7 @@ export default function RoundDetailPage() {
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'ไม่สามารถโหลดข้อมูลรอบทุนได้';
+      setErrorBanner(msg);
       console.warn('Failed to load round:', msg);
     } finally {
       setLoading(false);
@@ -77,46 +80,19 @@ export default function RoundDetailPage() {
   }, [roundId]);
 
   useEffect(() => {
-    let ignore = false;
-    const fetchAsync = async () => {
-      if (!roundId) return;
-      try {
-        setLoading(true);
-        const [roundRes, criteriaRes] = await Promise.all([
-          fetchRoundById(roundId),
-          fetchCriteriaList({ limit: 100 }),
-        ]);
-        if (!ignore) {
-          setRound(roundRes.data);
-          setCriteriaList(criteriaRes.data);
-          if (roundRes.data.criteriaId) {
-            setSelectedCriteriaId(roundRes.data.criteriaId);
-          }
-        }
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Failed';
-        console.warn('Error loading round detail:', msg);
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
-      }
-    };
-    void fetchAsync();
-    return () => {
-      ignore = true;
-    };
-  }, [roundId]);
+    void loadData();
+  }, [loadData]);
 
   const handleLinkCriteria = async () => {
     if (!round || round.status !== 'DRAFT') return;
     try {
       setLinkingCriteria(true);
+      setErrorBanner(null);
       await linkRoundCriteria(roundId, selectedCriteriaId ? Number(selectedCriteriaId) : null);
       await loadData();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการเชื่อมโยงเกณฑ์';
-      alert(msg);
+      setErrorBanner(msg);
     } finally {
       setLinkingCriteria(false);
     }
@@ -124,12 +100,13 @@ export default function RoundDetailPage() {
 
   const handleOpenCheckClick = async () => {
     try {
+      setErrorBanner(null);
       const res = await checkOpenReadiness(roundId);
       setReadiness(res.data);
       setShowOpenModal(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการตรวจสอบความพร้อม';
-      alert(msg);
+      setErrorBanner(msg);
     }
   };
 
@@ -137,12 +114,13 @@ export default function RoundDetailPage() {
     if (openingRound) return;
     try {
       setOpeningRound(true);
+      setErrorBanner(null);
       await openRound(roundId);
       setShowOpenModal(false);
       await loadData();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'ไม่สามารถเปิดรอบทุนได้';
-      alert(msg);
+      setErrorBanner(msg);
     } finally {
       setOpeningRound(false);
     }
@@ -150,25 +128,27 @@ export default function RoundDetailPage() {
 
   const handleCloseCheckClick = async () => {
     try {
+      setErrorBanner(null);
       const res = await checkCloseStatus(roundId);
       setCloseCheck(res.data);
       setAcknowledged(false);
       setShowCloseModal(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการตรวจสอบก่อนปิดรอบ';
-      alert(msg);
+      setErrorBanner(msg);
     }
   };
 
   const handleConfirmCloseRound = async () => {
     if (closingRound || !closeCheck) return;
     if (closeCheck.unsubmittedCount > 0 && !acknowledged) {
-      alert('กรุณากดยืนยันรับทราบจำนวนผู้สมัครที่ยังไม่มีผลประเมินก่อนปิดรอบ');
+      setErrorBanner('กรุณากดยืนยันรับทราบจำนวนผู้สมัครที่ยังไม่มีผลประเมินก่อนปิดรอบ');
       return;
     }
 
     try {
       setClosingRound(true);
+      setErrorBanner(null);
       await closeRound(roundId, {
         acknowledged,
         acknowledgedCount: acknowledged ? closeCheck.unsubmittedCount : undefined,
@@ -177,7 +157,7 @@ export default function RoundDetailPage() {
       await loadData();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'ไม่สามารถปิดรอบทุนได้';
-      alert(msg);
+      setErrorBanner(msg);
     } finally {
       setClosingRound(false);
     }
@@ -245,6 +225,22 @@ export default function RoundDetailPage() {
           )}
         </div>
       </div>
+
+      {errorBanner && (
+        <div className="rounded-2xl border border-rose-300 bg-rose-50/90 p-4 text-sm text-rose-900 flex items-start gap-3 shadow-xs">
+          <AlertCircle className="h-5 w-5 shrink-0 mt-0.5 text-rose-600" />
+          <div className="flex-1">
+            <h4 className="font-bold">เกิดข้อผิดพลาด</h4>
+            <p className="mt-0.5 font-medium">{errorBanner}</p>
+          </div>
+          <button
+            onClick={() => setErrorBanner(null)}
+            className="text-rose-500 hover:text-rose-700 p-1 rounded-md"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Title & Status Banner */}
       <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">

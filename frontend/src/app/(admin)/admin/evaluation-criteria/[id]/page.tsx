@@ -14,7 +14,9 @@ import {
   AlertCircle, 
   Save, 
   Lock, 
-  MessageSquare
+  MessageSquare,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react';
 
 interface SubCriteriaRow {
@@ -114,6 +116,26 @@ export default function EditOrViewCriteriaPage() {
     if (isLocked || subCriteria.length <= 1) return;
     const filtered = subCriteria.filter((row) => row.tempId !== tempId);
     const reordered = filtered.map((row, idx) => ({ ...row, sortOrder: idx + 1 }));
+    setSubCriteria(reordered);
+  };
+
+  const handleMoveUp = (index: number) => {
+    if (isLocked || index <= 0) return;
+    const items = [...subCriteria];
+    const temp = items[index];
+    items[index] = items[index - 1];
+    items[index - 1] = temp;
+    const reordered = items.map((row, idx) => ({ ...row, sortOrder: idx + 1 }));
+    setSubCriteria(reordered);
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (isLocked || index >= subCriteria.length - 1) return;
+    const items = [...subCriteria];
+    const temp = items[index];
+    items[index] = items[index + 1];
+    items[index + 1] = temp;
+    const reordered = items.map((row, idx) => ({ ...row, sortOrder: idx + 1 }));
     setSubCriteria(reordered);
   };
 
@@ -280,7 +302,7 @@ export default function EditOrViewCriteriaPage() {
 
             {/* Rows */}
             <div className="space-y-3">
-              {subCriteria.map((row) => (
+              {subCriteria.map((row, idx) => (
                 <div
                   key={row.tempId}
                   className={`border rounded-xl p-4 transition ${
@@ -289,8 +311,25 @@ export default function EditOrViewCriteriaPage() {
                 >
                   <div className="flex items-start gap-3">
                     {!isLocked && (
-                      <div className="mt-2 text-muted-foreground cursor-grab">
-                        <GripVertical className="h-4 w-4" />
+                      <div className="flex flex-col gap-0.5 mt-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleMoveUp(idx)}
+                          disabled={idx === 0}
+                          title="เลื่อนขึ้น"
+                          className="p-1 text-slate-400 hover:text-slate-800 disabled:opacity-20 rounded hover:bg-slate-100 transition cursor-pointer"
+                        >
+                          <ChevronUp className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveDown(idx)}
+                          disabled={idx === subCriteria.length - 1}
+                          title="เลื่อนลง"
+                          className="p-1 text-slate-400 hover:text-slate-800 disabled:opacity-20 rounded hover:bg-slate-100 transition cursor-pointer"
+                        >
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     )}
 

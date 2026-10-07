@@ -15,20 +15,22 @@ import {
   CheckCircle2,
   Sparkles
 } from 'lucide-react';
+import { useDebounce } from '@/lib/use-debounce';
 
 export default function EvaluationCriteriaPage() {
   const [criteriaList, setCriteriaList] = useState<CriteriaDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 400);
   const [page, setPage] = useState(1);
 
-  const loadCriteria = useCallback(async (querySearch?: string) => {
+  const loadCriteria = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetchCriteriaList({
         page,
         limit: 10,
-        search: querySearch !== undefined ? querySearch : searchTerm,
+        search: debouncedSearch.trim() || undefined,
       });
       setCriteriaList(res.data);
     } catch (err: unknown) {
@@ -37,36 +39,16 @@ export default function EvaluationCriteriaPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, searchTerm]);
+  }, [page, debouncedSearch]);
 
   useEffect(() => {
-    let ignore = false;
-    const fetchAsync = async () => {
-      try {
-        setLoading(true);
-        const res = await fetchCriteriaList({ page, limit: 10, search: searchTerm });
-        if (!ignore) {
-          setCriteriaList(res.data);
-        }
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Error';
-        console.warn('Failed to load:', msg);
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
-      }
-    };
-    void fetchAsync();
-    return () => {
-      ignore = true;
-    };
-  }, [page, searchTerm]);
+    void loadCriteria();
+  }, [loadCriteria]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    void loadCriteria(searchTerm);
+    void loadCriteria();
   };
 
   return (
@@ -101,7 +83,7 @@ export default function EvaluationCriteriaPage() {
           />
         </form>
         <button
-          onClick={() => { setPage(1); void loadCriteria(searchTerm); }}
+          onClick={() => { setPage(1); void loadCriteria(); }}
           className="w-full sm:w-auto px-5 py-2.5 text-sm font-medium bg-muted hover:bg-muted/80 text-foreground rounded-xl transition hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
         >
           ค้นหา

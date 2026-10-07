@@ -18,6 +18,10 @@ describe('RoundsService', () => {
     criteria: {
       findUnique: jest.fn(),
     },
+    auditLog: {
+      create: jest.fn(),
+    },
+    $transaction: jest.fn((cb: (tx: unknown) => unknown) => cb(mockPrismaService)),
   };
 
   beforeEach(async () => {
@@ -117,30 +121,58 @@ describe('RoundsService', () => {
 
   describe('closeRound state transition', () => {
     it('should throw ROUND_CLOSE_ACK_REQUIRED if there are unsubmitted applicants without acknowledge (FR-RND-12)', async () => {
-      mockPrismaService.scholarshipRound.findUnique
-        .mockResolvedValueOnce({
-          id: 1,
-          status: RoundStatus.OPEN,
-        })
-        .mockResolvedValueOnce({
-          id: 1,
-          applicants: [
-            {
-              id: 10,
-              studentCode: '653040001-1',
-              titlePrefix: 'นาย',
-              firstName: 'สมชาย',
-              lastName: 'ใจดี',
-              evaluations: [], // No submitted evaluations
-            },
-          ],
-        });
+      mockPrismaService.scholarshipRound.findUnique.mockResolvedValueOnce({
+        id: 1,
+        status: RoundStatus.OPEN,
+        applicants: [
+          {
+            id: 10,
+            studentCode: '653040001-1',
+            titlePrefix: 'นาย',
+            firstName: 'สมชาย',
+            lastName: 'ใจดี',
+            evaluations: [], // No submitted evaluations
+          },
+        ],
+      });
 
       try {
         await service.closeRound(1, {});
       } catch (err: unknown) {
         const error = err as BusinessException;
         expect(error.errorCode).toBe('ROUND_CLOSE_ACK_REQUIRED');
+      }
+    });
+  });
+
+  describe('linkCriteria', () => {
+    it('should throw INVALID_ROUND_STATUS if round is not DRAFT (BR-RND-07)', async () => {
+      mockPrismaService.scholarshipRound.findUnique.mockResolvedValueOnce({
+        id: 1,
+        status: RoundStatus.OPEN,
+      });
+
+      try {
+        await service.linkCriteria(1, { criteriaId: 5 });
+      } catch (err: unknown) {
+        const error = err as BusinessException;
+        expect(error.errorCode).toBe('INVALID_ROUND_STATUS');
+      }
+    });
+  });
+
+  describe('update', () => {
+    it('should throw INVALID_ROUND_STATUS if round is not DRAFT', async () => {
+      mockPrismaService.scholarshipRound.findUnique.mockResolvedValueOnce({
+        id: 1,
+        status: RoundStatus.CLOSED,
+      });
+
+      try {
+        await service.update(1, { name: 'เปลี่ยนชื่อ' });
+      } catch (err: unknown) {
+        const error = err as BusinessException;
+        expect(error.errorCode).toBe('INVALID_ROUND_STATUS');
       }
     });
   });

@@ -15,22 +15,24 @@ import {
   Filter,
   CheckCircle2,
 } from 'lucide-react';
+import { useDebounce } from '@/lib/use-debounce';
 
 export default function ScholarshipRoundsPage() {
   const [rounds, setRounds] = useState<ScholarshipRoundListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 400);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [page, setPage] = useState(1);
 
-  const loadRounds = useCallback(async (querySearch?: string, queryStatus?: string) => {
+  const loadRounds = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetchRoundsList({
         page,
         limit: 10,
-        search: querySearch !== undefined ? querySearch : searchTerm,
-        status: queryStatus !== undefined ? queryStatus : statusFilter,
+        search: debouncedSearch.trim() || undefined,
+        status: statusFilter || undefined,
       });
       setRounds(res.data);
     } catch (err: unknown) {
@@ -39,41 +41,16 @@ export default function ScholarshipRoundsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, searchTerm, statusFilter]);
+  }, [page, debouncedSearch, statusFilter]);
 
   useEffect(() => {
-    let ignore = false;
-    const fetchAsync = async () => {
-      try {
-        setLoading(true);
-        const res = await fetchRoundsList({
-          page,
-          limit: 10,
-          search: searchTerm,
-          status: statusFilter || undefined,
-        });
-        if (!ignore) {
-          setRounds(res.data);
-        }
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Error';
-        console.warn('Failed to load rounds:', msg);
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
-      }
-    };
-    void fetchAsync();
-    return () => {
-      ignore = true;
-    };
-  }, [page, searchTerm, statusFilter]);
+    void loadRounds();
+  }, [loadRounds]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    void loadRounds(searchTerm, statusFilter);
+    void loadRounds();
   };
 
   return (
@@ -127,7 +104,7 @@ export default function ScholarshipRoundsPage() {
           </div>
 
           <button
-            onClick={() => { setPage(1); void loadRounds(searchTerm, statusFilter); }}
+            onClick={() => { setPage(1); void loadRounds(); }}
             className="px-5 py-2.5 text-sm font-medium bg-muted hover:bg-muted/80 text-foreground rounded-xl transition hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
           >
             ค้นหา
