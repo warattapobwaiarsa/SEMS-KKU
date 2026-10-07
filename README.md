@@ -20,8 +20,8 @@
 
 | ส่วนของระบบ | เทคโนโลยีที่ใช้ | วัตถุประสงค์การใช้งาน |
 |---|---|---|
-| **Frontend** | [Next.js](https://nextjs.org/) (App Router), TypeScript, Tailwind CSS, shadcn/ui | ส่วนติดต่อผู้ใช้แบบ Responsive (รองรับคอมพิวเตอร์และมือถือ) |
-| **Backend** | [NestJS](https://nestjs.org/), TypeScript, REST API | จัดการ Business Logic, ยืนยันตัวตน, RBAC Authorization, คำนวณคะแนน |
+| **Frontend** | [Next.js](https://nextjs.org/) (App Router), TypeScript, Tailwind CSS v4, Lucide Icons | ส่วนติดต่อผู้ใช้แบบ Responsive (Dual-View: Desktop Table & Mobile Cards), ระบบ Progressive Disclosure และ Micro-interactions อิงตาม Apple HIG & Framer Motion Spring Physics |
+| **Backend** | [NestJS](https://nestjs.org/), TypeScript, REST API | จัดการ Business Logic, ยืนยันตัวตน, RBAC Authorization, คำนวณคะแนน, พร้อม Prisma Transaction & Audit Trail |
 | **Database & ORM** | [PostgreSQL](https://www.postgresql.org/), [Prisma ORM](https://www.prisma.io/) | จัดเก็บฐานข้อมูลเชิงสัมพันธ์, จัดการ Schema และ Database Migrations |
 | **Authentication** | KKU Single Sign-On (OAuth2/OIDC) | ระบบเข้าสู่ระบบส่วนกลางของมหาวิทยาลัย (`@kku.ac.th`, `@kkumail.com`) |
 | **Data Processing** | ExcelJS / SheetJS | ตรวจสอบและนำเข้าข้อมูลผู้สมัครจากไฟล์ Excel รวมถึงสร้างไฟล์รายงาน |
