@@ -270,7 +270,7 @@ export default function ScholarshipRoundsPage() {
                       <td className="py-4 px-5 text-right">
                         <Link
                           href={`/admin/scholarship-rounds/${round.id}`}
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-foreground px-3.5 py-1.5 rounded-xl bg-primary/10 hover:bg-primary transition hover:scale-[1.02] active:scale-[0.98] shadow-2xs cursor-pointer"
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-foreground px-3.5 py-2 rounded-xl bg-primary/10 hover:bg-primary btn-interactive shadow-2xs cursor-pointer"
                         >
                           <Eye className="h-3.5 w-3.5" />
                           จัดการรอบ

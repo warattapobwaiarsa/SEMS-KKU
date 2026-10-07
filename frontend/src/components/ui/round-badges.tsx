@@ -223,9 +223,9 @@ export function RoundBadges({ rounds = [], maxVisible = 2, compact = false }: Ro
             aria-expanded={isOpen}
             aria-haspopup="dialog"
             onClick={() => setIsOpen(!isOpen)}
-            className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border font-semibold transition cursor-pointer select-none ${
+            className={`inline-flex items-center gap-1.5 text-xs min-h-[30px] px-3 py-1 rounded-full border font-semibold btn-interactive cursor-pointer select-none ${
               isOpen
-                ? 'border-primary bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+                ? 'border-primary bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/25'
                 : 'border-border bg-muted/80 hover:bg-muted text-foreground hover:border-primary/50'
             }`}
           >

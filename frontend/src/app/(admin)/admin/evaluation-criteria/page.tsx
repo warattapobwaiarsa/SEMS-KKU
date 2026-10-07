@@ -239,7 +239,7 @@ export default function EvaluationCriteriaPage() {
                         {criteria.isLocked ? (
                           <Link
                             href={`/admin/evaluation-criteria/${criteria.id}`}
-                            className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-lg hover:bg-muted transition hover:scale-[1.02] active:scale-[0.98]"
+                            className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground px-3.5 py-2 rounded-xl hover:bg-muted btn-interactive cursor-pointer"
                           >
                             <Eye className="h-3.5 w-3.5" />
                             ดูรายละเอียด
@@ -247,7 +247,7 @@ export default function EvaluationCriteriaPage() {
                         ) : (
                           <Link
                             href={`/admin/evaluation-criteria/${criteria.id}`}
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-foreground px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary transition hover:scale-[1.02] active:scale-[0.98] shadow-2xs"
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-foreground px-3.5 py-2 rounded-xl bg-primary/10 hover:bg-primary btn-interactive shadow-2xs cursor-pointer"
                           >
                             <Edit3 className="h-3.5 w-3.5" />
                             แก้ไขเกณฑ์

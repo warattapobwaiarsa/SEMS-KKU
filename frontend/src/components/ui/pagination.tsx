@@ -112,14 +112,14 @@ export function Pagination({
           onClick={() => onPageChange(page - 1)}
           disabled={disabled || page <= 1}
           title="หน้าก่อนหน้า"
-          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border/80 bg-background text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none transition font-medium cursor-pointer"
+          className="inline-flex items-center gap-1 min-h-[36px] px-3 py-1.5 rounded-xl border border-border/80 bg-background text-foreground hover:bg-muted active:bg-muted/80 disabled:opacity-30 disabled:pointer-events-none btn-interactive font-medium cursor-pointer"
         >
-          <ChevronLeft className="h-3.5 w-3.5" />
+          <ChevronLeft className="h-4 w-4" />
           <span className="hidden sm:inline">ก่อนหน้า</span>
         </button>
 
         {/* Mobile Page Indicator */}
-        <span className="sm:hidden px-3 py-1.5 font-mono text-xs font-semibold bg-background border border-border/80 rounded-lg text-foreground">
+        <span className="sm:hidden px-3.5 py-1.5 font-mono text-xs font-semibold bg-background border border-border/80 rounded-xl text-foreground">
           {page} / {totalPages}
         </span>
 
@@ -147,9 +147,9 @@ export function Pagination({
                 onClick={() => onPageChange(pageNum)}
                 disabled={disabled}
                 aria-current={isCurrent ? 'page' : undefined}
-                className={`min-w-8 h-8 px-2 rounded-lg text-xs font-mono font-semibold transition cursor-pointer ${
+                className={`min-w-9 h-9 px-2 rounded-xl text-xs font-mono font-semibold btn-interactive cursor-pointer ${
                   isCurrent
-                    ? 'bg-primary text-primary-foreground shadow-xs ring-1 ring-primary/30'
+                    ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/25'
                     : 'bg-background border border-border/80 text-foreground hover:bg-muted'
                 }`}
               >
@@ -165,10 +165,10 @@ export function Pagination({
           onClick={() => onPageChange(page + 1)}
           disabled={disabled || page >= totalPages}
           title="หน้าถัดไป"
-          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border/80 bg-background text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none transition font-medium cursor-pointer"
+          className="inline-flex items-center gap-1 min-h-[36px] px-3 py-1.5 rounded-xl border border-border/80 bg-background text-foreground hover:bg-muted active:bg-muted/80 disabled:opacity-30 disabled:pointer-events-none btn-interactive font-medium cursor-pointer"
         >
           <span className="hidden sm:inline">ถัดไป</span>
-          <ChevronRight className="h-3.5 w-3.5" />
+          <ChevronRight className="h-4 w-4" />
         </button>
 
         {/* Last Page (Desktop) */}
@@ -177,7 +177,7 @@ export function Pagination({
           onClick={() => onPageChange(totalPages)}
           disabled={disabled || page >= totalPages}
           title="หน้าสุดท้าย"
-          className="hidden sm:inline-flex p-1.5 rounded-lg border border-border/80 bg-background text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+          className="hidden sm:inline-flex items-center justify-center min-w-[36px] h-[36px] p-2 rounded-xl border border-border/80 bg-background text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none btn-interactive cursor-pointer"
         >
           <ChevronsRight className="h-4 w-4" />
         </button>
