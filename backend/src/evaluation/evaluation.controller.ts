@@ -14,6 +14,12 @@ import type { RequestWithUser } from '../common/guards/mock-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { ListApplicantsQueryDto } from './dto/list-applicants-query.dto';
 import {
+  EvaluationReadService,
+  EvaluatorApplicantDetail,
+  EvaluatorRoundDetail,
+  MyEvaluationView,
+} from './evaluation-read.service';
+import {
   EvaluationService,
   PaginatedApplicantList,
 } from './evaluation.service';
@@ -27,7 +33,53 @@ import {
 @UseGuards(MockAuthGuard, RolesGuard)
 @Roles(UserRole.EVALUATOR)
 export class EvaluationController {
-  constructor(private readonly evaluationService: EvaluationService) {}
+  constructor(
+    private readonly evaluationService: EvaluationService,
+    private readonly evaluationReadService: EvaluationReadService,
+  ) {}
+
+  /**
+   * GET /api/v1/scholarship-rounds/:roundId
+   * รายละเอียดรอบทุน (เฉพาะรอบ OPEN) สำหรับหัวหน้าจอประเมิน [BR-EVL-01]
+   * หมายเหตุ: spec ให้ Admin ใช้ route นี้ด้วย แต่ตอนนี้ทำเฉพาะมุมมอง Evaluator
+   */
+  @Get('scholarship-rounds/:roundId')
+  getRound(
+    @Param('roundId', ParseIntPipe) roundId: number,
+  ): Promise<EvaluatorRoundDetail> {
+    return this.evaluationReadService.getRoundForEvaluator(roundId);
+  }
+
+  /**
+   * GET /api/v1/applicants/:applicantId
+   * รายละเอียดผู้สมัคร (อ่านอย่างเดียว) ฝั่งซ้ายของหน้าประเมิน [FR-APP-03] [BR-APP-04]
+   * หมายเหตุ: spec ให้ Admin ใช้ route นี้ด้วย แต่ตอนนี้ทำเฉพาะมุมมอง Evaluator
+   */
+  @Get('applicants/:applicantId')
+  getApplicant(
+    @Param('applicantId', ParseIntPipe) applicantId: number,
+  ): Promise<EvaluatorApplicantDetail> {
+    return this.evaluationReadService.getApplicantDetailForEvaluator(
+      applicantId,
+    );
+  }
+
+  /**
+   * GET /api/v1/applicants/:applicantId/my-evaluation
+   * ผลประเมินของตัวเอง + เกณฑ์ย่อย (ฝั่งขวาของหน้าประเมิน) [FR-EVL-14] [FR-EVL-04]
+   */
+  @Get('applicants/:applicantId/my-evaluation')
+  getMyEvaluation(
+    @Param('applicantId', ParseIntPipe) applicantId: number,
+    @Req() request: RequestWithUser,
+  ): Promise<MyEvaluationView> {
+    // MockAuthGuard แนบ user ไว้แล้วเสมอเมื่อมาถึงตรงนี้
+    const evaluatorUser = request.user!;
+    return this.evaluationReadService.getMyEvaluation(
+      applicantId,
+      evaluatorUser,
+    );
+  }
 
   /**
    * GET /api/v1/scholarship-rounds/:roundId/applicants
