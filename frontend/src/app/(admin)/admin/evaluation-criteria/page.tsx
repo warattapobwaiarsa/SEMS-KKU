@@ -4,12 +4,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { CriteriaDetail } from '@/types/criteria';
 import { fetchCriteriaList } from '@/services/criteria.service';
+import { PageHeader, StatusBadge } from '@/components/ui';
 import { 
   FileCheck2, 
   Plus, 
   Search, 
-  Lock, 
-  Unlock, 
   Calendar, 
   Edit3, 
   Eye,
@@ -72,31 +71,22 @@ export default function EvaluationCriteriaPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-12">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/70 pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-              <Sparkles className="h-3 w-3" />
-              การจัดการข้อมูลหลัก
-            </span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            เกณฑ์การประเมินทุน
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            กำหนดชุดเกณฑ์และสัดส่วนคะแนนสำหรับการประเมินทุนการศึกษา (ผลรวมทุกชุดเกณฑ์ต้องเท่ากับ 100 คะแนน)
-          </p>
-        </div>
-
-        <Link
-          href="/admin/evaluation-criteria/create"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary cursor-pointer"
-        >
-          <Plus className="h-4 w-4" />
-          สร้างชุดเกณฑ์ใหม่
-        </Link>
-      </div>
+      {/* Standard Page Header */}
+      <PageHeader
+        moduleBadge="การจัดการข้อมูลหลัก"
+        moduleBadgeIcon={Sparkles}
+        title="เกณฑ์การประเมินทุน"
+        description="กำหนดชุดเกณฑ์และสัดส่วนคะแนนสำหรับการประเมินทุนการศึกษา (ผลรวมทุกชุดเกณฑ์ต้องเท่ากับ 100 คะแนน)"
+        action={
+          <Link
+            href="/admin/evaluation-criteria/create"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            สร้างชุดเกณฑ์ใหม่
+          </Link>
+        }
+      />
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card border border-border/80 rounded-2xl p-3 shadow-xs">
@@ -118,7 +108,7 @@ export default function EvaluationCriteriaPage() {
         </button>
       </div>
 
-      {/* Main Table / Content List */}
+      {/* Main Table */}
       <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs">
         {loading ? (
           <div className="p-16 text-center">
@@ -204,15 +194,9 @@ export default function EvaluationCriteriaPage() {
                     </td>
                     <td className="py-4 px-4 text-center">
                       {criteria.isLocked ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-300 shadow-2xs">
-                          <Lock className="h-3 w-3 text-slate-500" />
-                          ล็อก (เปิดประเมินแล้ว)
-                        </span>
+                        <StatusBadge label="ล็อก (เปิดประเมินแล้ว)" variant="locked" />
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
-                          <Unlock className="h-3 w-3 text-blue-600" />
-                          แก้ไขได้
-                        </span>
+                        <StatusBadge label="แก้ไขได้" variant="unlocked" />
                       )}
                     </td>
                     <td className="py-4 px-5 text-right">

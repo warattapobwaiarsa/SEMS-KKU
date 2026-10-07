@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ScholarshipRoundListItem } from '@/types/rounds';
 import { fetchRoundsList } from '@/services/rounds.service';
+import { PageHeader, StatusBadge } from '@/components/ui';
 import { 
   Calendar, 
   Plus, 
@@ -13,8 +14,6 @@ import {
   Eye,
   Filter,
   CheckCircle2,
-  Clock,
-  Archive
 } from 'lucide-react';
 
 export default function ScholarshipRoundsPage() {
@@ -79,31 +78,22 @@ export default function ScholarshipRoundsPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-12">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/70 pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-              <Calendar className="h-3 w-3" />
-              การจัดการรอบการให้ทุน
-            </span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            รอบทุนการศึกษา
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            จัดการและควบคุมสถานะรอบทุนการศึกษา (ร่าง ➔ เปิดรับสมัคร ➔ ปิดรอบการประเมิน)
-          </p>
-        </div>
-
-        <Link
-          href="/admin/scholarship-rounds/create"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
-        >
-          <Plus className="h-4 w-4" />
-          สร้างรอบทุนใหม่
-        </Link>
-      </div>
+      {/* Standard Page Header */}
+      <PageHeader
+        moduleBadge="การจัดการรอบการให้ทุน"
+        moduleBadgeIcon={Calendar}
+        title="รอบทุนการศึกษา"
+        description="จัดการและควบคุมสถานะรอบทุนการศึกษา (ร่าง ➔ เปิดรับสมัคร ➔ ปิดรอบการประเมิน)"
+        action={
+          <Link
+            href="/admin/scholarship-rounds/create"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            สร้างรอบทุนใหม่
+          </Link>
+        }
+      />
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card border border-border/80 rounded-2xl p-3 shadow-xs">
@@ -222,20 +212,11 @@ export default function ScholarshipRoundsPage() {
                     </td>
                     <td className="py-4 px-4 text-center">
                       {round.status === 'OPEN' ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs">
-                          <CheckCircle2 className="h-3 w-3" />
-                          เปิดรับสมัคร (Open)
-                        </span>
+                        <StatusBadge label="เปิดรับสมัคร (Open)" variant="open" />
                       ) : round.status === 'CLOSED' ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-300 shadow-2xs">
-                          <Archive className="h-3 w-3" />
-                          ปิดรอบแล้ว (Closed)
-                        </span>
+                        <StatusBadge label="ปิดรอบแล้ว (Closed)" variant="closed" />
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs">
-                          <Clock className="h-3 w-3" />
-                          ร่าง (Draft)
-                        </span>
+                        <StatusBadge label="ร่าง (Draft)" variant="draft" />
                       )}
                     </td>
                     <td className="py-4 px-5 text-right">
