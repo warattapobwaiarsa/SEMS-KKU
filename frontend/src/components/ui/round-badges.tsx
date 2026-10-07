@@ -246,7 +246,9 @@ export function RoundBadges({ rounds = [], maxVisible = 2, compact = false }: Ro
                 width: '320px',
                 zIndex: 9999,
               }}
-              className="rounded-2xl border border-border/90 bg-card p-3.5 shadow-2xl backdrop-blur-md animate-in fade-in-0 zoom-in-95 duration-150"
+              className={`rounded-2xl border border-border/90 bg-card p-3.5 shadow-2xl backdrop-blur-md animate-spring-pop ${
+                coords.placement === 'top' ? 'origin-bottom' : 'origin-top'
+              }`}
             >
               {/* Header */}
               <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-border/60">
