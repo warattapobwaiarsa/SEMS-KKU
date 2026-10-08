@@ -361,22 +361,9 @@ export default function RoundDetailPage() {
             </span>
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-              {round.name}
-            </h1>
-            {round.status === 'DRAFT' && (
-              <button
-                type="button"
-                onClick={handleOpenEditModal}
-                title="แก้ไขชื่อและข้อมูลรอบทุน"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition cursor-pointer shadow-2xs"
-              >
-                <Pencil className="h-3.5 w-3.5" />
-                แก้ไขข้อมูล
-              </button>
-            )}
-          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            {round.name}
+          </h1>
           <p className="mt-1.5 text-sm font-medium text-slate-500">
             ปีการศึกษา {round.academicYear} | ภาคเรียนที่ {round.semester}
           </p>
