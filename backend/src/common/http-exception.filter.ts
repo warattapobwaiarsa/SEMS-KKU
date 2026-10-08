@@ -42,6 +42,19 @@ interface ErrorResponseBody {
   params?: Record<string, unknown>;
 }
 
+export const STATUS_NAME_MAP: Record<number, string> = {
+  400: 'BAD_REQUEST',
+  401: 'UNAUTHORIZED',
+  403: 'FORBIDDEN',
+  404: 'NOT_FOUND',
+  409: 'CONFLICT',
+  410: 'GONE',
+  413: 'PAYLOAD_TOO_LARGE',
+  422: 'UNPROCESSABLE_ENTITY',
+  429: 'TOO_MANY_REQUESTS',
+  500: 'INTERNAL_SERVER_ERROR',
+};
+
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);
@@ -68,16 +81,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       const res = exception.getResponse();
       if (typeof res === 'object' && res !== null) {
         const body = res as ErrorResponseBody;
-        errorCode =
-          body.errorCode ??
-          body.error ??
-          (status === 404
-            ? 'NOT_FOUND'
-            : status === 403
-              ? 'FORBIDDEN'
-              : status === 401
-                ? 'UNAUTHORIZED'
-                : 'HTTP_ERROR');
+        errorCode = body.errorCode ?? STATUS_NAME_MAP[status] ?? 'HTTP_ERROR';
 
         if (Array.isArray(body.message)) {
           message = body.message.join(', ');
@@ -88,6 +92,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         }
         params = body.params;
       } else {
+        errorCode = STATUS_NAME_MAP[status] ?? 'HTTP_ERROR';
         message = String(res);
       }
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
@@ -131,19 +136,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const bkkDate = new Date(utcTime + 7 * 3600000);
     const timestamp = `${bkkDate.getFullYear()}-${pad(bkkDate.getMonth() + 1)}-${pad(bkkDate.getDate())}T${pad(bkkDate.getHours())}:${pad(bkkDate.getMinutes())}:${pad(bkkDate.getSeconds())}.${padMs(bkkDate.getMilliseconds())}+07:00`;
 
-    const statusNameMap: Record<number, string> = {
-      400: 'BAD_REQUEST',
-      401: 'UNAUTHORIZED',
-      403: 'FORBIDDEN',
-      404: 'NOT_FOUND',
-      409: 'CONFLICT',
-      410: 'GONE',
-      413: 'PAYLOAD_TOO_LARGE',
-      422: 'UNPROCESSABLE_ENTITY',
-      429: 'TOO_MANY_REQUESTS',
-      500: 'INTERNAL_SERVER_ERROR',
-    };
-    const errorType = statusNameMap[status] ?? 'HTTP_ERROR';
+    const errorType = STATUS_NAME_MAP[status] ?? 'HTTP_ERROR';
 
     response.status(status).json({
       success: false,
