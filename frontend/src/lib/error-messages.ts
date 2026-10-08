@@ -48,6 +48,7 @@ export const ERROR_MESSAGES: Record<string, string> = {
   SEMESTER_OUT_OF_RANGE: 'ภาคเรียนต้องเป็น 1 หรือ 2',
 
   // System & HTTP Errors
+  BAD_REQUEST: 'ข้อมูลที่ส่งมาไม่ถูกต้อง กรุณาตรวจสอบข้อมูลอีกครั้ง',
   RATE_LIMITED: 'เรียกคำขอเกินความถี่ที่ระบบอนุญาต กรุณารอสักครู่',
   CSRF_REJECTED: 'คำขอไม่ถูกต้อง (CSRF Validation Failed)',
   UNAUTHORIZED: 'กรุณาเข้าสู่ระบบก่อนดำเนินการ',
