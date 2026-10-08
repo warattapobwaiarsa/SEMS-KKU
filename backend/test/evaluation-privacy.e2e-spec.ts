@@ -270,6 +270,7 @@ describe('Evaluation API (e2e) — privacy & peer-blind', () => {
         for (const item of body.data.items) {
           expect(item.score).toBeNull();
           expect(item.comment).toBeNull();
+          expect(item.textValue).toBeNull(); // ข้อความของ A ก็ห้ามหลุดมาด้วย
         }
       }
     });
@@ -324,6 +325,7 @@ describe('Evaluation API (e2e) — privacy & peer-blind', () => {
       expect(myEval.data.status).toBeNull();
       for (const item of myEval.data.items) {
         expect(item.score).toBeNull();
+        expect(item.textValue).toBeNull();
       }
 
       // รายการ: A เห็น submittedCount ของผู้สมัคร 3 (นับรวมทุกคน) แต่ myStatus เป็นของ A
