@@ -31,8 +31,12 @@ import {
   ShieldAlert,
   X,
   Lock,
-  Pencil
+  Pencil,
+  FileSpreadsheet,
+  Users
 } from 'lucide-react';
+import { ImportApplicantModal } from '@/components/applicants/import-modal';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Select } from '@/components/ui';
 
 export default function RoundDetailPage() {
   const params = useParams();
@@ -66,6 +70,9 @@ export default function RoundDetailPage() {
   const [editSemester, setEditSemester] = useState<number>(1);
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+
+  // Import Modal State
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const handleOpenEditModal = () => {
     if (!round || round.status !== 'DRAFT') return;
@@ -408,10 +415,10 @@ export default function RoundDetailPage() {
                   คุณสามารถเปลี่ยนหรือถอดชุดเกณฑ์ได้เฉพาะในสถานะร่าง (Draft) เท่านั้น เมื่อเปิดรอบทุนแล้วจะไม่สามารถแก้ไขชุดเกณฑ์ได้ (ตามกฎ BR-RND-07)
                 </p>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-                  <select
+                  <Select
+                    icon={Layers}
                     value={selectedCriteriaId}
                     onChange={(e) => setSelectedCriteriaId(e.target.value ? Number(e.target.value) : '')}
-                    className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition cursor-pointer font-medium text-slate-800 shadow-2xs"
                   >
                     <option value="">-- ยังไม่ผูกเกณฑ์ (ไม่มีเกณฑ์) --</option>
                     {criteriaList.map((c) => (
@@ -419,7 +426,7 @@ export default function RoundDetailPage() {
                         {c.name} ({c.totalScore} คะแนน, {c.subCriteria.length} ข้อ)
                       </option>
                     ))}
-                  </select>
+                  </Select>
                   <button
                     onClick={handleLinkCriteria}
                     disabled={linkingCriteria}
@@ -443,6 +450,50 @@ export default function RoundDetailPage() {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Applicants Management Card */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Users className="h-5 w-5 text-indigo-600" />
+                ข้อมูลผู้สมัครในรอบทุน
+              </h3>
+              <span className="text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md">
+                {round.applicantCount} คน
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs text-slate-600 leading-relaxed">
+                การนำเข้าข้อมูลผู้สมัครทำผ่านไฟล์ Excel (.xlsx) ตามรูปแบบของระบบ ข้อมูลจะถูกเข้ารหัสเลขบัตรประชาชนอัตโนมัติ (ตามกฎ BR-IMP-01 ถึง BR-IMP-23, BR-PDP-06)
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                {round.status === 'DRAFT' ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowImportModal(true)}
+                    className="px-4 py-2.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl transition-all shadow-md shadow-indigo-600/20 active:scale-[0.98] cursor-pointer flex items-center gap-1.5"
+                  >
+                    <FileSpreadsheet className="h-4 w-4" />
+                    {round.applicantCount > 0 ? 'นำเข้าข้อมูลใหม่ (แทนที่เดิม)' : 'นำเข้าข้อมูลผู้สมัคร (Excel)'}
+                  </button>
+                ) : (
+                  <span className="text-xs font-medium text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                    นำเข้าไม่ได้ (รอบ{round.status === 'OPEN' ? 'เปิดแล้ว' : 'ปิดแล้ว'})
+                  </span>
+                )}
+
+                <Link
+                  href="/admin/applicants"
+                  className="px-4 py-2.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <Users className="h-3.5 w-3.5 text-slate-500" />
+                  เปิดหน้ารายชื่อผู้สมัคร
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -559,180 +610,160 @@ export default function RoundDetailPage() {
       </div>
 
       {/* Modal: Edit Round Info */}
-      {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150 ring-1 ring-slate-900/10">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <Pencil className="h-5 w-5 text-primary" />
-                แก้ไขข้อมูลรอบทุนการศึกษา
-              </h3>
-              <button 
-                type="button"
-                onClick={() => setShowEditModal(false)} 
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
+      <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
+        <ModalHeader
+          title="แก้ไขข้อมูลรอบทุนการศึกษา"
+          icon={Pencil}
+          onClose={() => setShowEditModal(false)}
+        />
+        <form onSubmit={handleSaveEditRound}>
+          <ModalBody className="space-y-4">
             {editError && (
-              <div className="p-3 rounded-xl bg-rose-50 border border-rose-300 text-rose-900 text-xs flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+              <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
                 <span>{editError}</span>
               </div>
             )}
 
-            <form onSubmit={handleSaveEditRound} className="space-y-4">
-              <div className="space-y-1.5">
-                <label htmlFor="editRoundName" className="block text-xs font-semibold text-slate-700">
-                  ชื่อรอบทุนการศึกษา <span className="text-destructive">*</span>
-                </label>
-                <input
-                  id="editRoundName"
-                  type="text"
-                  required
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  placeholder="เช่น ทุนการศึกษาเพื่อการพัฒนาศักยภาพนักศึกษา ประจำภาคเรียนที่ 1/2569"
-                  className="w-full px-3.5 py-2.5 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label htmlFor="editAcademicYear" className="block text-xs font-semibold text-slate-700">
-                    ปีการศึกษา (พ.ศ.) <span className="text-destructive">*</span>
-                  </label>
-                  <input
-                    id="editAcademicYear"
-                    type="number"
-                    min={2550}
-                    max={2700}
-                    required
-                    value={editAcademicYear}
-                    onChange={(e) => setEditAcademicYear(parseInt(e.target.value) || 2569)}
-                    onWheel={(e) => e.currentTarget.blur()}
-                    onKeyDown={(e) => {
-                      if (['ArrowUp', 'ArrowDown', 'e', 'E', '+', '-'].includes(e.key)) {
-                        e.preventDefault();
-                      }
-                    }}
-                    className="w-full px-3.5 py-2.5 text-sm font-mono bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  {editAcademicYear >= 2000 && editAcademicYear <= 2150 && (
-                    <div className="flex items-center gap-2 pt-1 text-xs text-amber-700 bg-amber-50 border border-amber-200/80 p-2 rounded-lg">
-                      <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
-                      <span>
-                        ตรวจพบปี ค.ศ. ({editAcademicYear}) ต้องการแปลงเป็น พ.ศ. ({editAcademicYear + 543}) หรือไม่?
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setEditAcademicYear(editAcademicYear + 543)}
-                        className="font-semibold text-primary underline hover:text-primary/80 cursor-pointer ml-auto shrink-0"
-                      >
-                        แปลงทันที
-                      </button>
-                    </div>
-                  )}
-                  {editAcademicYear && (editAcademicYear < 2550 || editAcademicYear > 2700) && !(editAcademicYear >= 2000 && editAcademicYear <= 2150) && (
-                    <p className="text-xs text-rose-600">ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700 (BR-RND-01)</p>
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
-                  <label htmlFor="editSemester" className="block text-xs font-semibold text-slate-700">
-                    ภาคการศึกษา <span className="text-destructive">*</span>
-                  </label>
-                  <select
-                    id="editSemester"
-                    value={editSemester}
-                    onChange={(e) => setEditSemester(parseInt(e.target.value) || 1)}
-                    className="w-full px-3.5 py-2.5 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition cursor-pointer"
-                  >
-                    <option value={1}>ภาคเรียนที่ 1</option>
-                    <option value={2}>ภาคเรียนที่ 2</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setShowEditModal(false)}
-                  className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingEdit || !editName.trim()}
-                  className="px-5 py-2.5 text-xs font-bold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm disabled:opacity-40 transition-all cursor-pointer"
-                >
-                  {savingEdit ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal: Open Round Readiness Check */}
-      {showOpenModal && readiness && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150 ring-1 ring-slate-900/10">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <Play className="h-5 w-5 text-emerald-600 fill-emerald-600" />
-                ตรวจสอบความพร้อมก่อนเปิดรอบทุน
-              </h3>
-              <button 
-                onClick={() => setShowOpenModal(false)} 
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
+            <div className="space-y-1.5">
+              <label htmlFor="editRoundName" className="block text-xs font-semibold text-foreground">
+                ชื่อรอบทุนการศึกษา <span className="text-destructive">*</span>
+              </label>
+              <input
+                id="editRoundName"
+                type="text"
+                required
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="เช่น ทุนการศึกษาเพื่อการพัฒนาศักยภาพนักศึกษา ประจำภาคเรียนที่ 1/2569"
+                className="w-full px-3.5 py-2.5 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
+              />
             </div>
 
-            <div className="space-y-3.5">
-              <p className="text-xs font-medium text-slate-600">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label htmlFor="editAcademicYear" className="block text-xs font-semibold text-foreground">
+                  ปีการศึกษา (พ.ศ.) <span className="text-destructive">*</span>
+                </label>
+                <input
+                  id="editAcademicYear"
+                  type="number"
+                  min={2550}
+                  max={2700}
+                  required
+                  value={editAcademicYear}
+                  onChange={(e) => setEditAcademicYear(parseInt(e.target.value) || 2569)}
+                  onWheel={(e) => e.currentTarget.blur()}
+                  onKeyDown={(e) => {
+                    if (['ArrowUp', 'ArrowDown', 'e', 'E', '+', '-'].includes(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  className="w-full px-3.5 py-2.5 text-sm font-mono bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                {editAcademicYear >= 2000 && editAcademicYear <= 2150 && (
+                  <div className="flex items-center gap-2 pt-1 text-xs text-amber-700 bg-amber-50 border border-amber-200/80 p-2 rounded-lg">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+                    <span>
+                      ตรวจพบปี ค.ศ. ({editAcademicYear}) ต้องการแปลงเป็น พ.ศ. ({editAcademicYear + 543}) หรือไม่?
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setEditAcademicYear(editAcademicYear + 543)}
+                      className="font-semibold text-primary underline hover:text-primary/80 cursor-pointer ml-auto shrink-0"
+                    >
+                      แปลงทันที
+                    </button>
+                  </div>
+                )}
+                {editAcademicYear && (editAcademicYear < 2550 || editAcademicYear > 2700) && !(editAcademicYear >= 2000 && editAcademicYear <= 2150) && (
+                  <p className="text-xs text-destructive">ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700 (BR-RND-01)</p>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="editSemester" className="block text-xs font-semibold text-foreground">
+                  ภาคการศึกษา <span className="text-destructive">*</span>
+                </label>
+                <Select
+                  id="editSemester"
+                  value={editSemester}
+                  onChange={(e) => setEditSemester(parseInt(e.target.value) || 1)}
+                >
+                  <option value={1}>ภาคเรียนที่ 1</option>
+                  <option value={2}>ภาคเรียนที่ 2</option>
+                </Select>
+              </div>
+            </div>
+          </ModalBody>
+
+          <ModalFooter>
+            <button
+              type="button"
+              onClick={() => setShowEditModal(false)}
+              className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition cursor-pointer"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="submit"
+              disabled={savingEdit || !editName.trim()}
+              className="px-5 py-2.5 text-xs font-bold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm disabled:opacity-40 transition-all cursor-pointer"
+            >
+              {savingEdit ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}
+            </button>
+          </ModalFooter>
+        </form>
+      </Modal>
+
+      {/* Modal: Open Round Readiness Check */}
+      <Modal isOpen={showOpenModal && Boolean(readiness)} onClose={() => setShowOpenModal(false)} size="lg">
+        {readiness && (
+          <>
+            <ModalHeader
+              title="ตรวจสอบความพร้อมก่อนเปิดรอบทุน"
+              icon={Play}
+              onClose={() => setShowOpenModal(false)}
+            />
+            <ModalBody className="space-y-4">
+              <p className="text-xs font-medium text-muted-foreground">
                 ระบบจะตรวจสอบเงื่อนไขความพร้อม 3 ข้อสำคัญตามกฎธุรกิจ (FR-RND-08):
               </p>
 
               <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="font-medium text-slate-800">ข้อมูลหลักของรอบทุนครบถ้วน</span>
+                <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/80">
+                  <span className="font-medium text-foreground">ข้อมูลหลักของรอบทุนครบถ้วน</span>
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 </div>
 
-                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="font-medium text-slate-800">มีผู้สมัครอย่างน้อย 1 คน ({readiness.applicantCount} คน)</span>
+                <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/80">
+                  <span className="font-medium text-foreground">มีผู้สมัครอย่างน้อย 1 คน ({readiness.applicantCount} คน)</span>
                   {readiness.applicantCount >= 1 ? (
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                   ) : (
-                    <AlertCircle className="h-4 w-4 text-rose-600" />
+                    <AlertCircle className="h-4 w-4 text-destructive" />
                   )}
                 </div>
 
-                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="font-medium text-slate-800">ผูกชุดเกณฑ์ผลรวมคะแนน 100 คะแนน ({readiness.criteriaName ?? 'ยังไม่มี'})</span>
+                <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/80">
+                  <span className="font-medium text-foreground">ผูกชุดเกณฑ์ผลรวมคะแนน 100 คะแนน ({readiness.criteriaName ?? 'ยังไม่มี'})</span>
                   {readiness.criteriaName ? (
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                   ) : (
-                    <AlertCircle className="h-4 w-4 text-rose-600" />
+                    <AlertCircle className="h-4 w-4 text-destructive" />
                   )}
                 </div>
               </div>
 
               {readiness.lastInvalidRowsCount > 0 && (
-                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium leading-relaxed">
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-medium leading-relaxed">
                   ℹ️ มีแถวที่ไม่ผ่านจากการนำเข้าล่าสุด {readiness.lastInvalidRowsCount} แถว (รับทราบและเปิดรอบได้ตามกฎ FR-RND-09)
                 </div>
               )}
 
               {!readiness.isReady && (
-                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-900 text-xs space-y-1.5">
-                  <div className="font-bold flex items-center gap-1.5 text-rose-700">
+                <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs space-y-1.5">
+                  <div className="font-bold flex items-center gap-1.5">
                     <AlertCircle className="h-4 w-4" />
                     ไม่ผ่านเงื่อนไขการเปิดรอบ:
                   </div>
@@ -743,13 +774,12 @@ export default function RoundDetailPage() {
                   </ul>
                 </div>
               )}
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+            </ModalBody>
+            <ModalFooter>
               <button
                 type="button"
                 onClick={() => setShowOpenModal(false)}
-                className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition cursor-pointer"
               >
                 ยกเลิก
               </button>
@@ -757,49 +787,41 @@ export default function RoundDetailPage() {
                 type="button"
                 disabled={!readiness.isReady || openingRound}
                 onClick={handleConfirmOpenRound}
-                className="px-5 py-2.5 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-md shadow-emerald-600/25 disabled:opacity-40 transition-all cursor-pointer hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
+                className="px-5 py-2.5 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-sm disabled:opacity-40 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
               >
                 {openingRound ? 'กำลังเปิดรอบ...' : 'ยืนยันเปิดรับประเมิน'}
               </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </ModalFooter>
+          </>
+        )}
+      </Modal>
 
       {/* Modal: Close Round Unsubmitted Check */}
-      {showCloseModal && closeCheck && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150 ring-1 ring-slate-900/10">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <PowerOff className="h-5 w-5 text-rose-600" />
-                ยืนยันการปิดรอบการประเมิน
-              </h3>
-              <button 
-                onClick={() => setShowCloseModal(false)} 
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+      <Modal isOpen={showCloseModal && Boolean(closeCheck)} onClose={() => setShowCloseModal(false)} size="lg">
+        {closeCheck && (
+          <>
+            <ModalHeader
+              title="ยืนยันการปิดรอบการประเมิน"
+              icon={PowerOff}
+              onClose={() => setShowCloseModal(false)}
+            />
+            <ModalBody className="space-y-4">
+              {closeModalError && (
+                <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs flex items-center gap-2.5">
+                  <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
+                  <span className="font-medium">{closeModalError}</span>
+                </div>
+              )}
 
-            {closeModalError && (
-              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center gap-2.5">
-                <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
-                <span className="font-medium">{closeModalError}</span>
-              </div>
-            )}
-
-            <div className="space-y-4">
               {closeCheck.unsubmittedCount === 0 ? (
-                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-medium leading-relaxed flex items-center gap-2">
+                <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-medium leading-relaxed flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                   <span>ผู้สมัครทุกคนได้รับการประเมินและส่งผล (Submitted) ครบถ้วนแล้ว สามารถปิดรอบได้ทันที</span>
                 </div>
               ) : (
                 <div className="space-y-3.5">
-                  <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs space-y-2">
-                    <div className="font-bold flex items-center gap-1.5 text-amber-800">
+                  <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-400 text-xs space-y-2">
+                    <div className="font-bold flex items-center gap-1.5">
                       <ShieldAlert className="h-4 w-4 text-amber-600" />
                       พบผู้สมัครที่ยังไม่มีผลประเมิน Submitted ({closeCheck.unsubmittedCount} คน)
                     </div>
@@ -809,11 +831,11 @@ export default function RoundDetailPage() {
                   </div>
 
                   {/* Unsubmitted List preview */}
-                  <div className="max-h-40 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100 text-xs bg-slate-50">
+                  <div className="max-h-40 overflow-y-auto border border-border/80 rounded-xl divide-y border-border/60 text-xs bg-muted/30">
                     {closeCheck.applicants.map((a) => (
                       <div key={a.applicantId} className="p-2.5 flex items-center justify-between">
-                        <span className="font-mono font-bold text-slate-800">{a.studentCode}</span>
-                        <span className="text-slate-600 font-medium">{a.titlePrefix}{a.firstName} {a.lastName}</span>
+                        <span className="font-mono font-bold text-foreground">{a.studentCode}</span>
+                        <span className="text-muted-foreground font-medium">{a.titlePrefix}{a.firstName} {a.lastName}</span>
                       </div>
                     ))}
                   </div>
@@ -823,21 +845,20 @@ export default function RoundDetailPage() {
                       type="checkbox"
                       checked={acknowledged}
                       onChange={(e) => setAcknowledged(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer"
+                      className="mt-0.5 h-4 w-4 rounded border-border text-destructive focus:ring-destructive cursor-pointer"
                     />
-                    <span className="text-xs text-slate-800 font-medium select-none group-hover:text-slate-900">
+                    <span className="text-xs text-foreground font-medium select-none group-hover:text-foreground/80">
                       ข้าพเจ้ารับทราบว่ามีผู้สมัคร {closeCheck.unsubmittedCount} คนที่ยังไม่มีผลการประเมิน และยืนยันปิดรอบการประเมินนี้
                     </span>
                   </label>
                 </div>
               )}
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+            </ModalBody>
+            <ModalFooter>
               <button
                 type="button"
                 onClick={() => setShowCloseModal(false)}
-                className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition cursor-pointer"
               >
                 ยกเลิก
               </button>
@@ -845,13 +866,26 @@ export default function RoundDetailPage() {
                 type="button"
                 disabled={closingRound || (closeCheck.unsubmittedCount > 0 && !acknowledged)}
                 onClick={handleConfirmCloseRound}
-                className="px-5 py-2.5 text-xs font-bold rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white shadow-md shadow-rose-600/25 disabled:opacity-40 transition-all cursor-pointer hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
+                className="px-5 py-2.5 text-xs font-bold rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-sm disabled:opacity-40 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
               >
                 {closingRound ? 'กำลังปิดรอบ...' : 'ยืนยันปิดรอบทุน'}
               </button>
-            </div>
-          </div>
-        </div>
+            </ModalFooter>
+          </>
+        )}
+      </Modal>
+
+      {/* Import Applicants Modal */}
+      {round && (
+        <ImportApplicantModal
+          roundId={round.id}
+          roundName={round.name}
+          isOpen={showImportModal}
+          onClose={() => setShowImportModal(false)}
+          onSuccess={() => {
+            void loadData();
+          }}
+        />
       )}
     </div>
   );

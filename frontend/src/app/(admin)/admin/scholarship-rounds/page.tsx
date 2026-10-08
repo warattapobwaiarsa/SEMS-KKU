@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ScholarshipRoundListItem } from '@/types/rounds';
 import { fetchRoundsList } from '@/services/rounds.service';
-import { PageHeader, StatusBadge, Pagination } from '@/components/ui';
+import { PageHeader, StatusBadge, Pagination, Select } from '@/components/ui';
 import { 
   Calendar, 
   Plus, 
@@ -95,21 +95,20 @@ export default function ScholarshipRoundsPage() {
         </form>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-44">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <select
+          <div className="w-full sm:w-44">
+            <Select
+              icon={Filter}
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full pl-8 pr-3 py-2.5 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition cursor-pointer"
             >
               <option value="">ทุกสถานะ</option>
               <option value="DRAFT">ร่าง (Draft)</option>
               <option value="OPEN">เปิดรับสมัคร (Open)</option>
               <option value="CLOSED">ปิดรอบแล้ว (Closed)</option>
-            </select>
+            </Select>
           </div>
 
           <button
