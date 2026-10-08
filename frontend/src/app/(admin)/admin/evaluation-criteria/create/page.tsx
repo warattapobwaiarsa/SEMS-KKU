@@ -440,19 +440,9 @@ export default function CreateCriteriaPage() {
                   </button>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-muted-foreground">
-                    ทั้งหมด {subCriteria.length} ข้อ (คะแนนรวม {totalScore}/100)
-                  </span>
-                  <button
-                    type="submit"
-                    disabled={!isFormValid || saving}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-                  >
-                    <Save className="h-3.5 w-3.5" />
-                    {saving ? 'กำลังบันทึก...' : 'บันทึกสร้างเกณฑ์'}
-                  </button>
-                </div>
+                <span className="text-xs text-muted-foreground font-medium">
+                  ทั้งหมด {subCriteria.length} ข้อ (คะแนนรวม {totalScore}/100)
+                </span>
               </div>
             )}
           </div>
