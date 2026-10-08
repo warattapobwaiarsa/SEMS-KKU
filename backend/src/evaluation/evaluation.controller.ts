@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -113,6 +115,7 @@ export class EvaluationController {
    * [FR-EVL-11] [FR-EVL-13] [FR-EVL-15] [BR-EVL-11]
    */
   @Post('applicants/:applicantId/my-evaluation/submit')
+  @HttpCode(HttpStatus.OK) // spec กำหนด 200 (Nest default ของ POST คือ 201)
   submitMyEvaluation(
     @Param('applicantId', ParseIntPipe) applicantId: number,
     @Req() request: RequestWithUser,
