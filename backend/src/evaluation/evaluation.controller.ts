@@ -1,8 +1,11 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
   ParseIntPipe,
+  Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -13,12 +16,14 @@ import { MockAuthGuard } from '../common/guards/mock-auth.guard';
 import type { RequestWithUser } from '../common/guards/mock-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { ListApplicantsQueryDto } from './dto/list-applicants-query.dto';
+import { SaveMyEvaluationDto } from './dto/save-my-evaluation.dto';
 import {
   EvaluationReadService,
   EvaluatorApplicantDetail,
   EvaluatorRoundDetail,
   MyEvaluationView,
 } from './evaluation-read.service';
+import { EvaluationWriteService } from './evaluation-write.service';
 import {
   EvaluationService,
   PaginatedApplicantList,
@@ -36,6 +41,7 @@ export class EvaluationController {
   constructor(
     private readonly evaluationService: EvaluationService,
     private readonly evaluationReadService: EvaluationReadService,
+    private readonly evaluationWriteService: EvaluationWriteService,
   ) {}
 
   /**
@@ -76,6 +82,44 @@ export class EvaluationController {
     // MockAuthGuard แนบ user ไว้แล้วเสมอเมื่อมาถึงตรงนี้
     const evaluatorUser = request.user!;
     return this.evaluationReadService.getMyEvaluation(
+      applicantId,
+      evaluatorUser,
+    );
+  }
+
+  /**
+   * PUT /api/v1/applicants/:applicantId/my-evaluation
+   * Auto-save / Upsert Draft ( frontend เรียกซ้ำได้เรื่อยๆ ~3 วินาทีหลังหยุดพิมพ์)
+   * [FR-EVL-04] [FR-EVL-08] [BR-EVL-06] [BR-EVL-09]
+   */
+  @Put('applicants/:applicantId/my-evaluation')
+  saveMyEvaluation(
+    @Param('applicantId', ParseIntPipe) applicantId: number,
+    @Body() body: SaveMyEvaluationDto,
+    @Req() request: RequestWithUser,
+  ): Promise<MyEvaluationView> {
+    // MockAuthGuard แนบ user ไว้แล้วเสมอเมื่อมาถึงตรงนี้
+    const evaluatorUser = request.user!;
+    return this.evaluationWriteService.saveMyEvaluation(
+      applicantId,
+      evaluatorUser,
+      body,
+    );
+  }
+
+  /**
+   * POST /api/v1/applicants/:applicantId/my-evaluation/submit
+   * ยืนยันส่งผล DRAFT -> SUBMITTED พร้อมตรวจคะแนนครบและบันทึก Audit Log
+   * [FR-EVL-11] [FR-EVL-13] [FR-EVL-15] [BR-EVL-11]
+   */
+  @Post('applicants/:applicantId/my-evaluation/submit')
+  submitMyEvaluation(
+    @Param('applicantId', ParseIntPipe) applicantId: number,
+    @Req() request: RequestWithUser,
+  ): Promise<MyEvaluationView> {
+    // MockAuthGuard แนบ user ไว้แล้วเสมอเมื่อมาถึงตรงนี้
+    const evaluatorUser = request.user!;
+    return this.evaluationWriteService.submitMyEvaluation(
       applicantId,
       evaluatorUser,
     );
