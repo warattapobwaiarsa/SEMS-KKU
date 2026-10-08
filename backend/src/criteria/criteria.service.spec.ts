@@ -2,11 +2,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CriteriaService } from './criteria.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { BusinessException } from '../common/http-exception.filter';
-import { SubCriteriaType } from '@prisma/client';
+import { SubCriteriaType, RoundStatus } from '@prisma/client';
 
 describe('CriteriaService', () => {
   let service: CriteriaService;
@@ -330,6 +331,122 @@ describe('CriteriaService', () => {
       expect(mockPrismaService.subCriteria.update).toHaveBeenCalled();
       expect(mockPrismaService.subCriteria.create).toHaveBeenCalled();
       expect(result.totalScore).toBe(100);
+    });
+
+    it('should throw NotFoundException if criteria to update does not exist', async () => {
+      mockPrismaService.criteria.findUnique.mockResolvedValueOnce(null);
+
+      await expect(
+        service.update(999, {
+          name: 'ไม่มีอยู่จริง',
+          subCriteria: [
+            {
+              sortOrder: 1,
+              title: 'ข้อ 1',
+              type: SubCriteriaType.SCORED,
+              maxScore: 100,
+            },
+          ],
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw CRITERIA_NAME_DUPLICATE if new name is already taken by another criteria', async () => {
+      mockPrismaService.criteria.findUnique
+        .mockResolvedValueOnce({
+          id: 1,
+          name: 'ชื่อเดิม',
+          rounds: [],
+          subCriteria: [{ id: 10, type: SubCriteriaType.SCORED, maxScore: 100 }],
+        })
+        .mockResolvedValueOnce({
+          id: 2,
+          name: 'ชื่อซ้ำกับ ID อื่น',
+        });
+
+      try {
+        await service.update(1, {
+          name: 'ชื่อซ้ำกับ ID อื่น',
+          subCriteria: [
+            {
+              sortOrder: 1,
+              title: 'ข้อ 1',
+              type: SubCriteriaType.SCORED,
+              maxScore: 100,
+            },
+          ],
+        });
+      } catch (err: unknown) {
+        const error = err as BusinessException;
+        expect(error.errorCode).toBe('CRITERIA_NAME_DUPLICATE');
+      }
+    });
+  });
+
+  describe('findAll', () => {
+    it('should return paginated criteria with computed isLocked and totalScore', async () => {
+      mockPrismaService.criteria.count.mockResolvedValueOnce(2);
+      mockPrismaService.criteria.findMany.mockResolvedValueOnce([
+        {
+          id: 1,
+          name: 'เกณฑ์ที่ 1',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          rounds: [{ id: 1, name: 'รอบเปิดรับ', status: RoundStatus.OPEN }],
+          subCriteria: [
+            { id: 10, type: SubCriteriaType.SCORED, maxScore: 70 },
+            { id: 11, type: SubCriteriaType.SCORED, maxScore: 30 },
+          ],
+        },
+        {
+          id: 2,
+          name: 'เกณฑ์ที่ 2 (ร่าง)',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          rounds: [{ id: 2, name: 'รอบร่าง', status: RoundStatus.DRAFT }],
+          subCriteria: [
+            { id: 20, type: SubCriteriaType.SCORED, maxScore: 100 },
+          ],
+        },
+      ]);
+
+      const result = await service.findAll({ page: 1, limit: 10, search: 'เกณฑ์' });
+
+      expect(result.data.length).toBe(2);
+      expect(result.data[0].isLocked).toBe(true);
+      expect(result.data[0].totalScore).toBe(100);
+      expect(result.data[1].isLocked).toBe(false);
+      expect(result.data[1].totalScore).toBe(100);
+      expect(result.meta.total).toBe(2);
+    });
+  });
+
+  describe('findOne', () => {
+    it('should return criteria detail when found', async () => {
+      mockPrismaService.criteria.findUnique.mockResolvedValueOnce({
+        id: 1,
+        name: 'เกณฑ์ชุดหลัก',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        rounds: [],
+        subCriteria: [
+          { id: 101, sortOrder: 1, title: 'ข้อ 1', type: SubCriteriaType.SCORED, maxScore: 100 },
+        ],
+      });
+
+      const result = await service.findOne(1);
+
+      expect(result.id).toBe(1);
+      expect(result.name).toBe('เกณฑ์ชุดหลัก');
+      expect(result.isLocked).toBe(false);
+      expect(result.totalScore).toBe(100);
+      expect(result.subCriteria.length).toBe(1);
+    });
+
+    it('should throw NotFoundException if criteria is not found', async () => {
+      mockPrismaService.criteria.findUnique.mockResolvedValueOnce(null);
+
+      await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
     });
   });
 });
