@@ -452,6 +452,44 @@ export default function EditOrViewCriteriaPage() {
                 </div>
               ))}
             </div>
+
+            {/* Bottom Action Area */}
+            {!isLocked && subCriteria.length > 0 && (
+              <div className="pt-4 border-t border-border/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-muted/20 p-4 rounded-xl border border-dashed border-border/80">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleAddScoredRow}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    เพิ่มเกณฑ์มีคะแนน
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddTextRow}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-2 rounded-xl bg-muted text-foreground hover:bg-muted/80 transition cursor-pointer"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    เพิ่มเกณฑ์ข้อความ
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground">
+                    ทั้งหมด {subCriteria.length} ข้อ (คะแนนรวม {totalScore}/100)
+                  </span>
+                  <button
+                    type="submit"
+                    disabled={!isFormValid || saving}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                  >
+                    <Save className="h-3.5 w-3.5" />
+                    {saving ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

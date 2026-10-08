@@ -417,6 +417,44 @@ export default function CreateCriteriaPage() {
               ))
             )}
             </div>
+
+            {/* Bottom Action Area: Add Sub-Criteria & Quick Save */}
+            {subCriteria.length > 0 && (
+              <div className="pt-4 border-t border-border/70 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-muted/20 p-4 rounded-xl border border-dashed border-border/80">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleAddScoredRow}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] transition shadow-xs cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    เพิ่มข้อแบบมีคะแนน
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddTextRow}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-muted hover:bg-muted/80 text-foreground hover:scale-[1.02] active:scale-[0.98] transition cursor-pointer"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    เพิ่มข้อความคิดเห็น
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground">
+                    ทั้งหมด {subCriteria.length} ข้อ (คะแนนรวม {totalScore}/100)
+                  </span>
+                  <button
+                    type="submit"
+                    disabled={!isFormValid || saving}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                  >
+                    <Save className="h-3.5 w-3.5" />
+                    {saving ? 'กำลังบันทึก...' : 'บันทึกสร้างเกณฑ์'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
