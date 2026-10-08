@@ -1,4 +1,5 @@
 import { config } from './config';
+import { formatErrorMessage } from './error-messages';
 
 export class ApiError extends Error {
   public readonly statusCode?: number;
@@ -35,7 +36,11 @@ export async function apiClient<T>(
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    const message = errorData.message || errorData.errorCode || `Request failed with status ${res.status}`;
+    const message = formatErrorMessage(
+      errorData.errorCode,
+      errorData.params,
+      errorData.message || `คำขอไม่สำเร็จ (HTTP ${res.status})`,
+    );
     throw new ApiError(message, res.status, errorData.errorCode, errorData.params);
   }
 

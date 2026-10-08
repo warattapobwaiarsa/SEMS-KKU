@@ -124,12 +124,32 @@ export class HttpExceptionFilter implements ExceptionFilter {
           : exception.message;
     }
 
-    const timestamp = new Date().toISOString();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const padMs = (n: number) => n.toString().padStart(3, '0');
+    const now = new Date();
+    const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
+    const bkkDate = new Date(utcTime + 7 * 3600000);
+    const timestamp = `${bkkDate.getFullYear()}-${pad(bkkDate.getMonth() + 1)}-${pad(bkkDate.getDate())}T${pad(bkkDate.getHours())}:${pad(bkkDate.getMinutes())}:${pad(bkkDate.getSeconds())}.${padMs(bkkDate.getMilliseconds())}+07:00`;
+
+    const statusNameMap: Record<number, string> = {
+      400: 'BAD_REQUEST',
+      401: 'UNAUTHORIZED',
+      403: 'FORBIDDEN',
+      404: 'NOT_FOUND',
+      409: 'CONFLICT',
+      410: 'GONE',
+      413: 'PAYLOAD_TOO_LARGE',
+      422: 'UNPROCESSABLE_ENTITY',
+      429: 'TOO_MANY_REQUESTS',
+      500: 'INTERNAL_SERVER_ERROR',
+    };
+    const errorType = statusNameMap[status] ?? 'HTTP_ERROR';
 
     response.status(status).json({
       success: false,
       statusCode: status,
       errorCode,
+      error: errorType,
       message,
       ...(params ? { params } : {}),
       timestamp,
