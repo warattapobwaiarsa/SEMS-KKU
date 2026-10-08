@@ -15,9 +15,6 @@ import {
   Save, 
   Lock, 
   MessageSquare,
-  ChevronUp,
-  ChevronDown,
-  Calendar,
   Layers,
 } from 'lucide-react';
 
@@ -42,6 +39,8 @@ export default function EditOrViewCriteriaPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!criteriaId) return;
@@ -121,24 +120,54 @@ export default function EditOrViewCriteriaPage() {
     setSubCriteria(reordered);
   };
 
-  const handleMoveUp = (index: number) => {
-    if (isLocked || index <= 0) return;
-    const items = [...subCriteria];
-    const temp = items[index];
-    items[index] = items[index - 1];
-    items[index - 1] = temp;
-    const reordered = items.map((row, idx) => ({ ...row, sortOrder: idx + 1 }));
-    setSubCriteria(reordered);
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    if (isLocked) return;
+    const target = e.target as HTMLElement;
+    if (
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'BUTTON' ||
+      target.closest('button') ||
+      target.closest('input')
+    ) {
+      e.preventDefault();
+      return;
+    }
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
   };
 
-  const handleMoveDown = (index: number) => {
-    if (isLocked || index >= subCriteria.length - 1) return;
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    if (isLocked) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    if (isLocked) return;
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
     const items = [...subCriteria];
-    const temp = items[index];
-    items[index] = items[index + 1];
-    items[index + 1] = temp;
+    const [draggedItem] = items.splice(draggedIndex, 1);
+    items.splice(dropIndex, 0, draggedItem);
     const reordered = items.map((row, idx) => ({ ...row, sortOrder: idx + 1 }));
     setSubCriteria(reordered);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const handleUpdateRow = (tempId: string, updates: Partial<SubCriteriaRow>) => {
@@ -307,31 +336,28 @@ export default function EditOrViewCriteriaPage() {
               {subCriteria.map((row, idx) => (
                 <div
                   key={row.tempId}
+                  draggable={!isLocked}
+                  onDragStart={(e) => !isLocked && handleDragStart(e, idx)}
+                  onDragOver={(e) => !isLocked && handleDragOver(e, idx)}
+                  onDrop={(e) => !isLocked && handleDrop(e, idx)}
+                  onDragEnd={!isLocked ? handleDragEnd : undefined}
                   className={`border rounded-xl p-4 transition ${
-                    row.type === 'SCORED' ? 'bg-background border-border' : 'bg-muted/20 border-border/70'
+                    draggedIndex === idx
+                      ? 'opacity-40 border-dashed border-primary bg-primary/5 scale-[0.99]'
+                      : dragOverIndex === idx && draggedIndex !== idx
+                      ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
+                      : row.type === 'SCORED'
+                      ? 'bg-background border-border'
+                      : 'bg-muted/20 border-border/70'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     {!isLocked && (
-                      <div className="flex flex-col gap-0.5 mt-1 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => handleMoveUp(idx)}
-                          disabled={idx === 0}
-                          title="เลื่อนขึ้น"
-                          className="p-1 text-slate-400 hover:text-slate-800 disabled:opacity-20 rounded hover:bg-slate-100 transition cursor-pointer"
-                        >
-                          <ChevronUp className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleMoveDown(idx)}
-                          disabled={idx === subCriteria.length - 1}
-                          title="เลื่อนลง"
-                          className="p-1 text-slate-400 hover:text-slate-800 disabled:opacity-20 rounded hover:bg-slate-100 transition cursor-pointer"
-                        >
-                          <ChevronDown className="h-3.5 w-3.5" />
-                        </button>
+                      <div
+                        className="mt-1 shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-grab active:cursor-grabbing transition"
+                        title="กดค้างแล้วลากเพื่อสลับลำดับ"
+                      >
+                        <GripVertical className="h-5 w-5" aria-hidden="true" />
                       </div>
                     )}
 
