@@ -16,8 +16,6 @@ import {
   MessageSquare,
   Calculator,
   ShieldCheck,
-  ChevronUp,
-  ChevronDown,
 } from 'lucide-react';
 
 interface SubCriteriaRow {
@@ -32,43 +30,12 @@ interface SubCriteriaRow {
 export default function CreateCriteriaPage() {
   const router = useRouter();
   const [name, setName] = useState('');
-  const [subCriteria, setSubCriteria] = useState<SubCriteriaRow[]>([
-    {
-      tempId: 'row-1',
-      sortOrder: 1,
-      title: 'ผลการเรียนเฉลี่ยสะสม (GPAX)',
-      type: 'SCORED',
-      maxScore: 30,
-      allowComment: false,
-    },
-    {
-      tempId: 'row-2',
-      sortOrder: 2,
-      title: 'ความจำเป็นทางการเงินและรายได้ครอบครัว',
-      type: 'SCORED',
-      maxScore: 40,
-      allowComment: true,
-    },
-    {
-      tempId: 'row-3',
-      sortOrder: 3,
-      title: 'การมีส่วนร่วมในกิจกรรมและจิตอาสา',
-      type: 'SCORED',
-      maxScore: 30,
-      allowComment: true,
-    },
-    {
-      tempId: 'row-4',
-      sortOrder: 4,
-      title: 'ข้อคิดเห็นและข้อเสนอแนะเพิ่มเติมของคณะกรรมการ',
-      type: 'TEXT',
-      maxScore: 0,
-      allowComment: false,
-    },
-  ]);
+  const [subCriteria, setSubCriteria] = useState<SubCriteriaRow[]>([]);
 
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // Live score calculation
   const totalScore = subCriteria
@@ -78,7 +45,17 @@ export default function CreateCriteriaPage() {
   const isScoreValid = totalScore === 100;
   const scoredCount = subCriteria.filter((r) => r.type === 'SCORED').length;
   const hasAtLeastOneScored = scoredCount > 0;
-  const isFormValid = name.trim().length > 0 && isScoreValid && hasAtLeastOneScored;
+  const hasAllTitles = subCriteria.length > 0 && subCriteria.every((r) => r.title.trim().length > 0);
+  const hasValidMaxScores = subCriteria
+    .filter((r) => r.type === 'SCORED')
+    .every((r) => r.maxScore >= 1 && r.maxScore <= 100);
+
+  const isFormValid =
+    name.trim().length > 0 &&
+    isScoreValid &&
+    hasAtLeastOneScored &&
+    hasAllTitles &&
+    hasValidMaxScores;
 
   const handleAddScoredRow = () => {
     const newOrder = subCriteria.length + 1;
@@ -111,30 +88,56 @@ export default function CreateCriteriaPage() {
   };
 
   const handleRemoveRow = (tempId: string) => {
-    if (subCriteria.length <= 1) return;
     const filtered = subCriteria.filter((row) => row.tempId !== tempId);
     const reordered = filtered.map((row, idx) => ({ ...row, sortOrder: idx + 1 }));
     setSubCriteria(reordered);
   };
 
-  const handleMoveUp = (index: number) => {
-    if (index <= 0) return;
-    const items = [...subCriteria];
-    const temp = items[index];
-    items[index] = items[index - 1];
-    items[index - 1] = temp;
-    const reordered = items.map((row, idx) => ({ ...row, sortOrder: idx + 1 }));
-    setSubCriteria(reordered);
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    const target = e.target as HTMLElement;
+    if (
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'BUTTON' ||
+      target.closest('button') ||
+      target.closest('input')
+    ) {
+      e.preventDefault();
+      return;
+    }
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
   };
 
-  const handleMoveDown = (index: number) => {
-    if (index >= subCriteria.length - 1) return;
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
     const items = [...subCriteria];
-    const temp = items[index];
-    items[index] = items[index + 1];
-    items[index + 1] = temp;
+    const [draggedItem] = items.splice(draggedIndex, 1);
+    items.splice(dropIndex, 0, draggedItem);
     const reordered = items.map((row, idx) => ({ ...row, sortOrder: idx + 1 }));
     setSubCriteria(reordered);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const handleUpdateRow = (tempId: string, updates: Partial<SubCriteriaRow>) => {
@@ -145,7 +148,27 @@ export default function CreateCriteriaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid || saving) return;
+    if (!name.trim()) {
+      setErrorMessage('กรุณาระบุชื่อชุดเกณฑ์การประเมิน');
+      return;
+    }
+    if (!hasAllTitles) {
+      setErrorMessage('กรุณาระบุชื่อหัวข้อเกณฑ์ย่อยให้ครบทุกข้อ (ห้ามเว้นว่าง)');
+      return;
+    }
+    if (!hasAtLeastOneScored) {
+      setErrorMessage('ชุดเกณฑ์ต้องมีเกณฑ์แบบคำนวณคะแนนอย่างน้อย 1 ข้อ');
+      return;
+    }
+    if (!hasValidMaxScores) {
+      setErrorMessage('คะแนนเต็มของแต่ละข้อต้องเป็นจำนวนเต็มระหว่าง 1–100 คะแนน');
+      return;
+    }
+    if (!isScoreValid) {
+      setErrorMessage(`ผลรวมคะแนนต้องเท่ากับ 100 คะแนนพอดี (ปัจจุบัน: ${totalScore} คะแนน)`);
+      return;
+    }
+    if (saving) return;
 
     try {
       setSaving(true);
@@ -178,7 +201,7 @@ export default function CreateCriteriaPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/70 pb-4">
         <Link
           href="/admin/evaluation-criteria"
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition hover:translate-x-[-2px]"
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition hover:-translate-x-0.5"
         >
           <ArrowLeft className="h-4 w-4" />
           กลับสู่หน้ารายการเกณฑ์การประเมิน
@@ -275,65 +298,88 @@ export default function CreateCriteriaPage() {
 
             {/* List Rows */}
             <div className="space-y-3">
-              {subCriteria.map((row, idx) => (
-                <div
-                  key={row.tempId}
-                  className={`border rounded-2xl p-4 sm:p-5 transition-all shadow-2xs ${
-                    row.type === 'SCORED'
-                      ? 'bg-background border-border/80 hover:border-border'
-                      : 'bg-muted/20 border-dashed border-border/80'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex flex-col gap-0.5 mt-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => handleMoveUp(idx)}
-                        disabled={idx === 0}
-                        title="เลื่อนขึ้น"
-                        className="p-1 text-slate-400 hover:text-slate-800 disabled:opacity-20 rounded hover:bg-slate-100 transition cursor-pointer"
+              {subCriteria.length === 0 ? (
+                <div className="text-center py-12 px-4 border-2 border-dashed border-border/70 rounded-2xl bg-muted/10 flex flex-col items-center justify-center">
+                  <div className="p-3 rounded-2xl bg-muted/50 text-muted-foreground mb-3">
+                    <Plus className="h-6 w-6" />
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">ยังไม่มีรายการเกณฑ์ย่อย</p>
+                  <p className="text-xs text-muted-foreground mt-1 mb-4 max-w-sm">
+                    เริ่มกำหนดเกณฑ์โดยการคลิกปุ่มด้านล่างเพื่อเพิ่มหัวข้อประเมินแบบมีคะแนน หรือกล่องความคิดเห็น
+                  </p>
+                  <div className="flex items-center gap-2 flex-wrap justify-center">
+                    <button
+                      type="button"
+                      onClick={handleAddScoredRow}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs cursor-pointer"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      เพิ่มข้อแบบมีคะแนน
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddTextRow}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-muted hover:bg-muted/80 text-foreground transition cursor-pointer"
+                    >
+                      <MessageSquare className="h-3.5 w-3.5" />
+                      เพิ่มข้อความคิดเห็น
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                subCriteria.map((row, idx) => (
+                  <div
+                    key={row.tempId}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, idx)}
+                    onDragOver={(e) => handleDragOver(e, idx)}
+                    onDrop={(e) => handleDrop(e, idx)}
+                    onDragEnd={handleDragEnd}
+                    className={`border rounded-2xl p-4 sm:p-5 transition-all shadow-2xs ${
+                      draggedIndex === idx
+                        ? 'opacity-40 border-dashed border-primary bg-primary/5 scale-[0.99]'
+                        : dragOverIndex === idx && draggedIndex !== idx
+                        ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
+                        : row.type === 'SCORED'
+                        ? 'bg-background border-border/80 hover:border-border'
+                        : 'bg-muted/20 border-dashed border-border/80'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="mt-1 shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-grab active:cursor-grabbing transition"
+                        title="กดค้างแล้วลากเพื่อสลับลำดับ"
                       >
-                        <ChevronUp className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleMoveDown(idx)}
-                        disabled={idx === subCriteria.length - 1}
-                        title="เลื่อนลง"
-                        className="p-1 text-slate-400 hover:text-slate-800 disabled:opacity-20 rounded hover:bg-slate-100 transition cursor-pointer"
-                      >
-                        <ChevronDown className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-
-                    <div className="flex-1 space-y-3">
-                      {/* Badge / Index */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-bold text-muted-foreground bg-muted/70 px-2 py-0.5 rounded-md">
-                            ข้อที่ {row.sortOrder}
-                          </span>
-                          <span
-                            className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border shadow-2xs ${
-                              row.type === 'SCORED'
-                                ? 'bg-blue-50 text-blue-700 border-blue-200'
-                                : 'bg-zinc-100 text-zinc-700 border-zinc-200'
-                            }`}
-                          >
-                            {row.type === 'SCORED' ? 'คำนวณคะแนน' : 'กล่องความคิดเห็น'}
-                          </span>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveRow(row.tempId)}
-                          disabled={subCriteria.length <= 1}
-                          title="ลบหัวข้อนี้"
-                          className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition disabled:opacity-30 cursor-pointer"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <GripVertical className="h-5 w-5" aria-hidden="true" />
                       </div>
+
+                      <div className="flex-1 space-y-3">
+                        {/* Badge / Index */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono font-bold text-muted-foreground bg-muted/70 px-2 py-0.5 rounded-md">
+                              ข้อที่ {row.sortOrder}
+                            </span>
+                            <span
+                              className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border shadow-2xs ${
+                                row.type === 'SCORED'
+                                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                  : 'bg-zinc-100 text-zinc-700 border-zinc-200'
+                              }`}
+                            >
+                              {row.type === 'SCORED' ? 'คำนวณคะแนน' : 'กล่องความคิดเห็น'}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveRow(row.tempId)}
+                            title="ลบหัวข้อนี้"
+                            className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
 
                       {/* Title & Max Score inputs */}
                       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
@@ -363,7 +409,13 @@ export default function CreateCriteriaPage() {
                                     maxScore: parseInt(e.target.value) || 0,
                                   })
                                 }
-                                className="w-20 px-2.5 py-1.5 text-right font-mono font-bold text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
+                                onWheel={(e) => e.currentTarget.blur()}
+                                onKeyDown={(e) => {
+                                  if (['ArrowUp', 'ArrowDown', 'e', 'E', '+', '-'].includes(e.key)) {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                className="w-20 px-2.5 py-1.5 text-right font-mono font-bold text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                               />
                               <span className="text-xs text-muted-foreground font-medium">คะแนน</span>
                             </div>
@@ -392,8 +444,37 @@ export default function CreateCriteriaPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+              ))
+            )}
             </div>
+
+            {/* Bottom Action Area: Add Sub-Criteria & Quick Save */}
+            {subCriteria.length > 0 && (
+              <div className="pt-4 border-t border-border/70 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-muted/20 p-4 rounded-xl border border-dashed border-border/80">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleAddScoredRow}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] transition shadow-xs cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    เพิ่มข้อแบบมีคะแนน
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddTextRow}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-muted hover:bg-muted/80 text-foreground hover:scale-[1.02] active:scale-[0.98] transition cursor-pointer"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    เพิ่มข้อความคิดเห็น
+                  </button>
+                </div>
+
+                <span className="text-xs text-muted-foreground font-medium">
+                  ทั้งหมด {subCriteria.length} ข้อ (คะแนนรวม {totalScore}/100)
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -451,8 +532,16 @@ export default function CreateCriteriaPage() {
                   ระบุชื่อชุดเกณฑ์การประเมิน
                 </li>
                 <li className="flex items-center gap-2">
+                  <span className={hasAllTitles ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
+                  ระบุชื่อหัวข้อเกณฑ์ย่อยครบทุกข้อ
+                </li>
+                <li className="flex items-center gap-2">
                   <span className={hasAtLeastOneScored ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
                   มีเกณฑ์คำนวณคะแนนอย่างน้อย 1 ข้อ
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className={hasValidMaxScores ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
+                  คะแนนเต็มแต่ละข้ออยู่ในช่วง 1–100
                 </li>
                 <li className="flex items-center gap-2">
                   <span className={isScoreValid ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>

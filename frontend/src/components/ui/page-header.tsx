@@ -27,7 +27,7 @@ export function PageHeader({
         <div className="flex items-center justify-between pb-1">
           <Link
             href={backHref}
-            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition hover:translate-x-[-2px]"
+            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition hover:-translate-x-0.5"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>{backLabel}</span>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { SubCriteriaType, CriteriaDetail } from '@/types/criteria';
@@ -15,9 +15,6 @@ import {
   Save, 
   Lock, 
   MessageSquare,
-  ChevronUp,
-  ChevronDown,
-  Calendar,
   Layers,
 } from 'lucide-react';
 
@@ -42,35 +39,38 @@ export default function EditOrViewCriteriaPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const loadCriteria = useCallback(async () => {
+    if (!criteriaId) return;
+    try {
+      setLoading(true);
+      const res = await fetchCriteriaById(criteriaId);
+      setCriteria(res.data);
+      setName(res.data.name);
+      setSubCriteria(
+        res.data.subCriteria.map((sub, idx) => ({
+          id: sub.id,
+          tempId: `sub-${sub.id || idx}`,
+          sortOrder: sub.sortOrder,
+          title: sub.title,
+          type: sub.type,
+          maxScore: sub.maxScore || 0,
+          allowComment: sub.allowComment || false,
+        })),
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'ไม่สามารถโหลดข้อมูลเกณฑ์ได้';
+      setErrorMessage(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, [criteriaId]);
 
   useEffect(() => {
-    if (!criteriaId) return;
-    const load = async () => {
-      try {
-        setLoading(true);
-        const res = await fetchCriteriaById(criteriaId);
-        setCriteria(res.data);
-        setName(res.data.name);
-        setSubCriteria(
-          res.data.subCriteria.map((sub, idx) => ({
-            id: sub.id,
-            tempId: `sub-${sub.id || idx}`,
-            sortOrder: sub.sortOrder,
-            title: sub.title,
-            type: sub.type,
-            maxScore: sub.maxScore || 0,
-            allowComment: sub.allowComment || false,
-          })),
-        );
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'ไม่สามารถโหลดข้อมูลเกณฑ์ได้';
-        setErrorMessage(msg);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [criteriaId]);
+    void loadCriteria();
+  }, [loadCriteria]);
 
   const totalScore = subCriteria
     .filter((row) => row.type === 'SCORED')
@@ -80,7 +80,18 @@ export default function EditOrViewCriteriaPage() {
   const isScoreValid = totalScore === 100;
   const scoredCount = subCriteria.filter((r) => r.type === 'SCORED').length;
   const hasAtLeastOneScored = scoredCount > 0;
-  const isFormValid = name.trim().length > 0 && isScoreValid && hasAtLeastOneScored && !isLocked;
+  const hasAllTitles = subCriteria.length > 0 && subCriteria.every((r) => r.title.trim().length > 0);
+  const hasValidMaxScores = subCriteria
+    .filter((r) => r.type === 'SCORED')
+    .every((r) => r.maxScore >= 1 && r.maxScore <= 100);
+
+  const isFormValid =
+    name.trim().length > 0 &&
+    isScoreValid &&
+    hasAtLeastOneScored &&
+    hasAllTitles &&
+    hasValidMaxScores &&
+    !isLocked;
 
   const handleAddScoredRow = () => {
     if (isLocked) return;
@@ -121,24 +132,54 @@ export default function EditOrViewCriteriaPage() {
     setSubCriteria(reordered);
   };
 
-  const handleMoveUp = (index: number) => {
-    if (isLocked || index <= 0) return;
-    const items = [...subCriteria];
-    const temp = items[index];
-    items[index] = items[index - 1];
-    items[index - 1] = temp;
-    const reordered = items.map((row, idx) => ({ ...row, sortOrder: idx + 1 }));
-    setSubCriteria(reordered);
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    if (isLocked) return;
+    const target = e.target as HTMLElement;
+    if (
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'BUTTON' ||
+      target.closest('button') ||
+      target.closest('input')
+    ) {
+      e.preventDefault();
+      return;
+    }
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
   };
 
-  const handleMoveDown = (index: number) => {
-    if (isLocked || index >= subCriteria.length - 1) return;
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    if (isLocked) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    if (isLocked) return;
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
     const items = [...subCriteria];
-    const temp = items[index];
-    items[index] = items[index + 1];
-    items[index + 1] = temp;
+    const [draggedItem] = items.splice(draggedIndex, 1);
+    items.splice(dropIndex, 0, draggedItem);
     const reordered = items.map((row, idx) => ({ ...row, sortOrder: idx + 1 }));
     setSubCriteria(reordered);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const handleUpdateRow = (tempId: string, updates: Partial<SubCriteriaRow>) => {
@@ -150,7 +191,31 @@ export default function EditOrViewCriteriaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid || saving) return;
+    if (isLocked) {
+      setErrorMessage('เกณฑ์ถูกล็อกเนื่องจากถูกใช้ในรอบ Open/Closed แล้ว ห้ามแก้ไข');
+      return;
+    }
+    if (!name.trim()) {
+      setErrorMessage('กรุณาระบุชื่อชุดเกณฑ์การประเมิน');
+      return;
+    }
+    if (!hasAllTitles) {
+      setErrorMessage('กรุณาระบุชื่อหัวข้อเกณฑ์ย่อยให้ครบทุกข้อ (ห้ามเว้นว่าง)');
+      return;
+    }
+    if (!hasAtLeastOneScored) {
+      setErrorMessage('ชุดเกณฑ์ต้องมีเกณฑ์แบบคำนวณคะแนนอย่างน้อย 1 ข้อ');
+      return;
+    }
+    if (!hasValidMaxScores) {
+      setErrorMessage('คะแนนเต็มของแต่ละข้อต้องเป็นจำนวนเต็มระหว่าง 1–100 คะแนน');
+      return;
+    }
+    if (!isScoreValid) {
+      setErrorMessage(`ผลรวมคะแนนต้องเท่ากับ 100 คะแนนพอดี (ปัจจุบัน: ${totalScore} คะแนน)`);
+      return;
+    }
+    if (saving) return;
 
     try {
       setSaving(true);
@@ -173,6 +238,9 @@ export default function EditOrViewCriteriaPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการอัปเดตเกณฑ์';
       setErrorMessage(msg);
+      if (msg.includes('LOCKED') || msg.includes('ห้ามแก้ไข') || msg.includes('Open/Closed')) {
+        void loadCriteria();
+      }
     } finally {
       setSaving(false);
     }
@@ -238,6 +306,15 @@ export default function EditOrViewCriteriaPage() {
             <p className="mt-1 text-slate-600 leading-relaxed">
               เนื่องจากชุดเกณฑ์นี้ถูกนำไปใช้ในรอบทุนที่เปิดรับประเมิน (Open) หรือปิดรอบแล้ว (Closed) เพื่อรักษาความถูกต้องของข้อมูลประเมิน หากต้องการเปลี่ยนแปลงเกณฑ์ ให้สร้างชุดเกณฑ์ใหม่
             </p>
+            <div className="mt-3">
+              <Link
+                href="/admin/evaluation-criteria/create"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                สร้างชุดเกณฑ์ใหม่
+              </Link>
+            </div>
           </div>
         </div>
       )}
@@ -307,31 +384,28 @@ export default function EditOrViewCriteriaPage() {
               {subCriteria.map((row, idx) => (
                 <div
                   key={row.tempId}
+                  draggable={!isLocked}
+                  onDragStart={(e) => !isLocked && handleDragStart(e, idx)}
+                  onDragOver={(e) => !isLocked && handleDragOver(e, idx)}
+                  onDrop={(e) => !isLocked && handleDrop(e, idx)}
+                  onDragEnd={!isLocked ? handleDragEnd : undefined}
                   className={`border rounded-xl p-4 transition ${
-                    row.type === 'SCORED' ? 'bg-background border-border' : 'bg-muted/20 border-border/70'
+                    draggedIndex === idx
+                      ? 'opacity-40 border-dashed border-primary bg-primary/5 scale-[0.99]'
+                      : dragOverIndex === idx && draggedIndex !== idx
+                      ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
+                      : row.type === 'SCORED'
+                      ? 'bg-background border-border'
+                      : 'bg-muted/20 border-border/70'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     {!isLocked && (
-                      <div className="flex flex-col gap-0.5 mt-1 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => handleMoveUp(idx)}
-                          disabled={idx === 0}
-                          title="เลื่อนขึ้น"
-                          className="p-1 text-slate-400 hover:text-slate-800 disabled:opacity-20 rounded hover:bg-slate-100 transition cursor-pointer"
-                        >
-                          <ChevronUp className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleMoveDown(idx)}
-                          disabled={idx === subCriteria.length - 1}
-                          title="เลื่อนลง"
-                          className="p-1 text-slate-400 hover:text-slate-800 disabled:opacity-20 rounded hover:bg-slate-100 transition cursor-pointer"
-                        >
-                          <ChevronDown className="h-3.5 w-3.5" />
-                        </button>
+                      <div
+                        className="mt-1 shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-grab active:cursor-grabbing transition"
+                        title="กดค้างแล้วลากเพื่อสลับลำดับ"
+                      >
+                        <GripVertical className="h-5 w-5" aria-hidden="true" />
                       </div>
                     )}
 
@@ -378,7 +452,13 @@ export default function EditOrViewCriteriaPage() {
                                   maxScore: parseInt(e.target.value) || 0,
                                 })
                               }
-                              className="w-20 px-2 py-1.5 text-right font-mono font-semibold text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:bg-muted disabled:text-muted-foreground transition"
+                              onWheel={(e) => e.currentTarget.blur()}
+                              onKeyDown={(e) => {
+                                if (['ArrowUp', 'ArrowDown', 'e', 'E', '+', '-'].includes(e.key)) {
+                                  e.preventDefault();
+                                }
+                              }}
+                              className="w-20 px-2 py-1.5 text-right font-mono font-semibold text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:bg-muted disabled:text-muted-foreground transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                             <span className="text-xs text-muted-foreground">คะแนน</span>
                           </div>
@@ -420,6 +500,34 @@ export default function EditOrViewCriteriaPage() {
                 </div>
               ))}
             </div>
+
+            {/* Bottom Action Area */}
+            {!isLocked && subCriteria.length > 0 && (
+              <div className="pt-4 border-t border-border/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-muted/20 p-4 rounded-xl border border-dashed border-border/80">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleAddScoredRow}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    เพิ่มเกณฑ์มีคะแนน
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddTextRow}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-2 rounded-xl bg-muted text-foreground hover:bg-muted/80 transition cursor-pointer"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    เพิ่มเกณฑ์ข้อความ
+                  </button>
+                </div>
+
+                <span className="text-xs text-muted-foreground font-medium">
+                  ทั้งหมด {subCriteria.length} ข้อ (คะแนนรวม {totalScore}/100)
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

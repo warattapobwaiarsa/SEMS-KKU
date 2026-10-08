@@ -37,7 +37,15 @@ export default function CreateScholarshipRoundPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || saving) return;
+    if (!name.trim()) {
+      setErrorMessage('กรุณาระบุชื่อรอบทุนการศึกษา (ห้ามเว้นว่าง)');
+      return;
+    }
+    if (academicYear < 2550 || academicYear > 2700) {
+      setErrorMessage('ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700 (BR-RND-01)');
+      return;
+    }
+    if (saving) return;
 
     try {
       setSaving(true);
@@ -66,7 +74,7 @@ export default function CreateScholarshipRoundPage() {
       <div className="flex items-center justify-between border-b border-border/70 pb-4">
         <Link
           href="/admin/scholarship-rounds"
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition hover:translate-x-[-2px]"
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition hover:-translate-x-0.5"
         >
           <ArrowLeft className="h-4 w-4" />
           กลับสู่หน้ารายการรอบทุนการศึกษา
@@ -123,9 +131,32 @@ export default function CreateScholarshipRoundPage() {
               required
               value={academicYear}
               onChange={(e) => setAcademicYear(parseInt(e.target.value) || 2569)}
-              className="w-full px-4 py-2.5 text-sm font-mono bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
+              onWheel={(e) => e.currentTarget.blur()}
+              onKeyDown={(e) => {
+                if (['ArrowUp', 'ArrowDown', 'e', 'E', '+', '-'].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              className="w-full px-4 py-2.5 text-sm font-mono bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
-            <p className="text-xs text-muted-foreground">พ.ศ. 2550 - 2700 (BR-RND-01)</p>
+            {academicYear >= 2000 && academicYear <= 2150 && (
+              <div className="flex items-center gap-2 pt-1 text-xs text-amber-700 bg-amber-50 border border-amber-200/80 p-2 rounded-lg">
+                <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+                <span>
+                  ตรวจพบปี ค.ศ. ({academicYear}) ต้องการแปลงเป็น พ.ศ. ({academicYear + 543}) หรือไม่?
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setAcademicYear(academicYear + 543)}
+                  className="font-semibold text-primary underline hover:text-primary/80 cursor-pointer ml-auto shrink-0"
+                >
+                  แปลงทันที
+                </button>
+              </div>
+            )}
+            {academicYear && (academicYear < 2550 || academicYear > 2700) && !(academicYear >= 2000 && academicYear <= 2150) && (
+              <p className="text-xs text-rose-600">ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700 (BR-RND-01)</p>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -141,13 +172,12 @@ export default function CreateScholarshipRoundPage() {
               <option value={1}>ภาคเรียนที่ 1</option>
               <option value={2}>ภาคเรียนที่ 2</option>
             </select>
-            <p className="text-xs text-muted-foreground">ภาคการศึกษา 1 หรือ 2 (BR-RND-02)</p>
           </div>
         </div>
 
         {/* Field 4: Criteria Selection */}
         <div className="space-y-1.5 pt-2 border-t border-border/60">
-          <label htmlFor="criteriaSelect" className="block text-sm font-semibold text-foreground flex items-center gap-1.5">
+          <label htmlFor="criteriaSelect" className="text-sm font-semibold text-foreground flex items-center gap-1.5">
             <Layers className="h-4 w-4 text-primary" />
             เชื่อมโยงชุดเกณฑ์การประเมิน (ผูกภายหลังได้)
           </label>
@@ -164,9 +194,6 @@ export default function CreateScholarshipRoundPage() {
               </option>
             ))}
           </select>
-          <p className="text-xs text-muted-foreground">
-            1 รอบทุนใช้ได้ 1 ชุดเกณฑ์ และต้องมีคะแนนรวม 100 คะแนนก่อนเปิดรอบ (BR-RND-07)
-          </p>
         </div>
 
         {/* Actions */}

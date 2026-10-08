@@ -16,10 +16,30 @@ export class CriteriaService {
 
   private validateCriteriaRules(
     subCriteria: {
+      title?: string;
       type: SubCriteriaType;
       maxScore?: number;
     }[],
   ) {
+    if (!subCriteria || subCriteria.length === 0) {
+      throw new BusinessException({
+        errorCode: 'SUB_CRITERIA_REQUIRED',
+        statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        message: 'เกณฑ์ต้องมีรายการเกณฑ์ย่อยอย่างน้อย 1 ข้อ',
+      });
+    }
+
+    // Check that every sub-criteria has a non-empty title
+    for (const item of subCriteria) {
+      if (!item.title || item.title.trim().length === 0) {
+        throw new BusinessException({
+          errorCode: 'SUB_CRITERIA_TITLE_REQUIRED',
+          statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+          message: 'กรุณาระบุชื่อหัวข้อเกณฑ์ย่อยให้ครบทุกข้อ',
+        });
+      }
+    }
+
     const scoredItems = subCriteria.filter(
       (item) => item.type === SubCriteriaType.SCORED,
     );
@@ -210,8 +230,8 @@ export class CriteriaService {
         data: {
           name: dto.name.trim(),
           subCriteria: {
-            create: dto.subCriteria.map((sub) => ({
-              sortOrder: sub.sortOrder,
+            create: dto.subCriteria.map((sub, idx) => ({
+              sortOrder: idx + 1,
               title: sub.title.trim(),
               type: sub.type,
               maxScore:
@@ -335,9 +355,10 @@ export class CriteriaService {
       }
 
       // Update existing or create new sub-criteria
-      for (const sub of dto.subCriteria) {
+      for (let idx = 0; idx < dto.subCriteria.length; idx++) {
+        const sub = dto.subCriteria[idx];
         const payload = {
-          sortOrder: sub.sortOrder,
+          sortOrder: idx + 1,
           title: sub.title.trim(),
           type: sub.type,
           maxScore: sub.type === SubCriteriaType.SCORED ? sub.maxScore : null,
