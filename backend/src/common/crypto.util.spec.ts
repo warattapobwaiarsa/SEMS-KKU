@@ -1,4 +1,9 @@
-import { encryptCitizenId, decryptCitizenId, maskCitizenId, validateThaiCitizenId } from './crypto.util';
+import {
+  encryptCitizenId,
+  decryptCitizenId,
+  maskCitizenId,
+  validateThaiCitizenId,
+} from './crypto.util';
 
 describe('CryptoUtil', () => {
   const sampleCitizenId = '1410100000001';

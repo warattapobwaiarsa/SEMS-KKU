@@ -4,7 +4,8 @@ const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12; // 96 bits recommended for AES-GCM
 
 function getEncryptionKey(): Buffer {
-  const secret = process.env.AES_CITIZEN_ID_KEY || 'default-secret-key-for-development-32b';
+  const secret =
+    process.env.AES_CITIZEN_ID_KEY || 'default-secret-key-for-development-32b';
   // Derive a guaranteed 32-byte (256-bit) key using SHA-256
   return crypto.createHash('sha256').update(secret).digest();
 }
@@ -95,4 +96,3 @@ export function validateThaiCitizenId(
   const checkDigit = (11 - (sum % 11)) % 10;
   return checkDigit === parseInt(clean[12], 10);
 }
-

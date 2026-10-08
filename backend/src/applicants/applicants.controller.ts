@@ -66,8 +66,10 @@ export class ApplicantsController {
     return this.applicantsService.confirmImport(roundId, dto, actorId);
   }
 
-  @Delete('scholarship-rounds/:roundId/applicants/import-previews/:previewToken')
-  async cancelPreview(
+  @Delete(
+    'scholarship-rounds/:roundId/applicants/import-previews/:previewToken',
+  )
+  cancelPreview(
     @Param('roundId', ParseIntPipe) roundId: number,
     @Param('previewToken') previewToken: string,
   ) {

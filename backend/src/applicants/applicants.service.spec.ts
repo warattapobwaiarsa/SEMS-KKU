@@ -2,13 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ApplicantsService } from './applicants.service';
 import { ExcelParserService } from './excel-parser.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { RoundStatus, AuditAction } from '@prisma/client';
+import { RoundStatus } from '@prisma/client';
 import { BusinessException } from '../common/http-exception.filter';
 
 describe('ApplicantsService', () => {
   let service: ApplicantsService;
-  let prisma: PrismaService;
-  let excelParser: ExcelParserService;
 
   const mockPrisma = {
     scholarshipRound: {
@@ -42,8 +40,6 @@ describe('ApplicantsService', () => {
     }).compile();
 
     service = module.get<ApplicantsService>(ApplicantsService);
-    prisma = module.get<PrismaService>(PrismaService);
-    excelParser = module.get<ExcelParserService>(ExcelParserService);
   });
 
   afterEach(() => {

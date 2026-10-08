@@ -34,9 +34,12 @@ export class ApplicantsService implements OnModuleDestroy {
     private readonly excelParserService: ExcelParserService,
   ) {
     // Run cleanup every 5 minutes to purge expired previews (BR-IMP-16)
-    this.cleanupInterval = setInterval(() => {
-      this.purgeExpiredPreviews();
-    }, 5 * 60 * 1000);
+    this.cleanupInterval = setInterval(
+      () => {
+        this.purgeExpiredPreviews();
+      },
+      5 * 60 * 1000,
+    );
   }
 
   onModuleDestroy() {
@@ -52,10 +55,7 @@ export class ApplicantsService implements OnModuleDestroy {
     }
   }
 
-  async previewExcel(
-    roundId: number,
-    file: Express.Multer.File,
-  ) {
+  async previewExcel(roundId: number, file: Express.Multer.File) {
     // BR-IMP-01: Round must be in DRAFT status
     const round = await this.prisma.scholarshipRound.findUnique({
       where: { id: roundId },
@@ -72,7 +72,8 @@ export class ApplicantsService implements OnModuleDestroy {
       throw new BusinessException({
         errorCode: 'INVALID_ROUND_STATUS',
         statusCode: HttpStatus.CONFLICT,
-        message: 'นำเข้าได้เฉพาะรอบสถานะ Draft รอบ Open/Closed นำเข้าไม่ได้ (BR-IMP-01)',
+        message:
+          'นำเข้าได้เฉพาะรอบสถานะ Draft รอบ Open/Closed นำเข้าไม่ได้ (BR-IMP-01)',
         params: { status: round.status, action: 'import_applicants' },
       });
     }
@@ -136,7 +137,8 @@ export class ApplicantsService implements OnModuleDestroy {
       throw new BusinessException({
         errorCode: 'INVALID_ROUND_STATUS',
         statusCode: HttpStatus.CONFLICT,
-        message: 'นำเข้าได้เฉพาะรอบสถานะ Draft รอบ Open/Closed นำเข้าไม่ได้ (BR-IMP-01)',
+        message:
+          'นำเข้าได้เฉพาะรอบสถานะ Draft รอบ Open/Closed นำเข้าไม่ได้ (BR-IMP-01)',
         params: { status: round.status, action: 'import_applicants' },
       });
     }
@@ -164,7 +166,8 @@ export class ApplicantsService implements OnModuleDestroy {
       throw new BusinessException({
         errorCode: 'PREVIEW_TOKEN_EXPIRED',
         statusCode: HttpStatus.GONE,
-        message: 'โทเค็นพรีวิวหมดอายุ (อายุ 30 นาที) กรุณาอัปโหลดไฟล์ใหม่ (BR-IMP-11)',
+        message:
+          'โทเค็นพรีวิวหมดอายุ (อายุ 30 นาที) กรุณาอัปโหลดไฟล์ใหม่ (BR-IMP-11)',
       });
     }
 
@@ -211,108 +214,118 @@ export class ApplicantsService implements OnModuleDestroy {
     previewData.isUsed = true;
 
     // 5. Execute Atomic Transaction with 60s timeout (BR-IMP-13)
-    const result = await this.prisma.$transaction(async (tx) => {
-      // Re-verify round status within transaction to eliminate race conditions
-      const lockedRound = await tx.scholarshipRound.findUnique({
-        where: { id: roundId },
-        select: { status: true },
-      });
-
-      if (!lockedRound || lockedRound.status !== RoundStatus.DRAFT) {
-        throw new BusinessException({
-          errorCode: 'INVALID_ROUND_STATUS',
-          statusCode: HttpStatus.CONFLICT,
-          message: 'นำเข้าได้เฉพาะรอบสถานะ Draft รอบ Open/Closed นำเข้าไม่ได้ (BR-IMP-01)',
-          params: { status: lockedRound?.status, action: 'import_applicants' },
+    const result = await this.prisma.$transaction(
+      async (tx) => {
+        // Re-verify round status within transaction to eliminate race conditions
+        const lockedRound = await tx.scholarshipRound.findUnique({
+          where: { id: roundId },
+          select: { status: true },
         });
-      }
 
-      // Delete existing applicants and related data for this round
-      // Cascade handles applicant_contacts and applicant_supporting_info
-      await tx.applicant.deleteMany({
-        where: { roundId },
-      });
+        if (!lockedRound || lockedRound.status !== RoundStatus.DRAFT) {
+          throw new BusinessException({
+            errorCode: 'INVALID_ROUND_STATUS',
+            statusCode: HttpStatus.CONFLICT,
+            message:
+              'นำเข้าได้เฉพาะรอบสถานะ Draft รอบ Open/Closed นำเข้าไม่ได้ (BR-IMP-01)',
+            params: {
+              status: lockedRound?.status,
+              action: 'import_applicants',
+            },
+          });
+        }
 
-      // Create ImportBatch
-      const importBatch = await tx.importBatch.create({
-        data: {
-          roundId,
-          fileName: previewData.fileName,
-          totalRows: previewData.totalRows,
-          validRows: previewData.validRows,
-          invalidRows: previewData.invalidRows,
-          errorDetails: previewData.invalidRowsDetails.length > 0
-            ? (previewData.invalidRowsDetails as unknown as Prisma.InputJsonValue)
-            : Prisma.JsonNull,
-          importedById: effectiveActorId,
-        },
-      });
+        // Delete existing applicants and related data for this round
+        // Cascade handles applicant_contacts and applicant_supporting_info
+        await tx.applicant.deleteMany({
+          where: { roundId },
+        });
 
-      // Insert all valid applicants with encrypted contacts and supporting info
-      for (const applicantData of previewData.validApplicants) {
-        const encryptedCitizenId = encryptCitizenId(applicantData.rawCitizenId);
-
-        const createdApplicant = await tx.applicant.create({
+        // Create ImportBatch
+        const importBatch = await tx.importBatch.create({
           data: {
             roundId,
-            importBatchId: importBatch.id,
-            legacySeq: applicantData.legacySeq,
-            studentCode: applicantData.studentCode,
-            titlePrefix: applicantData.titlePrefix,
-            firstName: applicantData.firstName,
-            lastName: applicantData.lastName,
-            faculty: applicantData.faculty,
-            major: applicantData.major,
-            studyYear: applicantData.studyYear,
-            gpa: new Prisma.Decimal(applicantData.gpa),
-          },
-        });
-
-        await tx.applicantContact.create({
-          data: {
-            applicantId: createdApplicant.id,
-            phone: applicantData.phone,
-            email: applicantData.email,
-            citizenIdEncrypted: encryptedCitizenId,
-            citizenIdMasked: applicantData.maskedCitizenId,
-          },
-        });
-
-        await tx.applicantSupportingInfo.create({
-          data: {
-            applicantId: createdApplicant.id,
-            ...applicantData.supportingInfo,
-          },
-        });
-      }
-
-      // Log Audit action (IMPORT_APPLICANTS)
-      await tx.auditLog.create({
-        data: {
-          actorId: effectiveActorId,
-          action: AuditAction.IMPORT_APPLICANTS,
-          entityType: 'ScholarshipRound',
-          entityId: String(roundId),
-          roundId,
-          newValue: {
-            importBatchId: importBatch.id,
             fileName: previewData.fileName,
             totalRows: previewData.totalRows,
             validRows: previewData.validRows,
             invalidRows: previewData.invalidRows,
+            errorDetails:
+              previewData.invalidRowsDetails.length > 0
+                ? (previewData.invalidRowsDetails as unknown as Prisma.InputJsonValue)
+                : Prisma.JsonNull,
+            importedById: effectiveActorId,
           },
-        },
-      });
+        });
 
-      return {
-        importBatchId: importBatch.id,
-        importedCount: previewData.validRows,
-        skippedCount: previewData.invalidRows,
-      };
-    }, {
-      timeout: 60000,
-      maxWait: 10000,
-    });
+        // Insert all valid applicants with encrypted contacts and supporting info
+        for (const applicantData of previewData.validApplicants) {
+          const encryptedCitizenId = encryptCitizenId(
+            applicantData.rawCitizenId,
+          );
+
+          const createdApplicant = await tx.applicant.create({
+            data: {
+              roundId,
+              importBatchId: importBatch.id,
+              legacySeq: applicantData.legacySeq,
+              studentCode: applicantData.studentCode,
+              titlePrefix: applicantData.titlePrefix,
+              firstName: applicantData.firstName,
+              lastName: applicantData.lastName,
+              faculty: applicantData.faculty,
+              major: applicantData.major,
+              studyYear: applicantData.studyYear,
+              gpa: new Prisma.Decimal(applicantData.gpa),
+            },
+          });
+
+          await tx.applicantContact.create({
+            data: {
+              applicantId: createdApplicant.id,
+              phone: applicantData.phone,
+              email: applicantData.email,
+              citizenIdEncrypted: encryptedCitizenId,
+              citizenIdMasked: applicantData.maskedCitizenId,
+            },
+          });
+
+          await tx.applicantSupportingInfo.create({
+            data: {
+              applicantId: createdApplicant.id,
+              ...applicantData.supportingInfo,
+            },
+          });
+        }
+
+        // Log Audit action (IMPORT_APPLICANTS)
+        await tx.auditLog.create({
+          data: {
+            actorId: effectiveActorId,
+            action: AuditAction.IMPORT_APPLICANTS,
+            entityType: 'ScholarshipRound',
+            entityId: String(roundId),
+            roundId,
+            newValue: {
+              importBatchId: importBatch.id,
+              fileName: previewData.fileName,
+              totalRows: previewData.totalRows,
+              validRows: previewData.validRows,
+              invalidRows: previewData.invalidRows,
+            },
+          },
+        });
+
+        return {
+          importBatchId: importBatch.id,
+          importedCount: previewData.validRows,
+          skippedCount: previewData.invalidRows,
+        };
+      },
+      {
+        timeout: 60000,
+        maxWait: 10000,
+      },
+    );
 
     // Clean up temporary preview from storage (BR-IMP-16)
     this.previewStorage.delete(dto.previewToken);
@@ -320,7 +333,7 @@ export class ApplicantsService implements OnModuleDestroy {
     return result;
   }
 
-  async cancelPreview(roundId: number, previewToken: string) {
+  cancelPreview(roundId: number, previewToken: string) {
     const previewData = this.previewStorage.get(previewToken);
     if (previewData && previewData.roundId === roundId) {
       this.previewStorage.delete(previewToken);
@@ -436,7 +449,10 @@ export class ApplicantsService implements OnModuleDestroy {
     }
 
     // IDOR Protection: Evaluator can only see applicants in OPEN rounds
-    if (userRole === 'EVALUATOR' && applicant.round.status !== RoundStatus.OPEN) {
+    if (
+      userRole === 'EVALUATOR' &&
+      applicant.round.status !== RoundStatus.OPEN
+    ) {
       throw new NotFoundException({
         errorCode: 'NOT_FOUND',
         message: 'ไม่พบผู้สมัครในรอบทุนที่เปิดรับประเมิน',

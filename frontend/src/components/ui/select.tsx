@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, ReactNode, SelectHTMLAttributes, useId } from 'react';
+import React, { useState, useRef, useEffect, ReactNode, SelectHTMLAttributes } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Check, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';

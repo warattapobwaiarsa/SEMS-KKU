@@ -276,7 +276,7 @@ export function ImportApplicantModal({
                 <span>ข้อกำหนดและโครงสร้างของไฟล์นำเข้า (BR-IMP-03 ถึง BR-IMP-23)</span>
               </div>
               <ul className="list-disc list-inside space-y-1 pl-1 text-muted-foreground leading-relaxed">
-                <li>ระบบจะอ่านเฉพาะชีตชื่อ <strong className="text-foreground">"Data"</strong> โดยเริ่มอ่านข้อมูลตั้งแต่แถวที่ 3 (BR-IMP-18)</li>
+                <li>ระบบจะอ่านเฉพาะชีตชื่อ <strong className="text-foreground">&quot;Data&quot;</strong> โดยเริ่มอ่านข้อมูลตั้งแต่แถวที่ 3 (BR-IMP-18)</li>
                 <li><strong className="text-foreground">คอลัมน์บังคับ 11 คอลัมน์:</strong> รหัสนักศึกษา, คำนำหน้า, ชื่อ, สกุล, คณะ, สาขา, ชั้นปี, GPA, โทรศัพท์, อีเมล, เลขบัตรประชาชน (ห้ามเว้นว่าง BR-IMP-03)</li>
                 <li>รหัสนักศึกษาห้ามซ้ำกันภายในไฟล์เดียวกัน (BR-IMP-04)</li>
                 <li>GPA ต้องอยู่ในช่วง 0.00–4.00 (BR-IMP-05) และเลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก (BR-IMP-06)</li>

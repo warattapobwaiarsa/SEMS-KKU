@@ -109,7 +109,7 @@ export class ExcelParserService {
   async parseBuffer(fileBuffer: Buffer): Promise<ParseExcelResult> {
     const workbook = new ExcelJS.Workbook();
     try {
-      await workbook.xlsx.load(fileBuffer as any);
+      await workbook.xlsx.load(fileBuffer as unknown as ExcelJS.Buffer);
     } catch {
       throw new BusinessException({
         errorCode: 'INVALID_EXCEL_FILE',
@@ -281,8 +281,10 @@ export class ExcelParserService {
       if (!val) continue;
 
       if (val === 'ลำดับ') map.set('legacySeq', c);
-      else if (val === 'รหัส' || val === 'รหัสนักศึกษา') map.set('studentCode', c);
-      else if (val === 'คำนำหน้า' || val === 'คำนำหน้านาม') map.set('titlePrefix', c);
+      else if (val === 'รหัส' || val === 'รหัสนักศึกษา')
+        map.set('studentCode', c);
+      else if (val === 'คำนำหน้า' || val === 'คำนำหน้านาม')
+        map.set('titlePrefix', c);
       else if (val === 'ชือ' || val === 'ชื่อ') map.set('firstName', c);
       else if (val === 'สกุล' || val === 'นามสกุล') map.set('lastName', c);
       else if (val === 'คณะ') map.set('faculty', c);
@@ -290,13 +292,20 @@ export class ExcelParserService {
       else if (val === 'ชั้นปี') map.set('studyYear', c);
       else if (val === 'วันที่สมัคร') map.set('applicationDate', c);
       else if (val === 'gpa' || val === 'เกรดเฉลี่ย') map.set('gpa', c);
-      else if (val === 'โทรศัพท์' || val === 'เบอร์โทรศัพท์' || val === 'เบอร์โทร') map.set('phone', c);
+      else if (
+        val === 'โทรศัพท์' ||
+        val === 'เบอร์โทรศัพท์' ||
+        val === 'เบอร์โทร'
+      )
+        map.set('phone', c);
       else if (val === 'อีเมล์' || val === 'อีเมล') map.set('email', c);
       else if (val === 'ที่พัก') map.set('accommodation', c);
       else if (val.includes('ค่าเช่า')) map.set('rent', c);
       else if (val.includes('ค่าใช้จ่ายส่วนตัว')) map.set('personalExpense', c);
-      else if (val.includes('ค่าอุปกรณ์การศึกษา')) map.set('studyEquipmentCost', c);
-      else if (val.includes('อุปกรณ์อิเล็กทรอนิกส์')) map.set('electronicDevices', c);
+      else if (val.includes('ค่าอุปกรณ์การศึกษา'))
+        map.set('studyEquipmentCost', c);
+      else if (val.includes('อุปกรณ์อิเล็กทรอนิกส์'))
+        map.set('electronicDevices', c);
       else if (val.includes('รายได้เสริม')) map.set('sideIncome', c);
       else if (val === 'บิดา อายุ') map.set('fatherAge', c);
       else if (val === 'บิดา อาชีพ') map.set('fatherOccupation', c);
@@ -316,8 +325,13 @@ export class ExcelParserService {
       else if (val === 'พี่น้อง-เรียน') map.set('siblingsStudying', c);
       else if (val === 'กยศ') map.set('studentLoan', c);
       else if (val === 'ทุน') map.set('previousScholarships', c);
-      else if (val.includes('แผนที่') || val.includes('maps')) map.set('accommodationMapUrl', c);
-      else if (val === 'citizenid' || val === 'เลขบัตรประชาชน' || val === 'เลขประจำตัวประชาชน') {
+      else if (val.includes('แผนที่') || val.includes('maps'))
+        map.set('accommodationMapUrl', c);
+      else if (
+        val === 'citizenid' ||
+        val === 'เลขบัตรประชาชน' ||
+        val === 'เลขประจำตัวประชาชน'
+      ) {
         map.set('citizenId', c);
       }
     }
@@ -327,7 +341,11 @@ export class ExcelParserService {
     if (!map.has('accommodationMapUrl')) {
       const citizenIdCol = map.get('citizenId');
       const scholarshipsCol = map.get('previousScholarships');
-      if (citizenIdCol && scholarshipsCol && citizenIdCol - scholarshipsCol === 2) {
+      if (
+        citizenIdCol &&
+        scholarshipsCol &&
+        citizenIdCol - scholarshipsCol === 2
+      ) {
         map.set('accommodationMapUrl', scholarshipsCol + 1);
       }
     }
@@ -365,7 +383,9 @@ export class ExcelParserService {
       if (Number.isInteger(seqNum) && seqNum > 0) {
         legacySeq = seqNum;
       } else {
-        errors.push(`คอลัมน์ "ลำดับ" ต้องเป็นจำนวนเต็มบวก (พบ: "${rawSeq}") (BR-IMP-20)`);
+        errors.push(
+          `คอลัมน์ "ลำดับ" ต้องเป็นจำนวนเต็มบวก (พบ: "${rawSeq}") (BR-IMP-20)`,
+        );
       }
     }
 
@@ -415,7 +435,9 @@ export class ExcelParserService {
       if (Number.isInteger(y) && y >= 1 && y <= 4) {
         studyYear = y;
       } else {
-        errors.push(`ชั้นปีต้องเป็นจำนวนเต็ม 1–4 (พบ: "${rawStudyYear}") (BR-IMP-07)`);
+        errors.push(
+          `ชั้นปีต้องเป็นจำนวนเต็ม 1–4 (พบ: "${rawStudyYear}") (BR-IMP-07)`,
+        );
       }
     }
 
@@ -427,7 +449,9 @@ export class ExcelParserService {
     } else {
       const g = parseFloat(rawGpa);
       if (isNaN(g) || g < 0.0 || g > 4.0) {
-        errors.push(`GPA ต้องอยู่ในช่วง 0.00–4.00 (พบ: "${rawGpa}") (BR-IMP-05)`);
+        errors.push(
+          `GPA ต้องอยู่ในช่วง 0.00–4.00 (พบ: "${rawGpa}") (BR-IMP-05)`,
+        );
       } else {
         gpa = parseFloat(g.toFixed(2));
       }
@@ -440,7 +464,9 @@ export class ExcelParserService {
     } else {
       if (
         rawPhone.length === 9 &&
-        (rawPhone.startsWith('6') || rawPhone.startsWith('8') || rawPhone.startsWith('9'))
+        (rawPhone.startsWith('6') ||
+          rawPhone.startsWith('8') ||
+          rawPhone.startsWith('9'))
       ) {
         rawPhone = '0' + rawPhone;
       }
@@ -477,7 +503,7 @@ export class ExcelParserService {
     }
 
     // 14. accommodationMapUrl (BR-IMP-22: must start with http:// or https:// if provided)
-    let accommodationMapUrl = getNullableString('accommodationMapUrl');
+    const accommodationMapUrl = getNullableString('accommodationMapUrl');
     if (accommodationMapUrl) {
       if (
         !accommodationMapUrl.startsWith('http://') &&
@@ -553,7 +579,9 @@ export class ExcelParserService {
     return String(raw).trim() || null;
   }
 
-  private getRawCellValue(cell: ExcelJS.Cell): unknown {
+  private getRawCellValue(
+    cell: ExcelJS.Cell,
+  ): string | number | boolean | Date | null {
     if (!cell || cell.value === null || cell.value === undefined) {
       return null;
     }
@@ -566,26 +594,49 @@ export class ExcelParserService {
       }
       return val;
     }
+    if (typeof val === 'string' || typeof val === 'boolean') {
+      return val;
+    }
+    if (val instanceof Date) {
+      return val;
+    }
     if (typeof val === 'object') {
       // ExcelJS hyperlink cell { text: '...', hyperlink: '...' }
-      if ('text' in val && typeof (val as { text: unknown }).text === 'string') {
+      if (
+        'text' in val &&
+        typeof (val as { text: unknown }).text === 'string'
+      ) {
         return (val as { text: string }).text;
       }
-      if ('hyperlink' in val && typeof (val as { hyperlink: unknown }).hyperlink === 'string') {
+      if (
+        'hyperlink' in val &&
+        typeof (val as { hyperlink: unknown }).hyperlink === 'string'
+      ) {
         return (val as { hyperlink: string }).hyperlink;
       }
       // ExcelJS rich text
-      if ('richText' in val && Array.isArray((val as { richText: unknown[] }).richText)) {
-        return (val as { richText: { text: string }[] }).richText
-          .map((r) => r.text)
-          .join('');
+      if (
+        'richText' in val &&
+        Array.isArray((val as { richText: unknown[] }).richText)
+      ) {
+        return val.richText.map((r) => r.text).join('');
       }
       // ExcelJS formula result
       if ('result' in val) {
-        return (val as { result: unknown }).result;
+        const res = (val as { result: unknown }).result;
+        if (
+          typeof res === 'string' ||
+          typeof res === 'number' ||
+          typeof res === 'boolean'
+        ) {
+          return res;
+        }
+        if (res instanceof Date) {
+          return res;
+        }
       }
     }
 
-    return val;
+    return null;
   }
 }
