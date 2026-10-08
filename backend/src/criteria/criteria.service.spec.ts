@@ -357,7 +357,9 @@ describe('CriteriaService', () => {
           id: 1,
           name: 'ชื่อเดิม',
           rounds: [],
-          subCriteria: [{ id: 10, type: SubCriteriaType.SCORED, maxScore: 100 }],
+          subCriteria: [
+            { id: 10, type: SubCriteriaType.SCORED, maxScore: 100 },
+          ],
         })
         .mockResolvedValueOnce({
           id: 2,
@@ -410,7 +412,11 @@ describe('CriteriaService', () => {
         },
       ]);
 
-      const result = await service.findAll({ page: 1, limit: 10, search: 'เกณฑ์' });
+      const result = await service.findAll({
+        page: 1,
+        limit: 10,
+        search: 'เกณฑ์',
+      });
 
       expect(result.data.length).toBe(2);
       expect(result.data[0].isLocked).toBe(true);
@@ -430,7 +436,13 @@ describe('CriteriaService', () => {
         updatedAt: new Date(),
         rounds: [],
         subCriteria: [
-          { id: 101, sortOrder: 1, title: 'ข้อ 1', type: SubCriteriaType.SCORED, maxScore: 100 },
+          {
+            id: 101,
+            sortOrder: 1,
+            title: 'ข้อ 1',
+            type: SubCriteriaType.SCORED,
+            maxScore: 100,
+          },
         ],
       });
 

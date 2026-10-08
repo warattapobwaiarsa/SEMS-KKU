@@ -35,10 +35,22 @@ describe('RoundsController', () => {
 
   describe('findAll', () => {
     it('should delegate to roundsService.findAll with query parameters', async () => {
-      const mockResult = { data: [], meta: { page: 1, limit: 10, total: 0, totalPages: 1 } };
+      const mockResult = {
+        data: [],
+        meta: { page: 1, limit: 10, total: 0, totalPages: 1 },
+      };
       mockRoundsService.findAll.mockResolvedValueOnce(mockResult);
 
-      const result = await controller.findAll(1, 10, 'ทุน', 2569, 1, RoundStatus.DRAFT, 'ADMIN', undefined);
+      const result = await controller.findAll(
+        1,
+        10,
+        'ทุน',
+        2569,
+        1,
+        RoundStatus.DRAFT,
+        'ADMIN',
+        undefined,
+      );
 
       expect(mockRoundsService.findAll).toHaveBeenCalledWith({
         page: 1,
@@ -56,7 +68,12 @@ describe('RoundsController', () => {
   describe('create', () => {
     it('should delegate to roundsService.create with dto', async () => {
       const dto = { name: 'ทุนใหม่', academicYear: 2569, semester: 1 };
-      const mockCreated = { id: 1, ...dto, status: RoundStatus.DRAFT, applicantCount: 0 };
+      const mockCreated = {
+        id: 1,
+        ...dto,
+        status: RoundStatus.DRAFT,
+        applicantCount: 0,
+      };
       mockRoundsService.create.mockResolvedValueOnce(mockCreated);
 
       const result = await controller.create(dto);

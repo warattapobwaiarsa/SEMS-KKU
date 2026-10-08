@@ -30,7 +30,10 @@ describe('CriteriaController', () => {
 
   describe('findAll', () => {
     it('should call criteriaService.findAll with query parameters', async () => {
-      const mockResult = { data: [], meta: { page: 1, limit: 10, total: 0, totalPages: 1 } };
+      const mockResult = {
+        data: [],
+        meta: { page: 1, limit: 10, total: 0, totalPages: 1 },
+      };
       mockCriteriaService.findAll.mockResolvedValueOnce(mockResult);
 
       const result = await controller.findAll(1, 10, 'เรียนดี');

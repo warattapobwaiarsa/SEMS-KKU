@@ -7,7 +7,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RoundsService } from './rounds.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { BusinessException } from '../common/http-exception.filter';
-import { RoundStatus, SubCriteriaType, EvaluationStatus } from '@prisma/client';
+import { RoundStatus, SubCriteriaType } from '@prisma/client';
 
 describe('RoundsService', () => {
   let service: RoundsService;
@@ -80,7 +80,11 @@ describe('RoundsService', () => {
         },
       ]);
 
-      const result = await service.findAll({ page: 1, limit: 10, search: 'ทุน' });
+      const result = await service.findAll({
+        page: 1,
+        limit: 10,
+        search: 'ทุน',
+      });
 
       expect(result.data.length).toBe(2);
       expect(result.data[0].criteriaName).toBe('เกณฑ์ทุนทั่วไป');
@@ -162,7 +166,9 @@ describe('RoundsService', () => {
         _count: { applicants: 0 },
       });
 
-      await expect(service.findOne(1, 'EVALUATOR')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(1, 'EVALUATOR')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -294,7 +300,9 @@ describe('RoundsService', () => {
           closedAt: null,
           updatedAt: new Date(),
         });
-      mockPrismaService.scholarshipRound.update.mockResolvedValueOnce({ id: 1 });
+      mockPrismaService.scholarshipRound.update.mockResolvedValueOnce({
+        id: 1,
+      });
 
       const result = await service.update(1, {
         name: 'ชื่อใหม่ 2569',
@@ -364,8 +372,13 @@ describe('RoundsService', () => {
           closedAt: null,
           updatedAt: new Date(),
         });
-      mockPrismaService.criteria.findUnique.mockResolvedValueOnce({ id: 5, name: 'เกณฑ์ใหม่' });
-      mockPrismaService.scholarshipRound.update.mockResolvedValueOnce({ id: 1 });
+      mockPrismaService.criteria.findUnique.mockResolvedValueOnce({
+        id: 5,
+        name: 'เกณฑ์ใหม่',
+      });
+      mockPrismaService.scholarshipRound.update.mockResolvedValueOnce({
+        id: 1,
+      });
 
       const result = await service.linkCriteria(1, { criteriaId: 5 });
 
@@ -381,7 +394,9 @@ describe('RoundsService', () => {
     it('should throw NotFoundException if round does not exist', async () => {
       mockPrismaService.scholarshipRound.findUnique.mockResolvedValueOnce(null);
 
-      await expect(service.checkOpenReadiness(999)).rejects.toThrow(NotFoundException);
+      await expect(service.checkOpenReadiness(999)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should return isReady=false with reasons if preconditions fail', async () => {
@@ -486,7 +501,9 @@ describe('RoundsService', () => {
           updatedAt: new Date(),
         });
 
-      mockPrismaService.scholarshipRound.update.mockResolvedValueOnce({ id: 1 });
+      mockPrismaService.scholarshipRound.update.mockResolvedValueOnce({
+        id: 1,
+      });
       mockPrismaService.auditLog.create.mockResolvedValueOnce({ id: 1 });
 
       const result = await service.openRound(1, 42);
@@ -539,7 +556,9 @@ describe('RoundsService', () => {
     it('should throw NotFoundException if round does not exist', async () => {
       mockPrismaService.scholarshipRound.findUnique.mockResolvedValueOnce(null);
 
-      await expect(service.checkCloseStatus(999)).rejects.toThrow(NotFoundException);
+      await expect(service.checkCloseStatus(999)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -600,7 +619,10 @@ describe('RoundsService', () => {
       });
 
       try {
-        await service.closeRound(1, { acknowledged: true, acknowledgedCount: 2 });
+        await service.closeRound(1, {
+          acknowledged: true,
+          acknowledgedCount: 2,
+        });
       } catch (err: unknown) {
         const error = err as BusinessException;
         expect(error.errorCode).toBe('ROUND_CLOSE_STATE_CHANGED');
@@ -640,10 +662,16 @@ describe('RoundsService', () => {
           updatedAt: new Date(),
         });
 
-      mockPrismaService.scholarshipRound.update.mockResolvedValueOnce({ id: 1 });
+      mockPrismaService.scholarshipRound.update.mockResolvedValueOnce({
+        id: 1,
+      });
       mockPrismaService.auditLog.create.mockResolvedValueOnce({ id: 1 });
 
-      const result = await service.closeRound(1, { acknowledged: true, acknowledgedCount: 1 }, 99);
+      const result = await service.closeRound(
+        1,
+        { acknowledged: true, acknowledgedCount: 1 },
+        99,
+      );
 
       expect(mockPrismaService.scholarshipRound.update).toHaveBeenCalledWith(
         expect.objectContaining({
