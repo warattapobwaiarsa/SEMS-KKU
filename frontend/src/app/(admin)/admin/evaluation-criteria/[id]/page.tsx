@@ -404,7 +404,13 @@ export default function EditOrViewCriteriaPage() {
                                   maxScore: parseInt(e.target.value) || 0,
                                 })
                               }
-                              className="w-20 px-2 py-1.5 text-right font-mono font-semibold text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:bg-muted disabled:text-muted-foreground transition"
+                              onWheel={(e) => e.currentTarget.blur()}
+                              onKeyDown={(e) => {
+                                if (['ArrowUp', 'ArrowDown', 'e', 'E', '+', '-'].includes(e.key)) {
+                                  e.preventDefault();
+                                }
+                              }}
+                              className="w-20 px-2 py-1.5 text-right font-mono font-semibold text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:bg-muted disabled:text-muted-foreground transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                             <span className="text-xs text-muted-foreground">คะแนน</span>
                           </div>

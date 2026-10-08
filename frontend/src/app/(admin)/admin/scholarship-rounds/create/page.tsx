@@ -123,7 +123,13 @@ export default function CreateScholarshipRoundPage() {
               required
               value={academicYear}
               onChange={(e) => setAcademicYear(parseInt(e.target.value) || 2569)}
-              className="w-full px-4 py-2.5 text-sm font-mono bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
+              onWheel={(e) => e.currentTarget.blur()}
+              onKeyDown={(e) => {
+                if (['ArrowUp', 'ArrowDown', 'e', 'E', '+', '-'].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              className="w-full px-4 py-2.5 text-sm font-mono bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
 
