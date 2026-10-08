@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { 
   Upload, 
   FileSpreadsheet, 
@@ -9,7 +9,9 @@ import {
   AlertTriangle, 
   Loader2, 
   ArrowLeft,
-  Info
+  Info,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/ui';
 import { 
@@ -44,6 +46,19 @@ export function ImportApplicantModal({
   const [importResult, setImportResult] = useState<ConfirmImportResponse | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [tablePage, setTablePage] = useState(1);
+  const PAGE_SIZE = 20;
+
+  const validRows = useMemo(() => previewData?.rows.filter((r) => r.isValid) || [], [previewData]);
+  const invalidRows = useMemo(() => previewData?.rows.filter((r) => !r.isValid) || [], [previewData]);
+
+  const currentList = activeTab === 'valid' ? validRows : invalidRows;
+  const totalPages = Math.ceil(currentList.length / PAGE_SIZE) || 1;
+  const paginatedRows = useMemo(() => {
+    const start = (tablePage - 1) * PAGE_SIZE;
+    return currentList.slice(start, start + PAGE_SIZE);
+  }, [currentList, tablePage]);
 
   const currentStep = importResult ? 3 : previewData ? 2 : 1;
 
@@ -315,7 +330,10 @@ export function ImportApplicantModal({
             <div className="flex border-b border-border/80 text-sm">
               <button
                 type="button"
-                onClick={() => setActiveTab('valid')}
+                onClick={() => {
+                  setActiveTab('valid');
+                  setTablePage(1);
+                }}
                 className={`pb-2.5 px-4 font-semibold transition-colors border-b-2 cursor-pointer ${
                   activeTab === 'valid'
                     ? 'border-primary text-primary'
@@ -326,7 +344,10 @@ export function ImportApplicantModal({
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('invalid')}
+                onClick={() => {
+                  setActiveTab('invalid');
+                  setTablePage(1);
+                }}
                 className={`pb-2.5 px-4 font-semibold transition-colors border-b-2 flex items-center gap-1.5 cursor-pointer ${
                   activeTab === 'invalid'
                     ? 'border-rose-600 text-rose-600 dark:border-rose-400 dark:text-rose-400'
@@ -357,33 +378,31 @@ export function ImportApplicantModal({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40">
-                      {previewData.rows
-                        .filter((r) => r.isValid)
-                        .map((row) => (
-                          <tr key={row.rowNumber} className="hover:bg-muted/20 transition-colors">
-                            <td className="py-2 px-3 text-center font-mono text-muted-foreground">
-                              {row.rowNumber}
-                            </td>
-                            <td className="py-2 px-3 font-mono font-bold text-foreground">
-                              {row.studentCode}
-                            </td>
-                            <td className="py-2 px-3 text-foreground font-medium">
-                              {row.titlePrefix}{row.firstName} {row.lastName}
-                            </td>
-                            <td className="py-2 px-3 text-muted-foreground">
-                              {row.faculty} ({row.major})
-                            </td>
-                            <td className="py-2 px-3 text-center font-mono font-semibold text-foreground">
-                              {row.studyYear}
-                            </td>
-                            <td className="py-2 px-3 text-center font-mono font-bold text-foreground">
-                              {row.gpa.toFixed(2)}
-                            </td>
-                            <td className="py-2 px-3 font-mono text-muted-foreground text-[11px]">
-                              {row.maskedCitizenId}
-                            </td>
-                          </tr>
-                        ))}
+                      {paginatedRows.map((row) => (
+                        <tr key={row.rowNumber} className="hover:bg-muted/20 transition-colors">
+                          <td className="py-2 px-3 text-center font-mono text-muted-foreground">
+                            {row.rowNumber}
+                          </td>
+                          <td className="py-2 px-3 font-mono font-bold text-foreground">
+                            {row.studentCode}
+                          </td>
+                          <td className="py-2 px-3 text-foreground font-medium">
+                            {row.titlePrefix}{row.firstName} {row.lastName}
+                          </td>
+                          <td className="py-2 px-3 text-muted-foreground">
+                            {row.faculty} ({row.major})
+                          </td>
+                          <td className="py-2 px-3 text-center font-mono font-semibold text-foreground">
+                            {row.studyYear}
+                          </td>
+                          <td className="py-2 px-3 text-center font-mono font-bold text-foreground">
+                            {row.gpa.toFixed(2)}
+                          </td>
+                          <td className="py-2 px-3 font-mono text-muted-foreground text-[11px]">
+                            {row.maskedCitizenId}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 ) : (
@@ -394,27 +413,25 @@ export function ImportApplicantModal({
               ) : (
                 previewData.invalidRows > 0 ? (
                   <div className="divide-y divide-border/40">
-                    {previewData.rows
-                      .filter((r) => !r.isValid)
-                      .map((row) => (
-                        <div key={row.rowNumber} className="p-3.5 text-xs bg-rose-500/5 flex items-start gap-3">
-                          <span className="font-mono bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded font-bold shrink-0">
-                            แถว {row.rowNumber}
-                          </span>
-                          <div className="space-y-1">
-                            {row.studentCode && (
-                              <p className="font-bold text-foreground">
-                                รหัส: <span className="font-mono">{row.studentCode}</span> ({row.firstName || '-'} {row.lastName || '-'})
-                              </p>
-                            )}
-                            <ul className="list-disc list-inside space-y-0.5 text-rose-700 dark:text-rose-400">
-                              {row.errors.map((err, idx) => (
-                                <li key={idx}>{err}</li>
-                              ))}
-                            </ul>
-                          </div>
+                    {paginatedRows.map((row) => (
+                      <div key={row.rowNumber} className="p-3.5 text-xs bg-rose-500/5 flex items-start gap-3">
+                        <span className="font-mono bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded font-bold shrink-0">
+                          แถว {row.rowNumber}
+                        </span>
+                        <div className="space-y-1">
+                          {row.studentCode && (
+                            <p className="font-bold text-foreground">
+                              รหัส: <span className="font-mono">{row.studentCode}</span> ({row.firstName || '-'} {row.lastName || '-'})
+                            </p>
+                          )}
+                          <ul className="list-disc list-inside space-y-0.5 text-rose-700 dark:text-rose-400">
+                            {row.errors.map((err, idx) => (
+                              <li key={idx}>{err}</li>
+                            ))}
+                          </ul>
                         </div>
-                      ))}
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="p-8 text-center text-emerald-600 dark:text-emerald-400 text-sm flex items-center justify-center gap-2 font-semibold">
@@ -423,6 +440,36 @@ export function ImportApplicantModal({
                 )
               )}
             </div>
+
+            {/* Pagination Controls */}
+            {currentList.length > PAGE_SIZE && (
+              <div className="flex items-center justify-between text-xs text-muted-foreground px-1 pt-0.5">
+                <span>
+                  แสดงแถวที่ {(tablePage - 1) * PAGE_SIZE + 1} - {Math.min(tablePage * PAGE_SIZE, currentList.length)} จาก {currentList.length} แถว
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    disabled={tablePage === 1}
+                    onClick={() => setTablePage((p) => Math.max(1, p - 1))}
+                    className="p-1 rounded-lg border border-border/80 bg-background hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="font-medium font-mono px-1.5">
+                    {tablePage} / {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={tablePage >= totalPages}
+                    onClick={() => setTablePage((p) => Math.min(totalPages, p + 1))}
+                    className="p-1 rounded-lg border border-border/80 bg-background hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Replace Warning & Acknowledgement Area (BR-IMP-11, BR-IMP-13) */}
             <div className="space-y-3 pt-1">

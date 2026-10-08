@@ -26,6 +26,8 @@ const sizeClasses: Record<ModalSize, string> = {
   full: 'max-w-[95vw]',
 };
 
+let activeModalsCount = 0;
+
 export function Modal({
   isOpen,
   onClose,
@@ -40,13 +42,16 @@ export function Modal({
     setMounted(true);
   }, []);
 
-  // Lock body scroll when modal is open
+  // Lock body scroll using global stack counter to handle nested modals
   useEffect(() => {
     if (!isOpen) return;
-    const originalOverflow = document.body.style.overflow;
+    activeModalsCount++;
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = originalOverflow;
+      activeModalsCount = Math.max(0, activeModalsCount - 1);
+      if (activeModalsCount === 0) {
+        document.body.style.overflow = 'unset';
+      }
     };
   }, [isOpen]);
 

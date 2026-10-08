@@ -210,8 +210,23 @@ export class ApplicantsService implements OnModuleDestroy {
     // Mark token as used immediately
     previewData.isUsed = true;
 
-    // 5. Execute Atomic Transaction (BR-IMP-13)
+    // 5. Execute Atomic Transaction with 60s timeout (BR-IMP-13)
     const result = await this.prisma.$transaction(async (tx) => {
+      // Re-verify round status within transaction to eliminate race conditions
+      const lockedRound = await tx.scholarshipRound.findUnique({
+        where: { id: roundId },
+        select: { status: true },
+      });
+
+      if (!lockedRound || lockedRound.status !== RoundStatus.DRAFT) {
+        throw new BusinessException({
+          errorCode: 'INVALID_ROUND_STATUS',
+          statusCode: HttpStatus.CONFLICT,
+          message: 'นำเข้าได้เฉพาะรอบสถานะ Draft รอบ Open/Closed นำเข้าไม่ได้ (BR-IMP-01)',
+          params: { status: lockedRound?.status, action: 'import_applicants' },
+        });
+      }
+
       // Delete existing applicants and related data for this round
       // Cascade handles applicant_contacts and applicant_supporting_info
       await tx.applicant.deleteMany({
@@ -294,6 +309,9 @@ export class ApplicantsService implements OnModuleDestroy {
         importedCount: previewData.validRows,
         skippedCount: previewData.invalidRows,
       };
+    }, {
+      timeout: 60000,
+      maxWait: 10000,
     });
 
     // Clean up temporary preview from storage (BR-IMP-16)

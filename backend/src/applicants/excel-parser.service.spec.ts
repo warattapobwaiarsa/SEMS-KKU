@@ -84,4 +84,45 @@ describe('ExcelParserService', () => {
     expect(err).toBeDefined();
     expect(err!.errors.some((e) => e.includes('GPA'))).toBe(true);
   });
+
+  it('should stop reading when encountering ending star row (*) (BR-IMP-18)', async () => {
+    const filePath = path.resolve(__dirname, '../../../docs/06-data/import-data-sample.xlsx');
+    const ExcelJS = require('exceljs');
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(filePath);
+    const sheet = wb.getWorksheet('Data');
+
+    // Insert ending star row at row 5 (should only parse row 3 and 4)
+    sheet.getRow(5).getCell(1).value = '*';
+    // Clear rest of row 5
+    for (let c = 2; c <= 38; c++) {
+      sheet.getRow(5).getCell(c).value = null;
+    }
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const result = await service.parseBuffer(Buffer.from(buffer));
+
+    // Rows 3 and 4 parsed, stopped at row 5
+    expect(result.validRows).toBe(2);
+    expect(result.invalidRows).toBe(0);
+    expect(result.totalRows).toBe(2);
+  });
+
+  it('should trim and normalize NBSP / zero-width whitespace from cell values', async () => {
+    const filePath = path.resolve(__dirname, '../../../docs/06-data/import-data-sample.xlsx');
+    const ExcelJS = require('exceljs');
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(filePath);
+    const sheet = wb.getWorksheet('Data');
+
+    // Add non-breaking space \u00A0 and zero-width space \u200B to studentCode in row 3
+    sheet.getRow(3).getCell(2).value = '\u00A0683040000-1\u200B';
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const result = await service.parseBuffer(Buffer.from(buffer));
+
+    const first = result.validApplicants.find((a) => a.rowNumber === 3);
+    expect(first).toBeDefined();
+    expect(first!.studentCode).toBe('683040000-1');
+  });
 });

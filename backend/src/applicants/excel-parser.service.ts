@@ -1,7 +1,7 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
 import { BusinessException } from '../common/http-exception.filter';
-import { maskCitizenId } from '../common/crypto.util';
+import { maskCitizenId, validateThaiCitizenId } from '../common/crypto.util';
 
 export interface ParsedApplicantData {
   rowNumber: number;
@@ -174,8 +174,13 @@ export class ExcelParserService {
     for (let r = 3; r <= rowCount; r++) {
       const row = worksheet.getRow(r);
 
-      // Check if entire row is empty or closing '*' row
-      if (this.isRowEmptyOrEndingStar(row)) {
+      // Check if closing '*' row (BR-IMP-18: Stop reading data immediately)
+      if (this.isEndingStarRow(row)) {
+        break;
+      }
+
+      // Check if entire row is empty
+      if (this.isRowEmpty(row)) {
         continue;
       }
 
@@ -235,33 +240,34 @@ export class ExcelParserService {
     };
   }
 
-  private isRowEmptyOrEndingStar(row: ExcelJS.Row): boolean {
-    let hasAnyValue = false;
-    let onlyStar = false;
+  private isEndingStarRow(row: ExcelJS.Row): boolean {
+    let hasStar = false;
+    let otherValues = 0;
 
     row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
       const val = this.getRawCellValue(cell);
-      if (val !== null && val !== undefined && String(val).trim() !== '') {
+      if (val !== null && val !== undefined) {
         const strVal = String(val).trim();
-        hasAnyValue = true;
         if (strVal === '*' && (colNumber === 1 || colNumber === 2)) {
-          onlyStar = true;
+          hasStar = true;
+        } else if (strVal !== '') {
+          otherValues++;
         }
       }
     });
 
-    if (!hasAnyValue) return true;
-    if (onlyStar) {
-      // Check if no other substantive cell exists
-      let otherValueCount = 0;
-      row.eachCell({ includeEmpty: false }, (cell) => {
-        const v = String(this.getRawCellValue(cell) || '').trim();
-        if (v && v !== '*') otherValueCount++;
-      });
-      if (otherValueCount === 0) return true;
-    }
+    return hasStar && otherValues === 0;
+  }
 
-    return false;
+  private isRowEmpty(row: ExcelJS.Row): boolean {
+    let hasValue = false;
+    row.eachCell({ includeEmpty: false }, (cell) => {
+      const val = this.getRawCellValue(cell);
+      if (val !== null && val !== undefined && String(val).trim() !== '') {
+        hasValue = true;
+      }
+    });
+    return !hasValue;
   }
 
   private mapHeaderColumns(headerRow: ExcelJS.Row): Map<string, number> {
@@ -340,7 +346,10 @@ export class ExcelParserService {
       if (!idx) return '';
       const cell = row.getCell(idx);
       const val = this.getRawCellValue(cell);
-      return val !== null && val !== undefined ? String(val).trim() : '';
+      if (val === null || val === undefined) return '';
+      return String(val)
+        .replace(/[\u00A0\u200B\uFEFF]/g, ' ')
+        .trim();
     };
 
     const getNullableString = (key: string): string | null => {
@@ -449,12 +458,14 @@ export class ExcelParserService {
       errors.push('อีเมลห้ามเว้นว่าง (BR-IMP-03)');
     }
 
-    // 12. citizenId (BR-IMP-06: 13 digits)
+    // 12. citizenId (BR-IMP-06: 13 digits and Mod-11 checksum)
     const rawCitizenId = getString('citizenId').replace(/[\s-]/g, '');
     if (!rawCitizenId) {
       errors.push('เลขบัตรประชาชนห้ามเว้นว่าง (BR-IMP-03)');
-    } else if (!/^\d{13}$/.test(rawCitizenId)) {
-      errors.push(`เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก (พบ: "${rawCitizenId}") (BR-IMP-06)`);
+    } else if (!validateThaiCitizenId(rawCitizenId)) {
+      errors.push(
+        `เลขบัตรประชาชนไม่ถูกต้อง ต้องเป็นตัวเลข 13 หลักและผ่านการตรวจสอบ Checksum (พบ: "${rawCitizenId}") (BR-IMP-06)`,
+      );
     }
 
     // 13. applicationDate (BR-IMP-23: Format as dd/MM/yyyy HH:mm in Buddhist era if Date)
@@ -548,6 +559,13 @@ export class ExcelParserService {
     }
 
     const val = cell.value;
+    if (typeof val === 'number') {
+      // Prevent scientific notation for large integers (e.g. 1.4101e+12)
+      if (Number.isInteger(val)) {
+        return BigInt(val).toString();
+      }
+      return val;
+    }
     if (typeof val === 'object') {
       // ExcelJS hyperlink cell { text: '...', hyperlink: '...' }
       if ('text' in val && typeof (val as { text: unknown }).text === 'string') {

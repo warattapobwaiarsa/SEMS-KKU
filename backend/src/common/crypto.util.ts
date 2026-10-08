@@ -63,3 +63,36 @@ export function maskCitizenId(rawCitizenId: string | null | undefined): string {
   }
   return `${clean[0]}-${clean.slice(1, 5)}-XXXXX-XX-${clean[12]}`;
 }
+
+/**
+ * Validate Thai Citizen ID according to BR-IMP-06 & FR-IMP-05:
+ * 1. Must be 13 digits
+ * 2. Cannot be identical numbers throughout (e.g., 0000000000000, 1111111111111)
+ * 3. Satisfies Mod-11 Checksum: (11 - (sum(d[i] * (13-i)) % 11)) % 10 === d[12]
+ * Note: If allowMockPrefix is true (default in dev/test), permits project dummy sample IDs starting with 14101000000
+ */
+export function validateThaiCitizenId(
+  rawCitizenId: string | null | undefined,
+  allowMockPrefix: boolean = process.env.NODE_ENV !== 'production',
+): boolean {
+  if (!rawCitizenId) return false;
+  const clean = rawCitizenId.replace(/[\s-]/g, '');
+  if (!/^\d{13}$/.test(clean)) return false;
+
+  // Reject all identical digits
+  if (/^(\d)\1{12}$/.test(clean)) return false;
+
+  // Accept sample dataset mock prefix for non-production environments
+  if (allowMockPrefix && clean.startsWith('14101000000')) {
+    return true;
+  }
+
+  // Mod-11 Checksum calculation
+  let sum = 0;
+  for (let i = 0; i < 12; i++) {
+    sum += parseInt(clean[i], 10) * (13 - i);
+  }
+  const checkDigit = (11 - (sum % 11)) % 10;
+  return checkDigit === parseInt(clean[12], 10);
+}
+
