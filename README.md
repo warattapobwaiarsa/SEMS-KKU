@@ -53,9 +53,10 @@ SEMS-KKU/
 │   ├── 00-project/          # ขอบเขตโครงการ (Scope 1.3) และภาพรวม
 │   ├── 01-planning/         # แผนงานและตาราง Traceability Matrix (ISO/IEC 29110)
 │   ├── 02-requirements/     # ข้อกำหนดฟังก์ชัน (127 FRS), คุณภาพ (50 NFR), Business Rules (127 BR), UC, Flow
-│   ├── 03-architecture/     # สถาปัตยกรรมระบบ, ER Diagram, พจนานุกรมข้อมูล, Tech Stack
-│   ├── 04-development/      # สคีมาต้นแบบ Prisma Schema สำหรับนักพัฒนา
-│   └── 05-design/           # Design System และหน้าจอต้นแบบ UI Wireframes (50+ จอ)
+│   ├── 03-architecture/     # สถาปัตยกรรมระบบ, ER Diagram, พจนานุกรมข้อมูล, Tech Stack, REST API
+│   ├── 04-development/      # สคีมาต้นแบบ Prisma Schema และแม่แบบงานพัฒนา
+│   ├── 05-design/           # Design System และหน้าจอต้นแบบ UI Wireframes (50+ จอ)
+│   └── 06-data/             # ข้อมูลตัวอย่าง แม่แบบนำเข้า (Excel, CSV, JSON) และระบบเดิม
 │
 ├── .github/                 # เวิร์กโฟลว์ CI/CD และเทมเพลต Pull Request / Issue
 ├── docker-compose.yml       # คอนฟิกบริการ Local Development (PostgreSQL)
@@ -80,6 +81,7 @@ SEMS-KKU/
 * **[แผนภาพ ERD และพจนานุกรมข้อมูล (Database Schema)](docs/03-architecture/sems-schema-description.md):** โครงสร้างตารางและฟิลด์ข้อมูลทั้งหมด 14 ตาราง
 * **[โมเดลฐานข้อมูล Prisma (Prisma Schema)](docs/04-development/sems-schema.prisma):** สคีมาพร้อมใช้งานสำหรับการทำ Database Migration
 * **[หน้าจอต้นแบบและ Design System (UI Wireframes)](docs/05-design/sems-wireframe/):** ดีไซน์หน้าจอต้นแบบ HTML/PNG กว่า 50+ หน้าจอ และข้อกำหนดดีไซน์
+* **[ข้อมูลตัวอย่างและแม่แบบนำเข้า (Sample Data & Import Templates)](docs/06-data/README.md):** ไฟล์ Excel, CSV, JSON และข้อมูลเดิมสำหรับทดสอบระบบนำเข้าข้อมูลผู้สมัคร
 
 ---
 
