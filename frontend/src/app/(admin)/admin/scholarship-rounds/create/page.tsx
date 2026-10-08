@@ -9,9 +9,10 @@ import { CriteriaDetail } from '@/types/criteria';
 import { 
   ArrowLeft, 
   Save, 
-  AlertCircle, 
-  Layers
+  AlertCircle,
+  Layers,
 } from 'lucide-react';
+import { Select } from '@/components/ui';
 
 export default function CreateScholarshipRoundPage() {
   const router = useRouter();
@@ -163,15 +164,14 @@ export default function CreateScholarshipRoundPage() {
             <label htmlFor="semester" className="block text-sm font-semibold text-foreground">
               ภาคการศึกษา <span className="text-destructive">*</span>
             </label>
-            <select
+            <Select
               id="semester"
               value={semester}
               onChange={(e) => setSemester(parseInt(e.target.value) || 1)}
-              className="w-full px-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition cursor-pointer"
             >
               <option value={1}>ภาคเรียนที่ 1</option>
               <option value={2}>ภาคเรียนที่ 2</option>
-            </select>
+            </Select>
           </div>
         </div>
 
@@ -181,11 +181,11 @@ export default function CreateScholarshipRoundPage() {
             <Layers className="h-4 w-4 text-primary" />
             เชื่อมโยงชุดเกณฑ์การประเมิน (ผูกภายหลังได้)
           </label>
-          <select
+          <Select
             id="criteriaSelect"
+            icon={Layers}
             value={criteriaId ?? ''}
             onChange={(e) => setCriteriaId(e.target.value ? parseInt(e.target.value) : undefined)}
-            className="w-full px-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition cursor-pointer"
           >
             <option value="">-- ยังไม่ระบุเกณฑ์การประเมิน (เลือกภายหลัง) --</option>
             {criteriaList.map((c) => (
@@ -193,7 +193,7 @@ export default function CreateScholarshipRoundPage() {
                 {c.name} ({c.totalScore} คะแนน, {c.subCriteria.length} เกณฑ์ย่อย)
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {/* Actions */}
