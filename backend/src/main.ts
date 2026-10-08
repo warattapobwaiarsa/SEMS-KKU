@@ -20,6 +20,8 @@ async function bootstrap() {
       'Authorization',
       'X-Requested-With',
       'x-user-role',
+      'X-User-Id',
+      'x-user-id',
     ],
   });
   app.setGlobalPrefix('api/v1');
@@ -28,7 +30,7 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
-      forbidNonWhitelisted: false,
+      forbidNonWhitelisted: true,
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());
