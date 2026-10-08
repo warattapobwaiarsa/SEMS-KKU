@@ -37,7 +37,15 @@ export default function CreateScholarshipRoundPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || saving) return;
+    if (!name.trim()) {
+      setErrorMessage('กรุณาระบุชื่อรอบทุนการศึกษา (ห้ามเว้นว่าง)');
+      return;
+    }
+    if (academicYear < 2550 || academicYear > 2700) {
+      setErrorMessage('ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700 (BR-RND-01)');
+      return;
+    }
+    if (saving) return;
 
     try {
       setSaving(true);
@@ -131,6 +139,24 @@ export default function CreateScholarshipRoundPage() {
               }}
               className="w-full px-4 py-2.5 text-sm font-mono bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
+            {academicYear >= 2000 && academicYear <= 2150 && (
+              <div className="flex items-center gap-2 pt-1 text-xs text-amber-700 bg-amber-50 border border-amber-200/80 p-2 rounded-lg">
+                <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+                <span>
+                  ตรวจพบปี ค.ศ. ({academicYear}) ต้องการแปลงเป็น พ.ศ. ({academicYear + 543}) หรือไม่?
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setAcademicYear(academicYear + 543)}
+                  className="font-semibold text-primary underline hover:text-primary/80 cursor-pointer ml-auto shrink-0"
+                >
+                  แปลงทันที
+                </button>
+              </div>
+            )}
+            {academicYear && (academicYear < 2550 || academicYear > 2700) && !(academicYear >= 2000 && academicYear <= 2150) && (
+              <p className="text-xs text-rose-600">ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700 (BR-RND-01)</p>
+            )}
           </div>
 
           <div className="space-y-1.5">

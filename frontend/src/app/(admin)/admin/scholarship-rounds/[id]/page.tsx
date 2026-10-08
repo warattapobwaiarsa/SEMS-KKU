@@ -57,6 +57,7 @@ export default function RoundDetailPage() {
   const [closeCheck, setCloseCheck] = useState<CloseStatusCheck | null>(null);
   const [closingRound, setClosingRound] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
+  const [closeModalError, setCloseModalError] = useState<string | null>(null);
 
   // Edit Round Info Modal State
   const [showEditModal, setShowEditModal] = useState(false);
@@ -79,7 +80,11 @@ export default function RoundDetailPage() {
     e.preventDefault();
     if (!round || round.status !== 'DRAFT') return;
     if (!editName.trim()) {
-      setEditError('กรุณากรอกชื่อรอบทุนการศึกษา');
+      setEditError('กรุณากรอกชื่อรอบทุนการศึกษา (ห้ามเว้นว่าง)');
+      return;
+    }
+    if (editAcademicYear < 2550 || editAcademicYear > 2700) {
+      setEditError('ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700 (BR-RND-01)');
       return;
     }
     try {
@@ -95,6 +100,10 @@ export default function RoundDetailPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการแก้ไขข้อมูลรอบทุน';
       setEditError(msg);
+      if (msg.includes('INVALID_ROUND_STATUS') || msg.includes('สถานะร่าง')) {
+        void loadData();
+        setShowEditModal(false);
+      }
     } finally {
       setSavingEdit(false);
     }
@@ -165,6 +174,10 @@ export default function RoundDetailPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'ไม่สามารถเปิดรอบทุนได้';
       setErrorBanner(msg);
+      if (msg.includes('INVALID_ROUND_STATUS') || msg.includes('สถานะร่าง')) {
+        setShowOpenModal(false);
+        void loadData();
+      }
     } finally {
       setOpeningRound(false);
     }
@@ -173,6 +186,7 @@ export default function RoundDetailPage() {
   const handleCloseCheckClick = async () => {
     try {
       setErrorBanner(null);
+      setCloseModalError(null);
       const res = await checkCloseStatus(roundId);
       setCloseCheck(res.data);
       setAcknowledged(false);
@@ -186,13 +200,14 @@ export default function RoundDetailPage() {
   const handleConfirmCloseRound = async () => {
     if (closingRound || !closeCheck) return;
     if (closeCheck.unsubmittedCount > 0 && !acknowledged) {
-      setErrorBanner('กรุณากดยืนยันรับทราบจำนวนผู้สมัครที่ยังไม่มีผลประเมินก่อนปิดรอบ');
+      setCloseModalError('กรุณากดยืนยันรับทราบจำนวนผู้สมัครที่ยังไม่มีผลประเมินก่อนปิดรอบ');
       return;
     }
 
     try {
       setClosingRound(true);
       setErrorBanner(null);
+      setCloseModalError(null);
       await closeRound(roundId, {
         acknowledged,
         acknowledgedCount: acknowledged ? closeCheck.unsubmittedCount : undefined,
@@ -201,7 +216,23 @@ export default function RoundDetailPage() {
       await loadData();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'ไม่สามารถปิดรอบทุนได้';
-      setErrorBanner(msg);
+      if (msg.includes('ROUND_CLOSE_STATE_CHANGED') || msg.includes('เปลี่ยนแปลงไปจากที่รับทราบ')) {
+        // Auto refresh unsubmitted check
+        try {
+          const freshCheck = await checkCloseStatus(roundId);
+          setCloseCheck(freshCheck.data);
+          setAcknowledged(false);
+          setCloseModalError('มีผลการประเมินถูกส่งเข้ามาระหว่างนี้ ข้อมูลผู้สมัครตกค้างได้รับการอัปเดตแล้ว กรุณาตรวจสอบรายชื่อและกดยืนยันใหม่อีกครั้ง');
+        } catch {
+          setCloseModalError(msg);
+        }
+      } else if (msg.includes('INVALID_ROUND_STATUS') || msg.includes('สถานะเปิดรับสมัคร')) {
+        setShowCloseModal(false);
+        setErrorBanner(msg);
+        void loadData();
+      } else {
+        setCloseModalError(msg);
+      }
     } finally {
       setClosingRound(false);
     }
@@ -226,6 +257,15 @@ export default function RoundDetailPage() {
       </div>
     );
   }
+
+  const hasBasicInfo = Boolean(round.name && round.academicYear && round.semester);
+  const hasApplicants = round.applicantCount >= 1;
+  const criteriaTotalScore = round.criteria?.subCriteria?.reduce(
+    (sum, item) => sum + (Number(item.maxScore) || 0),
+    0
+  ) ?? 0;
+  const isCriteria100 = Boolean(round.criteria) && criteriaTotalScore === 100;
+  const isDraftRoundReady = hasBasicInfo && hasApplicants && isCriteria100;
 
   return (
     <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-16">
@@ -419,8 +459,78 @@ export default function RoundDetailPage() {
           </div>
         </div>
 
-        {/* Right Column: Round Lifecycle Timeline (5 Cols) */}
+        {/* Right Column: Round Lifecycle Timeline & Live Readiness (5 Cols) */}
         <div className="lg:col-span-5 flex flex-col gap-4">
+          {round.status === 'DRAFT' && (
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <CheckCircle2 className={`h-5 w-5 ${isDraftRoundReady ? 'text-emerald-600' : 'text-amber-500'}`} />
+                  ความพร้อมสำหรับเปิดรอบ (BR-RND-08)
+                </h3>
+                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                  isDraftRoundReady 
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
+                    : 'bg-amber-100 text-amber-800 border border-amber-300'
+                }`}>
+                  {isDraftRoundReady ? 'พร้อมเปิดรอบ' : 'ยังไม่พร้อม'}
+                </span>
+              </div>
+
+              <div className="space-y-2.5 text-xs">
+                {/* Condition 1: Basic Info */}
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="font-medium text-slate-800">1. ข้อมูลหลักครบถ้วน (ชื่อ, ปี, ภาคเรียน)</span>
+                  {hasBasicInfo ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+                  )}
+                </div>
+
+                {/* Condition 2: Applicants */}
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <div>
+                    <span className="font-medium text-slate-800">2. มีผู้สมัครอย่างน้อย 1 คน</span>
+                    <span className="text-slate-500 ml-1.5 font-mono">({round.applicantCount} คน)</span>
+                  </div>
+                  {hasApplicants ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+                  )}
+                </div>
+
+                {/* Condition 3: Criteria & 100 points */}
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <div>
+                    <span className="font-medium text-slate-800">3. ผูกชุดเกณฑ์ผลรวม 100 คะแนน</span>
+                    <span className="text-slate-500 ml-1.5 font-mono">
+                      ({round.criteria ? `${round.criteria.name} : ${criteriaTotalScore}/100` : 'ยังไม่มีเกณฑ์'})
+                    </span>
+                  </div>
+                  {isCriteria100 ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+                  )}
+                </div>
+              </div>
+
+              {round.lastInvalidRowsCount > 0 && (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium leading-relaxed">
+                  ℹ️ มีแถวที่ไม่ผ่านจากการนำเข้าล่าสุด {round.lastInvalidRowsCount} แถว (รับทราบและเปิดรอบได้ตามกฎ BR-RND-09)
+                </div>
+              )}
+
+              {!isDraftRoundReady && (
+                <p className="text-[11px] text-slate-500 leading-relaxed italic">
+                  * ต้องผ่านเงื่อนไขทั้ง 3 ข้อข้างต้น จึงจะสามารถกดยืนยันเปิดรอบการประเมินได้
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
             <h3 className="text-base font-bold text-slate-900 border-b border-slate-200 pb-3">
               วงจรสถานะรอบทุน (State Machine)
@@ -523,6 +633,24 @@ export default function RoundDetailPage() {
                     }}
                     className="w-full px-3.5 py-2.5 text-sm font-mono bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
+                  {editAcademicYear >= 2000 && editAcademicYear <= 2150 && (
+                    <div className="flex items-center gap-2 pt-1 text-xs text-amber-700 bg-amber-50 border border-amber-200/80 p-2 rounded-lg">
+                      <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+                      <span>
+                        ตรวจพบปี ค.ศ. ({editAcademicYear}) ต้องการแปลงเป็น พ.ศ. ({editAcademicYear + 543}) หรือไม่?
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setEditAcademicYear(editAcademicYear + 543)}
+                        className="font-semibold text-primary underline hover:text-primary/80 cursor-pointer ml-auto shrink-0"
+                      >
+                        แปลงทันที
+                      </button>
+                    </div>
+                  )}
+                  {editAcademicYear && (editAcademicYear < 2550 || editAcademicYear > 2700) && !(editAcademicYear >= 2000 && editAcademicYear <= 2150) && (
+                    <p className="text-xs text-rose-600">ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700 (BR-RND-01)</p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
@@ -667,6 +795,13 @@ export default function RoundDetailPage() {
                 <X className="h-5 w-5" />
               </button>
             </div>
+
+            {closeModalError && (
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center gap-2.5">
+                <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+                <span className="font-medium">{closeModalError}</span>
+              </div>
+            )}
 
             <div className="space-y-4">
               {closeCheck.unsubmittedCount === 0 ? (
