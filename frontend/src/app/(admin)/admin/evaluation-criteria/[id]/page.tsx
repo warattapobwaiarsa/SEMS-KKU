@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { SubCriteriaType, CriteriaDetail } from '@/types/criteria';
@@ -42,34 +42,35 @@ export default function EditOrViewCriteriaPage() {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  useEffect(() => {
+  const loadCriteria = useCallback(async () => {
     if (!criteriaId) return;
-    const load = async () => {
-      try {
-        setLoading(true);
-        const res = await fetchCriteriaById(criteriaId);
-        setCriteria(res.data);
-        setName(res.data.name);
-        setSubCriteria(
-          res.data.subCriteria.map((sub, idx) => ({
-            id: sub.id,
-            tempId: `sub-${sub.id || idx}`,
-            sortOrder: sub.sortOrder,
-            title: sub.title,
-            type: sub.type,
-            maxScore: sub.maxScore || 0,
-            allowComment: sub.allowComment || false,
-          })),
-        );
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'ไม่สามารถโหลดข้อมูลเกณฑ์ได้';
-        setErrorMessage(msg);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    try {
+      setLoading(true);
+      const res = await fetchCriteriaById(criteriaId);
+      setCriteria(res.data);
+      setName(res.data.name);
+      setSubCriteria(
+        res.data.subCriteria.map((sub, idx) => ({
+          id: sub.id,
+          tempId: `sub-${sub.id || idx}`,
+          sortOrder: sub.sortOrder,
+          title: sub.title,
+          type: sub.type,
+          maxScore: sub.maxScore || 0,
+          allowComment: sub.allowComment || false,
+        })),
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'ไม่สามารถโหลดข้อมูลเกณฑ์ได้';
+      setErrorMessage(msg);
+    } finally {
+      setLoading(false);
+    }
   }, [criteriaId]);
+
+  useEffect(() => {
+    void loadCriteria();
+  }, [loadCriteria]);
 
   const totalScore = subCriteria
     .filter((row) => row.type === 'SCORED')
@@ -79,7 +80,18 @@ export default function EditOrViewCriteriaPage() {
   const isScoreValid = totalScore === 100;
   const scoredCount = subCriteria.filter((r) => r.type === 'SCORED').length;
   const hasAtLeastOneScored = scoredCount > 0;
-  const isFormValid = name.trim().length > 0 && isScoreValid && hasAtLeastOneScored && !isLocked;
+  const hasAllTitles = subCriteria.length > 0 && subCriteria.every((r) => r.title.trim().length > 0);
+  const hasValidMaxScores = subCriteria
+    .filter((r) => r.type === 'SCORED')
+    .every((r) => r.maxScore >= 1 && r.maxScore <= 100);
+
+  const isFormValid =
+    name.trim().length > 0 &&
+    isScoreValid &&
+    hasAtLeastOneScored &&
+    hasAllTitles &&
+    hasValidMaxScores &&
+    !isLocked;
 
   const handleAddScoredRow = () => {
     if (isLocked) return;
@@ -179,7 +191,31 @@ export default function EditOrViewCriteriaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid || saving) return;
+    if (isLocked) {
+      setErrorMessage('เกณฑ์ถูกล็อกเนื่องจากถูกใช้ในรอบ Open/Closed แล้ว ห้ามแก้ไข');
+      return;
+    }
+    if (!name.trim()) {
+      setErrorMessage('กรุณาระบุชื่อชุดเกณฑ์การประเมิน');
+      return;
+    }
+    if (!hasAllTitles) {
+      setErrorMessage('กรุณาระบุชื่อหัวข้อเกณฑ์ย่อยให้ครบทุกข้อ (ห้ามเว้นว่าง)');
+      return;
+    }
+    if (!hasAtLeastOneScored) {
+      setErrorMessage('ชุดเกณฑ์ต้องมีเกณฑ์แบบคำนวณคะแนนอย่างน้อย 1 ข้อ');
+      return;
+    }
+    if (!hasValidMaxScores) {
+      setErrorMessage('คะแนนเต็มของแต่ละข้อต้องเป็นจำนวนเต็มระหว่าง 1–100 คะแนน');
+      return;
+    }
+    if (!isScoreValid) {
+      setErrorMessage(`ผลรวมคะแนนต้องเท่ากับ 100 คะแนนพอดี (ปัจจุบัน: ${totalScore} คะแนน)`);
+      return;
+    }
+    if (saving) return;
 
     try {
       setSaving(true);
@@ -202,6 +238,9 @@ export default function EditOrViewCriteriaPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการอัปเดตเกณฑ์';
       setErrorMessage(msg);
+      if (msg.includes('LOCKED') || msg.includes('ห้ามแก้ไข') || msg.includes('Open/Closed')) {
+        void loadCriteria();
+      }
     } finally {
       setSaving(false);
     }
@@ -267,6 +306,15 @@ export default function EditOrViewCriteriaPage() {
             <p className="mt-1 text-slate-600 leading-relaxed">
               เนื่องจากชุดเกณฑ์นี้ถูกนำไปใช้ในรอบทุนที่เปิดรับประเมิน (Open) หรือปิดรอบแล้ว (Closed) เพื่อรักษาความถูกต้องของข้อมูลประเมิน หากต้องการเปลี่ยนแปลงเกณฑ์ ให้สร้างชุดเกณฑ์ใหม่
             </p>
+            <div className="mt-3">
+              <Link
+                href="/admin/evaluation-criteria/create"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                สร้างชุดเกณฑ์ใหม่
+              </Link>
+            </div>
           </div>
         </div>
       )}

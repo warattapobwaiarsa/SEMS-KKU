@@ -45,7 +45,17 @@ export default function CreateCriteriaPage() {
   const isScoreValid = totalScore === 100;
   const scoredCount = subCriteria.filter((r) => r.type === 'SCORED').length;
   const hasAtLeastOneScored = scoredCount > 0;
-  const isFormValid = name.trim().length > 0 && isScoreValid && hasAtLeastOneScored;
+  const hasAllTitles = subCriteria.length > 0 && subCriteria.every((r) => r.title.trim().length > 0);
+  const hasValidMaxScores = subCriteria
+    .filter((r) => r.type === 'SCORED')
+    .every((r) => r.maxScore >= 1 && r.maxScore <= 100);
+
+  const isFormValid =
+    name.trim().length > 0 &&
+    isScoreValid &&
+    hasAtLeastOneScored &&
+    hasAllTitles &&
+    hasValidMaxScores;
 
   const handleAddScoredRow = () => {
     const newOrder = subCriteria.length + 1;
@@ -138,7 +148,27 @@ export default function CreateCriteriaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid || saving) return;
+    if (!name.trim()) {
+      setErrorMessage('กรุณาระบุชื่อชุดเกณฑ์การประเมิน');
+      return;
+    }
+    if (!hasAllTitles) {
+      setErrorMessage('กรุณาระบุชื่อหัวข้อเกณฑ์ย่อยให้ครบทุกข้อ (ห้ามเว้นว่าง)');
+      return;
+    }
+    if (!hasAtLeastOneScored) {
+      setErrorMessage('ชุดเกณฑ์ต้องมีเกณฑ์แบบคำนวณคะแนนอย่างน้อย 1 ข้อ');
+      return;
+    }
+    if (!hasValidMaxScores) {
+      setErrorMessage('คะแนนเต็มของแต่ละข้อต้องเป็นจำนวนเต็มระหว่าง 1–100 คะแนน');
+      return;
+    }
+    if (!isScoreValid) {
+      setErrorMessage(`ผลรวมคะแนนต้องเท่ากับ 100 คะแนนพอดี (ปัจจุบัน: ${totalScore} คะแนน)`);
+      return;
+    }
+    if (saving) return;
 
     try {
       setSaving(true);
@@ -502,8 +532,16 @@ export default function CreateCriteriaPage() {
                   ระบุชื่อชุดเกณฑ์การประเมิน
                 </li>
                 <li className="flex items-center gap-2">
+                  <span className={hasAllTitles ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
+                  ระบุชื่อหัวข้อเกณฑ์ย่อยครบทุกข้อ
+                </li>
+                <li className="flex items-center gap-2">
                   <span className={hasAtLeastOneScored ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
                   มีเกณฑ์คำนวณคะแนนอย่างน้อย 1 ข้อ
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className={hasValidMaxScores ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
+                  คะแนนเต็มแต่ละข้ออยู่ในช่วง 1–100
                 </li>
                 <li className="flex items-center gap-2">
                   <span className={isScoreValid ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>

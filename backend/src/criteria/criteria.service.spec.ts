@@ -46,6 +46,41 @@ describe('CriteriaService', () => {
   });
 
   describe('create', () => {
+    it('should throw SUB_CRITERIA_REQUIRED if subCriteria array is empty', async () => {
+      const dto = {
+        name: 'เกณฑ์ทดสอบ',
+        subCriteria: [],
+      };
+
+      try {
+        await service.create(dto);
+      } catch (err: unknown) {
+        const error = err as BusinessException;
+        expect(error.errorCode).toBe('SUB_CRITERIA_REQUIRED');
+      }
+    });
+
+    it('should throw SUB_CRITERIA_TITLE_REQUIRED if sub-criteria title is empty or whitespace', async () => {
+      const dto = {
+        name: 'เกณฑ์ทดสอบ',
+        subCriteria: [
+          {
+            sortOrder: 1,
+            title: '   ',
+            type: SubCriteriaType.SCORED,
+            maxScore: 100,
+          },
+        ],
+      };
+
+      try {
+        await service.create(dto);
+      } catch (err: unknown) {
+        const error = err as BusinessException;
+        expect(error.errorCode).toBe('SUB_CRITERIA_TITLE_REQUIRED');
+      }
+    });
+
     it('should throw SCORED_CRITERIA_REQUIRED if no scored sub-criteria (BR-CRT-04)', async () => {
       const dto = {
         name: 'เกณฑ์ทดสอบ',
