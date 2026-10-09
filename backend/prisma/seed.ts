@@ -49,6 +49,10 @@ async function main() {
     evaluator2: evaluator2.email,
   });
 
+  // =============================================================================
+  // [Step 3] เพิ่มข้อมูลทดสอบสำหรับ Evaluator flow — เพิ่มเท่านั้น ไม่แก้ของเดิม
+  // รอบ OPEN (id=2), รอบ CLOSED (id=3), ผู้สมัคร 8 คน (FAKE-OPEN-01..05, FAKE-CLOSE-01..02)
+  // =============================================================================
   const criteria = await prisma.criteria.upsert({
     where: { id: 1 },
     update: {},
@@ -91,7 +95,9 @@ async function main() {
       criteriaId: criteria.id,
       status: RoundStatus.DRAFT,
     },
-  });  console.log('✅ Sample round created:', round.name);
+  });
+
+  console.log('✅ Sample round created:', round.name);
 
   // =============================================================================
   // [Step 3] ข้อมูลจำลองสำหรับทดสอบ API ผู้ประเมิน — เพิ่มอย่างเดียว (ADDITIVE)

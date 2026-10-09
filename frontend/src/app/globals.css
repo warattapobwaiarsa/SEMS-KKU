@@ -23,4 +23,60 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-ibm-plex-sans-thai), var(--font-ibm-plex-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide spin buttons / arrows on number inputs */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Framer Motion & Apple HIG Spring Keyframes */
+@keyframes spring-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.035);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-spring-pop {
+  animation: spring-pop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.15) forwards;
+}
+
+/* Apple HIG Interactive Tactile Feedback */
+.btn-interactive {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+}
+.btn-interactive:active {
+  transform: scale(0.96);
+}
+
+/* Accessible reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spring-pop {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .btn-interactive {
+    transition: none !important;
+  }
+  .btn-interactive:active {
+    transform: none !important;
+  }
 }

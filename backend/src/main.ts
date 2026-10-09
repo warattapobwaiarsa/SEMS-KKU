@@ -1,34 +1,41 @@
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
-import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
+import { ValidationPipe } from '@nestjs/common';
+import { HttpExceptionFilter } from './common/http-exception.filter';
+import { TransformInterceptor } from './common/transform.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Global ValidationPipe ตามที่ spec กำหนด:
-  // - whitelist: ตัดฟิลด์ที่ไม่มีใน DTO ทิ้งทุกคำขอ
-  // - forbidNonWhitelisted: ปฏิเสธ (400) ถ้ามีการส่งฟิลด์แปลกปลอมมา
-  // - transform: แปลงชนิดข้อมูล payload ตามที่ DTO ประกาศอัตโนมัติ
+  const corsOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+    : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+
+  app.enableCors({
+    origin: corsOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'x-user-role',
+      'X-User-Id',
+      'x-user-id',
+    ],
+  });
+  app.setGlobalPrefix('api/v1');
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
       transform: true,
+      forbidNonWhitelisted: true,
     }),
   );
+  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalInterceptors(new TransformInterceptor());
 
-  // ครอบผลลัพธ์ที่สำเร็จทุกตัวให้อยู่ใน Envelope มาตรฐาน
-  // (REST API spec หัวข้อ 2.2: { success, statusCode, data, meta? })
-  app.useGlobalInterceptors(new ResponseTransformInterceptor());
-
-  // แปลง error ทุกชนิดให้เป็น error envelope มาตรฐาน
-  // (REST API spec หัวข้อ 2.2: { success, statusCode, errorCode, error, params, timestamp })
-  app.useGlobalFilters(new GlobalExceptionFilter());
-
-  app.enableCors();
-  app.setGlobalPrefix('api/v1');
   const port = process.env.PORT ?? process.env.BACKEND_PORT ?? 4000;
   await app.listen(port);
   console.log(`Backend is running on: http://localhost:${port}/api/v1`);

@@ -20,8 +20,8 @@
 
 | ส่วนของระบบ | เทคโนโลยีที่ใช้ | วัตถุประสงค์การใช้งาน |
 |---|---|---|
-| **Frontend** | [Next.js](https://nextjs.org/) (App Router), TypeScript, Tailwind CSS, shadcn/ui | ส่วนติดต่อผู้ใช้แบบ Responsive (รองรับคอมพิวเตอร์และมือถือ) |
-| **Backend** | [NestJS](https://nestjs.org/), TypeScript, REST API | จัดการ Business Logic, ยืนยันตัวตน, RBAC Authorization, คำนวณคะแนน |
+| **Frontend** | [Next.js](https://nextjs.org/) (App Router), TypeScript, Tailwind CSS v4, Lucide Icons | ส่วนติดต่อผู้ใช้แบบ Responsive (Dual-View: Desktop Table & Mobile Cards), ระบบ Progressive Disclosure และ Micro-interactions อิงตาม Apple HIG & Framer Motion Spring Physics |
+| **Backend** | [NestJS](https://nestjs.org/), TypeScript, REST API | จัดการ Business Logic, ยืนยันตัวตน, RBAC Authorization, คำนวณคะแนน, พร้อม Prisma Transaction & Audit Trail |
 | **Database & ORM** | [PostgreSQL](https://www.postgresql.org/), [Prisma ORM](https://www.prisma.io/) | จัดเก็บฐานข้อมูลเชิงสัมพันธ์, จัดการ Schema และ Database Migrations |
 | **Authentication** | KKU Single Sign-On (OAuth2/OIDC) | ระบบเข้าสู่ระบบส่วนกลางของมหาวิทยาลัย (`@kku.ac.th`, `@kkumail.com`) |
 | **Data Processing** | ExcelJS / SheetJS | ตรวจสอบและนำเข้าข้อมูลผู้สมัครจากไฟล์ Excel รวมถึงสร้างไฟล์รายงาน |
@@ -53,9 +53,10 @@ SEMS-KKU/
 │   ├── 00-project/          # ขอบเขตโครงการ (Scope 1.3) และภาพรวม
 │   ├── 01-planning/         # แผนงานและตาราง Traceability Matrix (ISO/IEC 29110)
 │   ├── 02-requirements/     # ข้อกำหนดฟังก์ชัน (127 FRS), คุณภาพ (50 NFR), Business Rules (127 BR), UC, Flow
-│   ├── 03-architecture/     # สถาปัตยกรรมระบบ, ER Diagram, พจนานุกรมข้อมูล, Tech Stack
-│   ├── 04-development/      # สคีมาต้นแบบ Prisma Schema สำหรับนักพัฒนา
-│   └── 05-design/           # Design System และหน้าจอต้นแบบ UI Wireframes (50+ จอ)
+│   ├── 03-architecture/     # สถาปัตยกรรมระบบ, ER Diagram, พจนานุกรมข้อมูล, Tech Stack, REST API
+│   ├── 04-development/      # สคีมาต้นแบบ Prisma Schema และแม่แบบงานพัฒนา
+│   ├── 05-design/           # Design System และหน้าจอต้นแบบ UI Wireframes (50+ จอ)
+│   └── 06-data/             # ข้อมูลตัวอย่าง แม่แบบนำเข้า (Excel, CSV, JSON) และระบบเดิม
 │
 ├── .github/                 # เวิร์กโฟลว์ CI/CD และเทมเพลต Pull Request / Issue
 ├── docker-compose.yml       # คอนฟิกบริการ Local Development (PostgreSQL)
@@ -80,6 +81,7 @@ SEMS-KKU/
 * **[แผนภาพ ERD และพจนานุกรมข้อมูล (Database Schema)](docs/03-architecture/sems-schema-description.md):** โครงสร้างตารางและฟิลด์ข้อมูลทั้งหมด 14 ตาราง
 * **[โมเดลฐานข้อมูล Prisma (Prisma Schema)](docs/04-development/sems-schema.prisma):** สคีมาพร้อมใช้งานสำหรับการทำ Database Migration
 * **[หน้าจอต้นแบบและ Design System (UI Wireframes)](docs/05-design/sems-wireframe/):** ดีไซน์หน้าจอต้นแบบ HTML/PNG กว่า 50+ หน้าจอ และข้อกำหนดดีไซน์
+* **[ข้อมูลตัวอย่างและแม่แบบนำเข้า (Sample Data & Import Templates)](docs/06-data/README.md):** ไฟล์ Excel, CSV, JSON และข้อมูลเดิมสำหรับทดสอบระบบนำเข้าข้อมูลผู้สมัคร
 
 ---
 
