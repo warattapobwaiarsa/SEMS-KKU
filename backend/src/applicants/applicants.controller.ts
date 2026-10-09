@@ -13,16 +13,30 @@ import {
   HttpStatus,
   UsePipes,
   ValidationPipe,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApplicantsService } from './applicants.service';
 import { ConfirmImportDto } from './dto/import-applicant.dto';
 import { QueryApplicantDto } from './dto/query-applicant.dto';
 import { BusinessException } from '../common/http-exception.filter';
+import {
+  RoleDispatchGuard,
+  type RequestWithResolvedRole,
+} from '../common/guards/role-dispatch.guard';
+import { EvaluationService } from '../evaluation/evaluation.service';
+import { EvaluationReadService } from '../evaluation/evaluation-read.service';
+import { User } from '@prisma/client';
 
 @Controller()
+@UseGuards(RoleDispatchGuard)
 export class ApplicantsController {
-  constructor(private readonly applicantsService: ApplicantsService) {}
+  constructor(
+    private readonly applicantsService: ApplicantsService,
+    private readonly evaluationService: EvaluationService,
+    private readonly evaluationReadService: EvaluationReadService,
+  ) {}
 
   @Post('scholarship-rounds/:roundId/applicants/preview-excel')
   @UseInterceptors(
@@ -83,9 +97,29 @@ export class ApplicantsController {
     @Query() query: QueryApplicantDto,
     @Headers('x-user-role') roleHeader?: string,
     @Query('userRole') roleQuery?: string,
-  ) {
-    const userRole = roleHeader || roleQuery;
-    return this.applicantsService.findAll(roundId, query, userRole);
+    @Req() request?: RequestWithResolvedRole,
+  ): Promise<unknown> {
+    const resolvedRole = request?.resolvedRole;
+
+    // ADMIN path: ใช้ service เดิม
+    if (resolvedRole === 'ADMIN') {
+      const userRole = roleHeader || roleQuery || 'ADMIN';
+      return this.applicantsService.findAll(roundId, query, userRole);
+    }
+
+    // EVALUATOR path: ใช้ service ของ Evaluator (ต้องมี request.user จาก guard)
+    const evaluatorUser = request?.user as User;
+    // Transform QueryApplicantDto to ListApplicantsQueryDto (page/limit are required numbers in evaluator DTO)
+    const evaluatorQuery = {
+      search: query.search,
+      page: query.page ?? 1,
+      limit: query.limit ?? 20,
+    };
+    return this.evaluationService.listApplicantsForEvaluator(
+      roundId,
+      evaluatorUser,
+      evaluatorQuery,
+    );
   }
 
   @Get('scholarship-rounds/:roundId/applicants/imports')
@@ -98,8 +132,17 @@ export class ApplicantsController {
     @Param('id', ParseIntPipe) id: number,
     @Headers('x-user-role') roleHeader?: string,
     @Query('userRole') roleQuery?: string,
-  ) {
-    const userRole = roleHeader || roleQuery;
-    return this.applicantsService.findOne(id, userRole);
+    @Req() request?: RequestWithResolvedRole,
+  ): Promise<unknown> {
+    const resolvedRole = request?.resolvedRole;
+
+    // ADMIN path: ใช้ service เดิม
+    if (resolvedRole === 'ADMIN') {
+      const userRole = roleHeader || roleQuery || 'ADMIN';
+      return this.applicantsService.findOne(id, userRole);
+    }
+
+    // EVALUATOR path: ใช้ service ของ Evaluator
+    return this.evaluationReadService.getApplicantDetailForEvaluator(id);
   }
 }

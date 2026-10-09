@@ -13,5 +13,6 @@ import { EvaluationService } from './evaluation.service';
   imports: [PrismaModule],
   controllers: [EvaluationController],
   providers: [EvaluationService, EvaluationReadService, EvaluationWriteService],
+  exports: [EvaluationService, EvaluationReadService],
 })
 export class EvaluationModule {}

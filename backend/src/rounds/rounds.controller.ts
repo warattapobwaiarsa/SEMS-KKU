@@ -10,6 +10,8 @@ import {
   ParseIntPipe,
   UsePipes,
   ValidationPipe,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { RoundsService } from './rounds.service';
 import {
@@ -19,10 +21,19 @@ import {
   CloseRoundDto,
 } from './dto/round.dto';
 import { RoundStatus } from '@prisma/client';
+import {
+  RoleDispatchGuard,
+  type RequestWithResolvedRole,
+} from '../common/guards/role-dispatch.guard';
+import { EvaluationReadService } from '../evaluation/evaluation-read.service';
 
 @Controller('scholarship-rounds')
+@UseGuards(RoleDispatchGuard)
 export class RoundsController {
-  constructor(private readonly roundsService: RoundsService) {}
+  constructor(
+    private readonly roundsService: RoundsService,
+    private readonly evaluationReadService: EvaluationReadService,
+  ) {}
 
   @Get()
   async findAll(
@@ -58,9 +69,18 @@ export class RoundsController {
     @Param('id', ParseIntPipe) id: number,
     @Headers('x-user-role') roleHeader?: string,
     @Query('userRole') roleQuery?: string,
-  ) {
-    const userRole = roleHeader || roleQuery;
-    return this.roundsService.findOne(id, userRole);
+    @Req() request?: RequestWithResolvedRole,
+  ): Promise<unknown> {
+    const resolvedRole = request?.resolvedRole;
+
+    // ADMIN path: ใช้ service เดิม (role จาก header/query หรือ ADMIN legacy)
+    if (resolvedRole === 'ADMIN') {
+      const userRole = roleHeader || roleQuery || 'ADMIN';
+      return this.roundsService.findOne(id, userRole);
+    }
+
+    // EVALUATOR path: ใช้ service ของ Evaluator (return EvaluatorRoundDetail)
+    return this.evaluationReadService.getRoundForEvaluator(id);
   }
 
   @Patch(':id')

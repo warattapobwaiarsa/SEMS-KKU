@@ -8,7 +8,6 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -17,60 +16,27 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { MockAuthGuard } from '../common/guards/mock-auth.guard';
 import type { RequestWithUser } from '../common/guards/mock-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { ListApplicantsQueryDto } from './dto/list-applicants-query.dto';
 import { SaveMyEvaluationDto } from './dto/save-my-evaluation.dto';
 import {
   EvaluationReadService,
-  EvaluatorApplicantDetail,
-  EvaluatorRoundDetail,
   MyEvaluationView,
 } from './evaluation-read.service';
 import { EvaluationWriteService } from './evaluation-write.service';
-import {
-  EvaluationService,
-  PaginatedApplicantList,
-} from './evaluation.service';
 
 /**
  * Endpoint ฝั่ง Evaluator สำหรับการประเมินผู้สมัคร
  * ทุก endpoint ต้องล็อกอิน (MockAuthGuard) และเป็น EVALUATOR เท่านั้น (RolesGuard)
  * role อื่นได้ 403 FORBIDDEN [FR-AUTH-04]
+ * หมายเหตุ: route นี้ไม่ชนกับ Admin เพราะเป็น path /my-evaluation และ /submit เท่านั้น
  */
 @Controller()
 @UseGuards(MockAuthGuard, RolesGuard)
 @Roles(UserRole.EVALUATOR)
 export class EvaluationController {
   constructor(
-    private readonly evaluationService: EvaluationService,
     private readonly evaluationReadService: EvaluationReadService,
     private readonly evaluationWriteService: EvaluationWriteService,
   ) {}
-
-  /**
-   * GET /api/v1/scholarship-rounds/:roundId
-   * รายละเอียดรอบทุน (เฉพาะรอบ OPEN) สำหรับหัวหน้าจอประเมิน [BR-EVL-01]
-   * หมายเหตุ: spec ให้ Admin ใช้ route นี้ด้วย แต่ตอนนี้ทำเฉพาะมุมมอง Evaluator
-   */
-  @Get('scholarship-rounds/:roundId')
-  getRound(
-    @Param('roundId', ParseIntPipe) roundId: number,
-  ): Promise<EvaluatorRoundDetail> {
-    return this.evaluationReadService.getRoundForEvaluator(roundId);
-  }
-
-  /**
-   * GET /api/v1/applicants/:applicantId
-   * รายละเอียดผู้สมัคร (อ่านอย่างเดียว) ฝั่งซ้ายของหน้าประเมิน [FR-APP-03] [BR-APP-04]
-   * หมายเหตุ: spec ให้ Admin ใช้ route นี้ด้วย แต่ตอนนี้ทำเฉพาะมุมมอง Evaluator
-   */
-  @Get('applicants/:applicantId')
-  getApplicant(
-    @Param('applicantId', ParseIntPipe) applicantId: number,
-  ): Promise<EvaluatorApplicantDetail> {
-    return this.evaluationReadService.getApplicantDetailForEvaluator(
-      applicantId,
-    );
-  }
 
   /**
    * GET /api/v1/applicants/:applicantId/my-evaluation
@@ -125,25 +91,6 @@ export class EvaluationController {
     return this.evaluationWriteService.submitMyEvaluation(
       applicantId,
       evaluatorUser,
-    );
-  }
-
-  /**
-   * GET /api/v1/scholarship-rounds/:roundId/applicants
-   * รายชื่อผู้สมัครของรอบที่ OPEN แบบแบ่งหน้า + ค้นหา [FR-EVL-01] [BR-EVL-01]
-   */
-  @Get('scholarship-rounds/:roundId/applicants')
-  listApplicants(
-    @Param('roundId', ParseIntPipe) roundId: number,
-    @Query() query: ListApplicantsQueryDto,
-    @Req() request: RequestWithUser,
-  ): Promise<PaginatedApplicantList> {
-    // MockAuthGuard แนบ user ไว้แล้วเสมอเมื่อมาถึงตรงนี้
-    const evaluatorUser = request.user!;
-    return this.evaluationService.listApplicantsForEvaluator(
-      roundId,
-      evaluatorUser,
-      query,
     );
   }
 }
