@@ -147,6 +147,18 @@ function makeRound(id: number, status: RoundStatus, now: Date): Row {
     openedAt: status === RoundStatus.DRAFT ? null : now,
     closedAt: status === RoundStatus.CLOSED ? now : null,
     updatedAt: now,
+    importBatches: [
+      {
+        id: id,
+        roundId: id,
+        fileName: `test-round-${id}.xlsx`,
+        totalRows: 10,
+        validRows: 8,
+        invalidRows: 2,
+        importedAt: now,
+        importedById: 1,
+      },
+    ],
   };
 }
 
@@ -218,6 +230,10 @@ function project(
   select: Row | undefined,
 ): unknown {
   if (row === null || row === undefined || select === undefined) {
+    return row;
+  }
+  // If select is empty object, return all fields (Prisma behavior when no select specified)
+  if (Object.keys(select).length === 0) {
     return row;
   }
   const out: Row = {};
@@ -420,7 +436,18 @@ export class FakePrisma {
       return null;
     }
     const withCriteria: Row = { ...round, criteria: this.buildCriteria() };
-    return project(withCriteria, args.select) as Row;
+    // Handle _count.applicants if requested in select or include
+    const select = (args.select ?? args.include ?? {}) as Row;
+    if (
+      (select._count as Row | undefined)?.select?.applicants ||
+      (select._count as Row | undefined)?.applicants === true
+    ) {
+      const applicantCount = this.data.applicants.filter(
+        (a) => a['roundId'] === id,
+      ).length;
+      withCriteria._count = { applicants: applicantCount };
+    }
+    return project(withCriteria, select) as Row;
   }
 
   private findApplicant(args: LooseArgs): Row | null {
@@ -438,8 +465,12 @@ export class FakePrisma {
         round === undefined
           ? null
           : { ...round, criteria: this.buildCriteria() },
+      contact: applicant.contact ?? null,
+      supportingInfo: applicant.supportingInfo ?? null,
     };
-    return project(withRelations, args.select) as Row;
+    // Handle both select and include (service uses include)
+    const select = (args.select ?? args.include ?? {}) as Row;
+    return project(withRelations, select) as Row;
   }
 
   private findManyApplicants(args: LooseArgs): Row[] {

@@ -104,7 +104,11 @@ function call(
   app: INestApplication,
   method: HttpMethod,
   path: string,
-  options: { userId?: number; body?: unknown } = {},
+  options: {
+    userId?: number;
+    body?: unknown;
+    headers?: Record<string, string>;
+  } = {},
 ) {
   const base = request(app.getHttpServer() as App);
   const req =
@@ -115,6 +119,11 @@ function call(
         : base.put(API + path);
   if (options.userId !== undefined) {
     req.set('X-User-Id', String(options.userId));
+  }
+  if (options.headers) {
+    for (const [key, value] of Object.entries(options.headers)) {
+      req.set(key, value);
+    }
   }
   if (options.body !== undefined) {
     req.send(options.body as object);
@@ -190,8 +199,8 @@ function expectErrorShape(
 
 const VALID_BODY = { items: [{ subCriteriaId: 1, score: 10 }] };
 
-// ทั้ง 6 endpoints ตามโจทย์
-const ALL_ENDPOINTS: Array<{
+// 3 เส้นที่รวมแล้ว (admin + evaluator เข้าได้ทั้งคู่)
+const UNIFIED_ENDPOINTS: Array<{
   method: HttpMethod;
   path: string;
   body?: unknown;
@@ -199,7 +208,20 @@ const ALL_ENDPOINTS: Array<{
   { method: 'get', path: '/scholarship-rounds/2/applicants' },
   { method: 'get', path: '/scholarship-rounds/2' },
   { method: 'get', path: '/applicants/1' },
-  { method: 'get', path: '/applicants/1/my-evaluation' },
+];
+
+// เส้น evaluator-only: GET เท่านั้น (ใช้ทดสอบ guard behavior)
+const EVALUATOR_ONLY_GET_ENDPOINTS: Array<{
+  method: HttpMethod;
+  path: string;
+}> = [{ method: 'get', path: '/applicants/1/my-evaluation' }];
+
+// เส้น evaluator-only: PUT/POST (ต้องการ body เฉพาะ ทดสอบแยกใน flow test)
+const EVALUATOR_ONLY_MUTATING_ENDPOINTS: Array<{
+  method: HttpMethod;
+  path: string;
+  body: unknown;
+}> = [
   { method: 'put', path: '/applicants/1/my-evaluation', body: VALID_BODY },
   { method: 'post', path: '/applicants/1/my-evaluation/submit', body: {} },
 ];
@@ -376,40 +398,307 @@ describe('Evaluation API (e2e) — privacy & peer-blind', () => {
 
   // =========================================================================
   describe('guards ครบทั้ง 6 endpoints', () => {
-    it('ไม่มี X-User-Id -> 401 UNAUTHORIZED ทุก endpoint', async () => {
-      for (const endpoint of ALL_ENDPOINTS) {
-        const res = await call(app, endpoint.method, endpoint.path, {
-          body: endpoint.body,
+    describe('เส้นที่รวมแล้ว (UNIFIED): admin และ evaluator เข้าได้ทั้งคู่', () => {
+      it('ไม่มี X-User-Id -> 401 UNAUTHORIZED', async () => {
+        for (const endpoint of UNIFIED_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            body: endpoint.body,
+          }).expect(401);
+          expectErrorShape(res, 401, 'UNAUTHORIZED');
+        }
+      });
+
+      it('admin (id 1) -> 200 OK (admin path)', async () => {
+        for (const endpoint of UNIFIED_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            userId: ADMIN_ID,
+            body: endpoint.body,
+          }).expect(200);
+          const body = bodyOf<Record<string, unknown>>(res);
+          expect(body.success).toBe(true);
+          expect(body.statusCode).toBe(200);
+        }
+      });
+
+      it('evaluator (id 2) -> 200 OK (evaluator path)', async () => {
+        for (const endpoint of UNIFIED_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            userId: EVALUATOR_A_ID,
+            body: endpoint.body,
+          }).expect(200);
+          const body = bodyOf<Record<string, unknown>>(res);
+          expect(body.success).toBe(true);
+          expect(body.statusCode).toBe(200);
+        }
+      });
+
+      it('user id ไม่มีอยู่จริง (999) -> 401 UNAUTHORIZED', async () => {
+        for (const endpoint of UNIFIED_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            userId: UNKNOWN_ID,
+            body: endpoint.body,
+          }).expect(401);
+          expectErrorShape(res, 401, 'UNAUTHORIZED');
+        }
+      });
+
+      it('บัญชีถูกปิดใช้งาน (id 4) -> 401 ACCOUNT_DEACTIVATED', async () => {
+        for (const endpoint of UNIFIED_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            userId: INACTIVE_ID,
+            body: endpoint.body,
+          }).expect(401);
+          expectErrorShape(res, 401, 'ACCOUNT_DEACTIVATED');
+        }
+      });
+    });
+
+    describe('เส้น evaluator-only (GET): admin ได้ 403, evaluator ได้ 200', () => {
+      it('ไม่มี X-User-Id -> 401 UNAUTHORIZED', async () => {
+        for (const endpoint of EVALUATOR_ONLY_GET_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path).expect(
+            401,
+          );
+          expectErrorShape(res, 401, 'UNAUTHORIZED');
+        }
+      });
+
+      it('admin (id 1) -> 403 FORBIDDEN', async () => {
+        for (const endpoint of EVALUATOR_ONLY_GET_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            userId: ADMIN_ID,
+          }).expect(403);
+          expectErrorShape(res, 403, 'FORBIDDEN');
+        }
+      });
+
+      it('evaluator (id 2) -> 200 OK', async () => {
+        for (const endpoint of EVALUATOR_ONLY_GET_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            userId: EVALUATOR_A_ID,
+          }).expect(200);
+          const body = bodyOf<Record<string, unknown>>(res);
+          expect(body.success).toBe(true);
+          expect(body.statusCode).toBe(200);
+        }
+      });
+
+      it('user id ไม่มีอยู่จริง (999) -> 401 UNAUTHORIZED', async () => {
+        for (const endpoint of EVALUATOR_ONLY_GET_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            userId: UNKNOWN_ID,
+          }).expect(401);
+          expectErrorShape(res, 401, 'UNAUTHORIZED');
+        }
+      });
+
+      it('บัญชีถูกปิดใช้งาน (id 4) -> 401 ACCOUNT_DEACTIVATED', async () => {
+        for (const endpoint of EVALUATOR_ONLY_GET_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            userId: INACTIVE_ID,
+          }).expect(401);
+          expectErrorShape(res, 401, 'ACCOUNT_DEACTIVATED');
+        }
+      });
+    });
+
+    describe('เส้น evaluator-only (PUT/POST): ต้องมี body ถูกต้อง (ทดสอบใน flow test แทน)', () => {
+      it('ไม่มี X-User-Id -> 401 UNAUTHORIZED', async () => {
+        for (const endpoint of EVALUATOR_ONLY_MUTATING_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            body: endpoint.body,
+          }).expect(401);
+          expectErrorShape(res, 401, 'UNAUTHORIZED');
+        }
+      });
+
+      it('admin (id 1) -> 403 FORBIDDEN', async () => {
+        for (const endpoint of EVALUATOR_ONLY_MUTATING_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            userId: ADMIN_ID,
+            body: endpoint.body,
+          }).expect(403);
+          expectErrorShape(res, 403, 'FORBIDDEN');
+        }
+      });
+
+      it('user id ไม่มีอยู่จริง (999) -> 401 UNAUTHORIZED', async () => {
+        for (const endpoint of EVALUATOR_ONLY_MUTATING_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            userId: UNKNOWN_ID,
+            body: endpoint.body,
+          }).expect(401);
+          expectErrorShape(res, 401, 'UNAUTHORIZED');
+        }
+      });
+
+      it('บัญชีถูกปิดใช้งาน (id 4) -> 401 ACCOUNT_DEACTIVATED', async () => {
+        for (const endpoint of EVALUATOR_ONLY_MUTATING_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            userId: INACTIVE_ID,
+            body: endpoint.body,
+          }).expect(401);
+          expectErrorShape(res, 401, 'ACCOUNT_DEACTIVATED');
+        }
+      });
+    });
+  });
+
+  // =========================================================================
+  describe('Role Dispatch — 7 กรณีบนเส้นที่รวมแล้ว (UNIFIED)', () => {
+    const unifiedPaths = [
+      '/scholarship-rounds/2/applicants',
+      '/scholarship-rounds/2',
+      '/applicants/1',
+    ];
+
+    // Case 1: Evaluator (X-User-Id 2) -> OPEN round = 200 with evaluator fields
+    it('Evaluator (X-User-Id 2) เรียก OPEN round -> 200 พร้อม submittedCount, myStatus, canStart', async () => {
+      for (const path of unifiedPaths) {
+        const res = await call(app, 'get', path, {
+          userId: EVALUATOR_A_ID,
+        }).expect(200);
+        const body = bodyOf<Record<string, unknown>>(res);
+        expect(body.success).toBe(true);
+        expect(body.statusCode).toBe(200);
+        // ตรวจสอบว่ามีฟิลด์ evaluator-specific (submittedCount, myStatus, canStart สำหรับ list)
+        if (path.includes('/applicants')) {
+          const listBody = bodyOf<{ data: Array<Record<string, unknown>> }>(
+            res,
+          );
+          if (listBody.data && listBody.data.length > 0) {
+            const item = listBody.data[0];
+            expect(item).toHaveProperty('submittedCount');
+            expect(item).toHaveProperty('myStatus');
+            expect(item).toHaveProperty('canStart');
+          }
+        }
+      }
+    });
+
+    // Case 1b: Evaluator เรียก DRAFT/CLOSED/missing round -> 404 same shape
+    it('Evaluator เรียก DRAFT/CLOSED/missing round -> 404 รูปเดียวกัน', async () => {
+      const notFoundCases = [
+        { path: '/scholarship-rounds/1/applicants', desc: 'DRAFT round list' },
+        { path: '/scholarship-rounds/1', desc: 'DRAFT round detail' },
+        { path: '/applicants/5', desc: 'DRAFT applicant' },
+        { path: '/scholarship-rounds/3/applicants', desc: 'CLOSED round list' },
+        { path: '/scholarship-rounds/3', desc: 'CLOSED round detail' },
+        { path: '/applicants/4', desc: 'CLOSED applicant' },
+        {
+          path: '/scholarship-rounds/9999/applicants',
+          desc: 'missing round list',
+        },
+        { path: '/scholarship-rounds/9999', desc: 'missing round detail' },
+        { path: '/applicants/9999', desc: 'missing applicant' },
+      ];
+      const bodies: unknown[] = [];
+      for (const { path } of notFoundCases) {
+        const res = await call(app, 'get', path, {
+          userId: EVALUATOR_A_ID,
+        }).expect(404);
+        expectErrorShape(res, 404, 'NOT_FOUND');
+        bodies.push(res.body);
+      }
+      assertSameErrorShape(bodies);
+    });
+
+    // Case 2: No X-User-Id and no x-user-role -> 401
+    it('ไม่มี X-User-Id และไม่มี x-user-role -> 401 UNAUTHORIZED', async () => {
+      for (const path of unifiedPaths) {
+        const res = await call(app, 'get', path).expect(401);
+        expectErrorShape(res, 401, 'UNAUTHORIZED');
+      }
+    });
+
+    // Case 3: X-User-Id of admin (id 1) -> admin path
+    it('X-User-Id ของ admin (id 1) -> admin path (teammate response)', async () => {
+      for (const path of unifiedPaths) {
+        const res = await call(app, 'get', path, { userId: ADMIN_ID }).expect(
+          200,
+        );
+        const body = bodyOf<Record<string, unknown>>(res);
+        expect(body.success).toBe(true);
+        expect(body.statusCode).toBe(200);
+        // Admin response should NOT have evaluator-specific fields
+        if (path.includes('/applicants') && !path.includes('/my-evaluation')) {
+          const listBody = bodyOf<{ data: Array<Record<string, unknown>> }>(
+            res,
+          );
+          if (listBody.data && listBody.data.length > 0) {
+            const item = listBody.data[0];
+            expect(item).not.toHaveProperty('submittedCount');
+            expect(item).not.toHaveProperty('myStatus');
+            expect(item).not.toHaveProperty('canStart');
+            // Admin response should have basic applicant fields (not evaluator-specific)
+            expect(item).toHaveProperty('studentCode');
+            expect(item).toHaveProperty('firstName');
+          }
+        }
+      }
+    });
+
+    // Case 4: x-user-role ADMIN without X-User-Id -> admin path (legacy)
+    it('x-user-role ADMIN โดยไม่มี X-User-Id -> admin path (legacy)', async () => {
+      for (const path of unifiedPaths) {
+        const res = await call(app, 'get', path, {
+          headers: { 'x-user-role': 'ADMIN' },
+        }).expect(200);
+        const body = bodyOf<Record<string, unknown>>(res);
+        expect(body.success).toBe(true);
+        expect(body.statusCode).toBe(200);
+      }
+    });
+
+    // Case 5: x-user-role EVALUATOR without X-User-Id -> 401
+    it('x-user-role EVALUATOR โดยไม่มี X-User-Id -> 401 UNAUTHORIZED', async () => {
+      for (const path of unifiedPaths) {
+        const res = await call(app, 'get', path, {
+          headers: { 'x-user-role': 'EVALUATOR' },
         }).expect(401);
         expectErrorShape(res, 401, 'UNAUTHORIZED');
       }
     });
 
-    it('admin (id 1) -> 403 FORBIDDEN ทุก endpoint', async () => {
-      for (const endpoint of ALL_ENDPOINTS) {
-        const res = await call(app, endpoint.method, endpoint.path, {
-          userId: ADMIN_ID,
-          body: endpoint.body,
-        }).expect(403);
-        expectErrorShape(res, 403, 'FORBIDDEN');
+    // Case 6: X-User-Id evaluator + x-user-role ADMIN -> still EVALUATOR (DB wins)
+    it('X-User-Id evaluator + x-user-role ADMIN -> เป็น EVALUATOR (DB wins)', async () => {
+      for (const path of unifiedPaths) {
+        const res = await call(app, 'get', path, {
+          userId: EVALUATOR_A_ID,
+          headers: { 'x-user-role': 'ADMIN' },
+        }).expect(200);
+        const body = bodyOf<Record<string, unknown>>(res);
+        expect(body.success).toBe(true);
+        expect(body.statusCode).toBe(200);
+        // Should get evaluator response (with submittedCount, myStatus, canStart), not admin
+        if (path.includes('/applicants') && !path.includes('/my-evaluation')) {
+          const listBody = bodyOf<{ data: Array<Record<string, unknown>> }>(
+            res,
+          );
+          if (listBody.data && listBody.data.length > 0) {
+            const item = listBody.data[0];
+            expect(item).toHaveProperty('submittedCount');
+            expect(item).toHaveProperty('myStatus');
+            expect(item).toHaveProperty('canStart');
+          }
+        }
       }
     });
 
-    it('user id ไม่มีอยู่จริง (999) -> 401 UNAUTHORIZED ทุก endpoint', async () => {
-      for (const endpoint of ALL_ENDPOINTS) {
-        const res = await call(app, endpoint.method, endpoint.path, {
-          userId: UNKNOWN_ID,
-          body: endpoint.body,
-        }).expect(401);
+    // Case 7: Unknown or inactive X-User-Id -> 401
+    it('X-User-Id ไม่มีอยู่จริง (999) -> 401 UNAUTHORIZED', async () => {
+      for (const path of unifiedPaths) {
+        const res = await call(app, 'get', path, { userId: UNKNOWN_ID }).expect(
+          401,
+        );
         expectErrorShape(res, 401, 'UNAUTHORIZED');
       }
     });
 
-    it('บัญชีถูกปิดใช้งาน (id 4) -> 401 ACCOUNT_DEACTIVATED ทุก endpoint', async () => {
-      for (const endpoint of ALL_ENDPOINTS) {
-        const res = await call(app, endpoint.method, endpoint.path, {
+    it('X-User-Id บัญชีปิดใช้งาน (id 4) -> 401 ACCOUNT_DEACTIVATED', async () => {
+      for (const path of unifiedPaths) {
+        const res = await call(app, 'get', path, {
           userId: INACTIVE_ID,
-          body: endpoint.body,
         }).expect(401);
         expectErrorShape(res, 401, 'ACCOUNT_DEACTIVATED');
       }
