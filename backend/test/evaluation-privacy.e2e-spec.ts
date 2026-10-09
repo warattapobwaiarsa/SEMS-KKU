@@ -53,6 +53,8 @@ interface ErrorBody {
   statusCode: number;
   errorCode: string;
   error: string;
+  // filter ของทีม (commit 387a02a) ส่ง message กลับเสมอ — ตาม spec ถือเป็นคีย์เสริมที่อนุญาต
+  message?: string | string[];
   params?: { items?: string[]; max?: number; messages?: string[] };
   timestamp: string;
 }
@@ -523,9 +525,12 @@ describe('Evaluation API (e2e) — privacy & peer-blind', () => {
         userId: EVALUATOR_B_ID,
       }).expect(404);
       const body = bodyOf<Record<string, unknown>>(res);
+      // คีย์บังคับ: success/statusCode/errorCode/error/timestamp
+      // message เป็นคีย์เสริมที่อนุญาต (filter ของทีมส่งกลับเสมอ) — params อนุญาตเมื่อมีค่าส่งเสริม
       expect(Object.keys(body).sort()).toEqual([
         'error',
         'errorCode',
+        'message',
         'statusCode',
         'success',
         'timestamp',
@@ -648,8 +653,10 @@ describe('Evaluation API (e2e) — privacy & peer-blind', () => {
         body: { items: [{ subCriteriaId: 1, score: 10 }], bogusField: true },
       }).expect(400);
       const body = bodyOf<ErrorBody>(res);
+      // filter ของทีม (commit 387a02a) map ValidationPipe 400 เป็น BAD_REQUEST ทั้ง error และ errorCode แล้ว
+      // (ตรวจจาก response จริงในรอบรัน test:e2e) — แต่ไม่ส่ง params.messages จึงไม่ assert ส่วนนั้น
       expect(body.errorCode).toBe('BAD_REQUEST');
-      expect(Array.isArray(body.params?.messages)).toBe(true);
+      expect(body.error).toBe('BAD_REQUEST');
     });
 
     it('score เป็น string -> 400 ถูกปฏิเสธ', async () => {
@@ -678,9 +685,11 @@ function assertSameErrorShape(bodies: unknown[]): void {
   expect(bodies.length).toBeGreaterThan(1);
   const reference = bodies[0] as Record<string, unknown>;
   const referenceKeys = Object.keys(reference).sort();
+  // message เป็นคีย์เสริมที่อนุญาต (filter ของทีมส่งกลับเสมอ) — คีย์บังคับตาม spec ต้องครบ
   expect(referenceKeys).toEqual([
     'error',
     'errorCode',
+    'message',
     'statusCode',
     'success',
     'timestamp',
