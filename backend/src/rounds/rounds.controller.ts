@@ -28,7 +28,6 @@ import {
 import { EvaluationReadService } from '../evaluation/evaluation-read.service';
 
 @Controller('scholarship-rounds')
-@UseGuards(RoleDispatchGuard)
 export class RoundsController {
   constructor(
     private readonly roundsService: RoundsService,
@@ -65,6 +64,7 @@ export class RoundsController {
   }
 
   @Get(':id')
+  @UseGuards(RoleDispatchGuard)
   async findOne(
     @Param('id', ParseIntPipe) id: number,
     @Headers('x-user-role') roleHeader?: string,

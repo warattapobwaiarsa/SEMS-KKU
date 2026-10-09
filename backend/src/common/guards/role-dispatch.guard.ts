@@ -2,9 +2,17 @@
  * ชั่วคราว: จะถูกแทนที่ด้วย KKU SSO ภายหลัง [FR-AUTH-01]
  *
  * Guard สำหรับ "จำแนกบทบาท" บน route ที่ Admin และ Evaluator ใช้ร่วมกัน
- * - ถ้ามี header X-User-Id: ใช้ MockAuthGuard logic (โหลด user จาก DB, ต้อง active) -> ใช้ role จาก DB
- * - ถ้าไม่มี X-User-Id: อนุญาตเฉพาะ legacy admin path เมื่อ header x-user-role = ADMIN
- * - คืนค่า: 'ADMIN' | 'EVALUATOR' | null (null = 401 UNAUTHORIZED)
+ * (ใช้กับ 3 เส้น shared routes เท่านั้น: GET /scholarship-rounds/:id,
+ *  GET /scholarship-rounds/:roundId/applicants, GET /applicants/:id)
+ *
+ * กฎการ resolve role (สำหรับ 3 เส้น read routes นี้เท่านั้น):
+ * 1) มี X-User-Id: authenticate แบบ MockAuthGuard (โหลดจาก DB, ต้อง active)
+ *    -> ใช้ role จาก DB (database wins, x-user-role ถูกข้าม)
+ * 2) ไม่มี X-User-Id + x-user-role = ADMIN: admin path (legacy behavior)
+ * 3) ไม่มี X-User-Id + x-user-role = EVALUATOR (หรือค่าอื่น): 401
+ * 4) ไม่มี X-User-Id + ไม่มี x-user-role header: legacy admin path
+ *    (TEMPORARY relaxation จนกว่าจะมี KKU SSO [FR-AUTH-01];
+ *     Evaluator ต้องส่ง X-User-Id เสมอถึงจะได้ข้อมูล evaluator)
  */
 import {
   CanActivate,
@@ -57,13 +65,13 @@ export class RoleDispatchGuard implements CanActivate {
       // แนบ user ไว้ให้ RolesGuard / controller ใช้ต่อ
       request.user = user;
 
-      // เก็บ resolved role ไว้บน request
+      // เก็บ resolved role ไว้บน request (database wins)
       request.resolvedRole =
         user.role === UserRole.ADMIN ? 'ADMIN' : 'EVALUATOR';
       return true;
     }
 
-    // 2) ไม่มี X-User-Id -> อนุญาต legacy admin path เฉพาะ x-user-role = ADMIN
+    // 2) ไม่มี X-User-Id -> ตรวจสอบ x-user-role / userRole
     const rawRoleHeader = request.headers['x-user-role'];
     const roleHeader = Array.isArray(rawRoleHeader)
       ? rawRoleHeader[0]
@@ -81,7 +89,16 @@ export class RoleDispatchGuard implements CanActivate {
       return true;
     }
 
-    // 3) อื่นๆ ทั้งหมด -> 401 (Evaluator ต้องส่ง X-User-Id เสมอ)
-    throw new AppException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
+    // 3) x-user-role = EVALUATOR (หรือค่าอื่น) โดยไม่มี X-User-Id -> 401
+    // Evaluator ต้องส่ง X-User-Id เสมอถึงจะได้ข้อมูล evaluator
+    if (legacyRole !== undefined && legacyRole !== '') {
+      throw new AppException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
+    }
+
+    // 4) ไม่มี X-User-Id + ไม่มี x-user-role header -> legacy admin path
+    // TEMPORARY relaxation สำหรับ 3 เส้น read routes นี้จนกว่าจะมี KKU SSO [FR-AUTH-01]
+    // หมายเหตุ: Evaluator ต้องส่ง X-User-Id เสมอถึงจะได้ข้อมูล evaluator
+    request.resolvedRole = 'ADMIN';
+    return true;
   }
 }

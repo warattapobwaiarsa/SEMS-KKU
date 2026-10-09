@@ -399,9 +399,33 @@ describe('Evaluation API (e2e) — privacy & peer-blind', () => {
   // =========================================================================
   describe('guards ครบทั้ง 6 endpoints', () => {
     describe('เส้นที่รวมแล้ว (UNIFIED): admin และ evaluator เข้าได้ทั้งคู่', () => {
-      it('ไม่มี X-User-Id -> 401 UNAUTHORIZED', async () => {
+      it('ไม่มี X-User-Id และไม่มี x-user-role -> 200 OK (legacy admin path, TEMPORARY relaxation)', async () => {
         for (const endpoint of UNIFIED_ENDPOINTS) {
           const res = await call(app, endpoint.method, endpoint.path, {
+            body: endpoint.body,
+          }).expect(200);
+          const body = bodyOf<Record<string, unknown>>(res);
+          expect(body.success).toBe(true);
+          expect(body.statusCode).toBe(200);
+        }
+      });
+
+      it('ไม่มี X-User-Id แต่มี x-user-role: ADMIN -> 200 OK (legacy admin path)', async () => {
+        for (const endpoint of UNIFIED_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            headers: { 'x-user-role': 'ADMIN' },
+            body: endpoint.body,
+          }).expect(200);
+          const body = bodyOf<Record<string, unknown>>(res);
+          expect(body.success).toBe(true);
+          expect(body.statusCode).toBe(200);
+        }
+      });
+
+      it('ไม่มี X-User-Id แต่มี x-user-role: EVALUATOR -> 401 UNAUTHORIZED', async () => {
+        for (const endpoint of UNIFIED_ENDPOINTS) {
+          const res = await call(app, endpoint.method, endpoint.path, {
+            headers: { 'x-user-role': 'EVALUATOR' },
             body: endpoint.body,
           }).expect(401);
           expectErrorShape(res, 401, 'UNAUTHORIZED');
@@ -603,11 +627,25 @@ describe('Evaluation API (e2e) — privacy & peer-blind', () => {
       assertSameErrorShape(bodies);
     });
 
-    // Case 2: No X-User-Id and no x-user-role -> 401
-    it('ไม่มี X-User-Id และไม่มี x-user-role -> 401 UNAUTHORIZED', async () => {
+    // Case 2: No X-User-Id and no x-user-role -> 200 (legacy admin path, TEMPORARY relaxation)
+    it('ไม่มี X-User-Id และไม่มี x-user-role -> 200 OK (legacy admin path, TEMPORARY)', async () => {
       for (const path of unifiedPaths) {
-        const res = await call(app, 'get', path).expect(401);
-        expectErrorShape(res, 401, 'UNAUTHORIZED');
+        const res = await call(app, 'get', path).expect(200);
+        const body = bodyOf<Record<string, unknown>>(res);
+        expect(body.success).toBe(true);
+        expect(body.statusCode).toBe(200);
+        // ควรเป็น admin path (ไม่มี evaluator-specific fields)
+        if (path.includes('/applicants') && !path.includes('/my-evaluation')) {
+          const listBody = bodyOf<{ data: Array<Record<string, unknown>> }>(
+            res,
+          );
+          if (listBody.data && listBody.data.length > 0) {
+            const item = listBody.data[0];
+            expect(item).not.toHaveProperty('submittedCount');
+            expect(item).not.toHaveProperty('myStatus');
+            expect(item).not.toHaveProperty('canStart');
+          }
+        }
       }
     });
 

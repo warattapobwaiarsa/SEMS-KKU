@@ -30,7 +30,6 @@ import { EvaluationReadService } from '../evaluation/evaluation-read.service';
 import { User } from '@prisma/client';
 
 @Controller()
-@UseGuards(RoleDispatchGuard)
 export class ApplicantsController {
   constructor(
     private readonly applicantsService: ApplicantsService,
@@ -92,6 +91,7 @@ export class ApplicantsController {
 
   @Get('scholarship-rounds/:roundId/applicants')
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  @UseGuards(RoleDispatchGuard)
   async findAll(
     @Param('roundId', ParseIntPipe) roundId: number,
     @Query() query: QueryApplicantDto,
@@ -128,6 +128,7 @@ export class ApplicantsController {
   }
 
   @Get('applicants/:id')
+  @UseGuards(RoleDispatchGuard)
   async findOne(
     @Param('id', ParseIntPipe) id: number,
     @Headers('x-user-role') roleHeader?: string,
