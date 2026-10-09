@@ -27,7 +27,7 @@ export class AppException extends HttpException {
     statusCode: number,
     params?: Record<string, unknown>,
   ) {
-    super({ errorCode, params }, statusCode);
+    super({ errorCode, params, message: errorCode }, statusCode);
     this.errorCode = errorCode;
     this.params = params;
   }
