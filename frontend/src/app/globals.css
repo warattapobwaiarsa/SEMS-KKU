@@ -66,6 +66,19 @@ input[type="number"] {
   transform: scale(0.96);
 }
 
+/* Skeleton loading animation */
+@keyframes skeleton-pulse {
+  0% { background-color: #e5e7eb; }
+  50% { background-color: #d1d5db; }
+  100% { background-color: #e5e7eb; }
+}
+
+.skeleton-bar {
+  background: linear-gradient(90deg, #e5e7eb 25%, #d1d5db 50%, #e5e7eb 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
 /* Accessible reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .animate-spring-pop {
@@ -78,5 +91,8 @@ input[type="number"] {
   }
   .btn-interactive:active {
     transform: none !important;
+  }
+  .skeleton-bar {
+    animation: none !important;
   }
 }
