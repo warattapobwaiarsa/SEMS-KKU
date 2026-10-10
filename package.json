@@ -23,7 +23,7 @@
     "prisma:generate": "npm run --workspace=backend prisma generate",
     "prisma:migrate": "npm run --workspace=backend prisma migrate dev",
     "prisma:seed": "npm run --workspace=backend prisma db seed",
-    "prepare": "husky"
+    "prepare": "node -e \"if (!process.env.CI) { require('child_process').spawnSync('husky', { stdio: 'inherit', shell: true }) }\""
   },
   "lint-staged": {
     "backend/**/*.ts": [
