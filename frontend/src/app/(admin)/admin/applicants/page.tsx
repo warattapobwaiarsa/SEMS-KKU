@@ -150,7 +150,7 @@ export default function ApplicantsPage() {
         moduleBadge="การจัดการผู้สมัครทุน"
         moduleBadgeIcon={Users}
         title="ผู้สมัครทุนการศึกษา"
-        description="ตรวจสอบรายชื่อ ค้นหา และนำเข้าข้อมูลผู้สมัครทุนการศึกษาจากไฟล์ Excel (ตามกฎ BR-IMP-01 ถึง BR-IMP-23)"
+        description="ตรวจสอบรายชื่อ ค้นหา และนำเข้าข้อมูลผู้สมัครทุนการศึกษาจากไฟล์ Excel"
         action={
           isRoundDraft ? (
             <button

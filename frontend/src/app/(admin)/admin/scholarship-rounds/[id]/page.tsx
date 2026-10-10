@@ -91,7 +91,7 @@ export default function RoundDetailPage() {
       return;
     }
     if (editAcademicYear < 2550 || editAcademicYear > 2700) {
-      setEditError('ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700 (BR-RND-01)');
+      setEditError('ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700');
       return;
     }
     try {
@@ -412,7 +412,7 @@ export default function RoundDetailPage() {
             {round.status === 'DRAFT' ? (
               <div className="space-y-4">
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  คุณสามารถเปลี่ยนหรือถอดชุดเกณฑ์ได้เฉพาะในสถานะร่าง (Draft) เท่านั้น เมื่อเปิดรอบทุนแล้วจะไม่สามารถแก้ไขชุดเกณฑ์ได้ (ตามกฎ BR-RND-07)
+                  คุณสามารถเปลี่ยนหรือถอดชุดเกณฑ์ได้เฉพาะในสถานะร่าง (Draft) เท่านั้น เมื่อเปิดรอบทุนแล้วจะไม่สามารถแก้ไขชุดเกณฑ์ได้
                 </p>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
                   <Select
@@ -466,7 +466,7 @@ export default function RoundDetailPage() {
 
             <div className="space-y-3">
               <p className="text-xs text-slate-600 leading-relaxed">
-                การนำเข้าข้อมูลผู้สมัครทำผ่านไฟล์ Excel (.xlsx) ตามรูปแบบของระบบ ข้อมูลจะถูกเข้ารหัสเลขบัตรประชาชนอัตโนมัติ (ตามกฎ BR-IMP-01 ถึง BR-IMP-23, BR-PDP-06)
+                การนำเข้าข้อมูลผู้สมัครทำผ่านไฟล์ Excel (.xlsx) ตามรูปแบบของระบบ ข้อมูลจะถูกเข้ารหัสเลขบัตรประชาชนอัตโนมัติ
               </p>
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -504,7 +504,7 @@ export default function RoundDetailPage() {
               <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                   <CheckCircle2 className={`h-5 w-5 ${isDraftRoundReady ? 'text-emerald-600' : 'text-amber-500'}`} />
-                  ความพร้อมสำหรับเปิดรอบ (BR-RND-08)
+                  เงื่อนไขความพร้อมในการเปิดรอบ
                 </h3>
                 <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
                   isDraftRoundReady 
@@ -557,7 +557,7 @@ export default function RoundDetailPage() {
 
               {round.lastInvalidRowsCount > 0 && (
                 <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium leading-relaxed">
-                  ℹ️ มีแถวที่ไม่ผ่านจากการนำเข้าล่าสุด {round.lastInvalidRowsCount} แถว (รับทราบและเปิดรอบได้ตามกฎ BR-RND-09)
+                  ℹ️ มีแถวที่ไม่ผ่านจากการนำเข้าล่าสุด {round.lastInvalidRowsCount} แถว (สามารถเปิดรอบได้ตามปกติ)
                 </div>
               )}
 
@@ -677,7 +677,7 @@ export default function RoundDetailPage() {
                   </div>
                 )}
                 {editAcademicYear && (editAcademicYear < 2550 || editAcademicYear > 2700) && !(editAcademicYear >= 2000 && editAcademicYear <= 2150) && (
-                  <p className="text-xs text-destructive">ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700 (BR-RND-01)</p>
+                  <p className="text-xs text-destructive">ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700</p>
                 )}
               </div>
 
@@ -727,7 +727,7 @@ export default function RoundDetailPage() {
             />
             <ModalBody className="space-y-4">
               <p className="text-xs font-medium text-muted-foreground">
-                ระบบจะตรวจสอบเงื่อนไขความพร้อม 3 ข้อสำคัญตามกฎธุรกิจ (FR-RND-08):
+                ระบบจะตรวจสอบเงื่อนไขความพร้อม 3 ข้อสำคัญก่อนเปิดรอบ:
               </p>
 
               <div className="space-y-2 text-xs">
@@ -757,7 +757,7 @@ export default function RoundDetailPage() {
 
               {readiness.lastInvalidRowsCount > 0 && (
                 <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-medium leading-relaxed">
-                  ℹ️ มีแถวที่ไม่ผ่านจากการนำเข้าล่าสุด {readiness.lastInvalidRowsCount} แถว (รับทราบและเปิดรอบได้ตามกฎ FR-RND-09)
+                  ℹ️ มีแถวที่ไม่ผ่านจากการนำเข้าล่าสุด {readiness.lastInvalidRowsCount} แถว (สามารถเปิดรอบได้ตามปกติ)
                 </div>
               )}
 
@@ -826,7 +826,7 @@ export default function RoundDetailPage() {
                       พบผู้สมัครที่ยังไม่มีผลประเมิน Submitted ({closeCheck.unsubmittedCount} คน)
                     </div>
                     <p className="leading-relaxed">
-                      หากปิดรอบ ผู้สมัครที่ไม่มีผลประเมินจะได้รับคะแนน 0.00 และผลการประเมินแบบร่างทั้งหมดจะถูกล็อกถาวร (ตามกฎ FR-RND-12, FR-RND-13)
+                      หากปิดรอบ ผู้สมัครที่ไม่มีผลประเมินจะได้รับคะแนน 0.00 และผลการประเมินแบบร่างทั้งหมดจะถูกล็อกถาวร
                     </p>
                   </div>
 

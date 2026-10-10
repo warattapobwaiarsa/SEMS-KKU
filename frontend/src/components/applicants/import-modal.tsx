@@ -66,11 +66,11 @@ export function ImportApplicantModal({
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (!file.name.toLowerCase().endsWith('.xlsx')) {
-        setErrorMessage('กรุณาเลือกไฟล์ที่มีนามสกุล .xlsx เท่านั้น (ตามกฎ BR-IMP-02)');
+        setErrorMessage('กรุณาเลือกไฟล์ที่มีนามสกุล .xlsx เท่านั้น');
         return;
       }
       if (file.size > 50 * 1024 * 1024) {
-        setErrorMessage('ขนาดไฟล์ต้องไม่เกิน 50 MB (ตามกฎ BR-IMP-02)');
+        setErrorMessage('ขนาดไฟล์ต้องไม่เกิน 50 MB');
         return;
       }
       setSelectedFile(file);
@@ -116,7 +116,7 @@ export function ImportApplicantModal({
   const handleConfirmImport = async () => {
     if (!previewData) return;
     if (previewData.invalidRows > 0 && !acknowledged) {
-      setErrorMessage('กรุณากดรับทราบข้อมูลที่ไม่ผ่านเกณฑ์ก่อนยืนยันนำเข้า (ตามกฎ BR-IMP-11)');
+      setErrorMessage('กรุณากดรับทราบข้อมูลที่ไม่ผ่านเกณฑ์ก่อนยืนยันนำเข้า');
       return;
     }
     try {
@@ -225,7 +225,7 @@ export function ImportApplicantModal({
                 )}
               </p>
               <p className="text-xs text-muted-foreground/80 pt-1">
-                ระบบได้เข้ารหัสเลขประจำตัวประชาชน (AES-256-GCM) และบันทึก Audit Log เรียบร้อยแล้ว (BR-PDP-06)
+                ระบบได้เข้ารหัสเลขประจำตัวประชาชน (AES-256-GCM) และบันทึกประวัติการนำเข้าเรียบร้อยแล้ว
               </p>
             </div>
           </div>
@@ -263,7 +263,7 @@ export function ImportApplicantModal({
                     คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวางที่นี่
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    รองรับเฉพาะไฟล์ Excel (.xlsx) ขนาดไม่เกิน 50 MB (ตามกฎ BR-IMP-02)
+                    รองรับเฉพาะไฟล์ Excel (.xlsx) ขนาดไม่เกิน 50 MB
                   </p>
                 </div>
               )}
@@ -273,15 +273,15 @@ export function ImportApplicantModal({
             <div className="p-4 bg-muted/30 border border-border/70 rounded-2xl space-y-2.5 text-xs text-muted-foreground">
               <div className="flex items-center gap-2 font-bold text-foreground">
                 <Info className="h-4 w-4 text-primary shrink-0" />
-                <span>ข้อกำหนดและโครงสร้างของไฟล์นำเข้า (BR-IMP-03 ถึง BR-IMP-23)</span>
+                <span>ข้อกำหนดและโครงสร้างของไฟล์นำเข้า</span>
               </div>
               <ul className="list-disc list-inside space-y-1 pl-1 text-muted-foreground leading-relaxed">
-                <li>ระบบจะอ่านเฉพาะชีตชื่อ <strong className="text-foreground">&quot;Data&quot;</strong> โดยเริ่มอ่านข้อมูลตั้งแต่แถวที่ 3 (BR-IMP-18)</li>
-                <li><strong className="text-foreground">คอลัมน์บังคับ 11 คอลัมน์:</strong> รหัสนักศึกษา, คำนำหน้า, ชื่อ, สกุล, คณะ, สาขา, ชั้นปี, GPA, โทรศัพท์, อีเมล, เลขบัตรประชาชน (ห้ามเว้นว่าง BR-IMP-03)</li>
-                <li>รหัสนักศึกษาห้ามซ้ำกันภายในไฟล์เดียวกัน (BR-IMP-04)</li>
-                <li>GPA ต้องอยู่ในช่วง 0.00–4.00 (BR-IMP-05) และเลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก (BR-IMP-06)</li>
-                <li>เบอร์โทรศัพท์ 9 หลักที่เลข 0 นำหน้าหาย ระบบจะเติม 0 ให้อัตโนมัติ (BR-IMP-08)</li>
-                <li><strong className="text-destructive">คำเตือน:</strong> การนำเข้าจะ <strong className="text-destructive">แทนที่ (Replace)</strong> ข้อมูลผู้สมัครเดิมทั้งหมดของรอบนี้ (BR-IMP-13)</li>
+                <li>ระบบจะอ่านเฉพาะชีตชื่อ <strong className="text-foreground">&quot;Data&quot;</strong> โดยเริ่มอ่านข้อมูลตั้งแต่แถวที่ 3</li>
+                <li><strong className="text-foreground">คอลัมน์บังคับ 11 คอลัมน์:</strong> รหัสนักศึกษา, คำนำหน้า, ชื่อ, สกุล, คณะ, สาขา, ชั้นปี, GPA, โทรศัพท์, อีเมล, เลขบัตรประชาชน (ห้ามเว้นว่าง)</li>
+                <li>รหัสนักศึกษาห้ามซ้ำกันภายในไฟล์เดียวกัน</li>
+                <li>GPA ต้องอยู่ในช่วง 0.00–4.00 และเลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก</li>
+                <li>เบอร์โทรศัพท์ 9 หลักที่เลข 0 นำหน้าหาย ระบบจะเติม 0 ให้อัตโนมัติ</li>
+                <li><strong className="text-destructive">คำเตือน:</strong> การนำเข้าจะ <strong className="text-destructive">แทนที่ (Replace)</strong> ข้อมูลผู้สมัครเดิมทั้งหมดของรอบนี้</li>
               </ul>
             </div>
           </div>
@@ -471,11 +471,11 @@ export function ImportApplicantModal({
               </div>
             )}
 
-            {/* Replace Warning & Acknowledgement Area (BR-IMP-11, BR-IMP-13) */}
+            {/* Replace Warning & Acknowledgement Area */}
             <div className="space-y-3 pt-1">
               <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
-                <span>การยืนยันนำเข้าจะ <strong className="underline">แทนที่ (Replace)</strong> ข้อมูลผู้สมัครเดิมทั้งหมดของรอบนี้ (BR-IMP-13)</span>
+                <span>การยืนยันนำเข้าจะ <strong className="underline">แทนที่ (Replace)</strong> ข้อมูลผู้สมัครเดิมทั้งหมดของรอบนี้</span>
               </div>
 
               {previewData.invalidRows > 0 && (
@@ -487,7 +487,7 @@ export function ImportApplicantModal({
                     className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
                   />
                   <span className="text-xs text-foreground leading-relaxed font-medium">
-                    ข้าพเจ้ารับทราบว่ามีข้อมูลที่ไม่ผ่านเกณฑ์จำนวน <strong className="text-rose-600 dark:text-rose-400 font-mono">{previewData.invalidRows}</strong> รายการ ซึ่งจะไม่ถูกนำเข้า และยืนยันนำเข้าเฉพาะข้อมูลที่ผ่านเกณฑ์ (BR-IMP-11)
+                    ข้าพเจ้ารับทราบว่ามีข้อมูลที่ไม่ผ่านเกณฑ์จำนวน <strong className="text-rose-600 dark:text-rose-400 font-mono">{previewData.invalidRows}</strong> รายการ ซึ่งจะไม่ถูกนำเข้า และยืนยันนำเข้าเฉพาะข้อมูลที่ผ่านเกณฑ์
                   </span>
                 </label>
               )}

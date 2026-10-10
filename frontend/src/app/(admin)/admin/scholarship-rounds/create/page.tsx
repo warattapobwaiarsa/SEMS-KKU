@@ -43,7 +43,7 @@ export default function CreateScholarshipRoundPage() {
       return;
     }
     if (academicYear < 2550 || academicYear > 2700) {
-      setErrorMessage('ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700 (BR-RND-01)');
+      setErrorMessage('ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700');
       return;
     }
     if (saving) return;
@@ -156,7 +156,7 @@ export default function CreateScholarshipRoundPage() {
               </div>
             )}
             {academicYear && (academicYear < 2550 || academicYear > 2700) && !(academicYear >= 2000 && academicYear <= 2150) && (
-              <p className="text-xs text-rose-600">ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700 (BR-RND-01)</p>
+              <p className="text-xs text-rose-600">ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700</p>
             )}
           </div>
 
