@@ -13,13 +13,16 @@ import {
   Edit3, 
   Eye, 
   CheckCircle2, 
-  Sparkles 
+  Sparkles,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import { useDebounce } from '@/lib/use-debounce';
 
 export default function EvaluationCriteriaPage() {
   const [criteriaList, setCriteriaList] = useState<CriteriaDetail[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 400);
   const [page, setPage] = useState(1);
@@ -33,6 +36,7 @@ export default function EvaluationCriteriaPage() {
   const loadCriteria = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const res = await fetchCriteriaList({
         page,
         limit: 10,
@@ -44,6 +48,8 @@ export default function EvaluationCriteriaPage() {
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
+      setError(msg);
+      setCriteriaList([]);
       console.warn('API connection:', msg);
     } finally {
       setLoading(false);
@@ -99,6 +105,26 @@ export default function EvaluationCriteriaPage() {
         </button>
       </div>
 
+      {/* Error Alert with Retry */}
+      {error && (
+        <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 shrink-0" />
+            <div>
+              <p className="font-semibold">ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้</p>
+              <p className="text-xs text-destructive/90">{error} (เซิร์ฟเวอร์ Backend อาจกำลังเริ่มต้นระบบ กรุณารอสักครู่แล้วลองใหม่)</p>
+            </div>
+          </div>
+          <button
+            onClick={() => void loadCriteria()}
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold bg-destructive text-destructive-foreground rounded-xl hover:bg-destructive/90 transition cursor-pointer shrink-0 self-end sm:self-auto"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            ลองใหม่อีกครั้ง
+          </button>
+        </div>
+      )}
+
       {/* Main Table */}
       <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs">
         {loading ? (
@@ -106,7 +132,7 @@ export default function EvaluationCriteriaPage() {
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em]" />
             <p className="mt-4 text-sm text-muted-foreground animate-pulse">กำลังโหลดข้อมูลชุดเกณฑ์...</p>
           </div>
-        ) : criteriaList.length === 0 ? (
+        ) : error ? null : criteriaList.length === 0 ? (
           <div className="p-16 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/60 text-muted-foreground border border-border/60">
               <FileCheck2 className="h-7 w-7" />

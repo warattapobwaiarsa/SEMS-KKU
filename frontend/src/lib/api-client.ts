@@ -18,6 +18,8 @@ export class ApiError extends Error {
 export async function apiClient<T>(
   endpoint: string,
   options: RequestInit = {},
+  retries = 2,
+  retryDelayMs = 1500,
 ): Promise<T> {
   const url = endpoint.startsWith('http') ? endpoint : `${config.apiUrl}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
 
@@ -29,10 +31,22 @@ export async function apiClient<T>(
     headers.set('X-Requested-With', 'XMLHttpRequest');
   }
 
-  const res = await fetch(url, {
-    ...options,
-    headers,
-  });
+  const method = (options.method || 'GET').toUpperCase();
+  const isIdempotent = method === 'GET' || method === 'HEAD';
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (networkError) {
+    if (isIdempotent && retries > 0) {
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+      return apiClient<T>(endpoint, options, retries - 1, retryDelayMs * 1.5);
+    }
+    throw networkError;
+  }
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));

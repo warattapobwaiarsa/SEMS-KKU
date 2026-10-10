@@ -19,6 +19,7 @@ import type {
   ScoreFormValue,
   ScoreFormValues,
 } from '@/components/evaluator/score-input-row';
+import { Save, Send } from 'lucide-react';
 import {
   SaveStatusIndicator,
   type SaveStatus,
@@ -385,129 +386,174 @@ export default function EvaluatorScoringPage({
   const fullName = `${detail.titlePrefix}${detail.firstName} ${detail.lastName}`.trim();
 
   return (
-    <div className="flex-1 flex flex-col">
-      <PageHeader
-        title={`ประเมินผล: ${fullName}`}
-        description={`รหัสนักศึกษา: ${detail.studentCode}`}
-        backHref={`/evaluator/rounds/${roundId}/applicants`}
-        backLabel="กลับหน้ารายชื่อผู้สมัคร"
-        action={<StatusBadge label={statusBadge.label} variant={statusBadge.variant} />}
-      />
+    <div className="flex-1 flex flex-col lg:h-[calc(100vh-5rem)] lg:overflow-hidden -m-4 sm:-m-6 lg:-m-8 p-4 sm:p-6 lg:p-6 space-y-3 sm:space-y-4">
+      <div className="shrink-0 space-y-3">
+        <PageHeader
+          title={`ประเมินผล: ${fullName}`}
+          description={`รหัสนักศึกษา: ${detail.studentCode}`}
+          backHref={`/evaluator/rounds/${roundId}/applicants`}
+          backLabel="กลับหน้ารายชื่อผู้สมัคร"
+          action={
+            <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap justify-end">
+              {/* Unified Studio Status Capsule Bar */}
+              <div className="inline-flex items-center gap-3 px-3.5 py-1.5 rounded-2xl bg-card border border-border/80 shadow-2xs backdrop-blur-sm">
+                {/* 1. สถานะการบันทึกอัตโนมัติ (แสดงเมื่อมีสถานะ) */}
+                {!readOnly && saveStatus !== 'idle' && (
+                  <>
+                    <SaveStatusIndicator status={saveStatus} savedAt={savedAt} />
+                    <div className="h-4 w-px bg-border/80" />
+                  </>
+                )}
 
-      {/* แบนเนอร์: ส่งผลสำเร็จ */}
-      {successMessage && (
-        <div className="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
-          ✓ {successMessage}
-          {evaluation.submittedAt && (
-            <span className="block mt-1 text-sm text-emerald-700">
-              ส่งผลเมื่อ {new Date(evaluation.submittedAt).toLocaleString('th-TH')}
-            </span>
-          )}
-        </div>
-      )}
+                {/* 2. คะแนนรวม */}
+                <div className="flex items-center gap-1.5 text-xs">
+                  <span className="text-muted-foreground font-medium">คะแนน:</span>
+                  <span className="font-mono font-bold text-sm sm:text-base text-primary">
+                    {readOnly && evaluation.status === 'SUBMITTED' && evaluation.totalScore !== null
+                      ? evaluation.totalScore
+                      : totalScore}
+                  </span>
+                  <span className="font-mono text-muted-foreground text-[11px]">/ {maxTotal}</span>
+                </div>
 
-      {/* แบนเนอร์: อ่านอย่างเดียว (ส่งผลแล้ว) */}
-      {readOnly && evaluation.status === 'SUBMITTED' && (
-        <div className="mt-4 p-4 rounded-xl bg-slate-100 border border-slate-300 text-sm text-slate-700">
-          🔒 ส่งผลการประเมินแล้ว
-          {evaluation.submittedAt &&
-            ` เมื่อ ${new Date(evaluation.submittedAt).toLocaleString('th-TH')}`}{' '}
-          ไม่สามารถแก้ไขได้
-        </div>
-      )}
+                {/* เส้นคั่น */}
+                <div className="h-4 w-px bg-border/80" />
 
-      {/* แบนเนอร์: อ่านอย่างเดียว (รอบปิดระหว่างเขียน Draft) */}
-      {readOnly && evaluation.isLocked && (
-        <div className="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-800">
-          ⚠ รอบทุนนี้ปิดการประเมินแล้ว ไม่สามารถแก้ไขหรือส่งผลการประเมินเพิ่มเติมได้
-        </div>
-      )}
+                {/* 3. ฉบับ (ฉบับร่าง / ส่งแล้ว) */}
+                <StatusBadge label={statusBadge.label} variant={statusBadge.variant} />
+              </div>
+            </div>
+          }
+        />
 
-      {/* แบนเนอร์: บันทึกไม่สำเร็จ */}
-      {saveError && saveStatus === 'error' && (
-        <div className="mt-4 p-4 rounded-xl bg-rose-50 border border-rose-200 text-sm text-rose-700">
-          บันทึกไม่สำเร็จ: {saveError}
-        </div>
-      )}
+        {/* แบนเนอร์: ส่งผลสำเร็จ */}
+        {successMessage && (
+          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
+            ✓ {successMessage}
+            {evaluation.submittedAt && (
+              <span className="block mt-0.5 text-xs text-emerald-600">
+                ส่งผลเมื่อ {new Date(evaluation.submittedAt).toLocaleString('th-TH')}
+              </span>
+            )}
+          </div>
+        )}
 
-      {/* แบนเนอร์: ส่งผลไม่สำเร็จ (เช่น คะแนนไม่ครบ) */}
-      {submitError && (
-        <div className="mt-4 p-4 rounded-xl bg-rose-50 border border-rose-200 text-sm text-rose-700">
-          <p className="font-semibold">{submitError}</p>
-          {missingItems.length > 0 && (
-            <ul className="mt-2 list-disc list-inside text-sm">
-              {missingItems.map((title) => (
-                <li key={title}>{title}</li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+        {/* แบนเนอร์: อ่านอย่างเดียว (ส่งผลแล้ว) */}
+        {readOnly && evaluation.status === 'SUBMITTED' && (
+          <div className="p-3.5 rounded-xl bg-slate-100 border border-slate-300 text-sm text-slate-700">
+            🔒 ส่งผลการประเมินแล้ว
+            {evaluation.submittedAt &&
+              ` เมื่อ ${new Date(evaluation.submittedAt).toLocaleString('th-TH')}`}{' '}
+            ไม่สามารถแก้ไขได้
+          </div>
+        )}
 
-      {/* แบนเนอร์: ยังมีของที่ยังไม่ได้บันทึก */}
-      {saveStatus === 'dirty' && !readOnly && (
-        <div className="mt-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-800">
-          มีการแก้ไขที่ยังไม่ได้บันทึก — จะบันทึกอัตโนมัติใน 3 วินาที หรือกด &quot;บันทึกร่าง&quot;
-        </div>
-      )}
+        {/* แบนเนอร์: อ่านอย่างเดียว (รอบปิดระหว่างเขียน Draft) */}
+        {readOnly && evaluation.isLocked && (
+          <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-800">
+            ⚠ รอบทุนนี้ปิดการประเมินแล้ว ไม่สามารถแก้ไขหรือส่งผลการประเมินเพิ่มเติมได้
+          </div>
+        )}
 
-      {/* หน้าจอแบ่ง 2 ฝั่ง: ซ้าย 40% / ขวา 60% */}
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-        {/* ฝั่งซ้าย: ข้อมูลผู้สมัคร (อ่านอย่างเดียว) */}
-        <div className="lg:col-span-2 lg:max-h-[calc(100vh-10rem)] lg:overflow-y-auto lg:pr-1">
+        {/* แบนเนอร์: บันทึกไม่สำเร็จ */}
+        {saveError && saveStatus === 'error' && (
+          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-sm text-rose-700">
+            บันทึกไม่สำเร็จ: {saveError}
+          </div>
+        )}
+
+        {/* แบนเนอร์: ส่งผลไม่สำเร็จ (เช่น คะแนนไม่ครบ) */}
+        {submitError && (
+          <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive space-y-2">
+            <p className="font-semibold flex items-center gap-1.5">
+              <span>⚠</span> {submitError}
+            </p>
+            {missingItems.length > 0 && (
+              <div className="space-y-1.5">
+                <span className="text-xs text-muted-foreground block">
+                  คลิกที่หัวข้อเพื่อเลื่อนไปยังข้อที่ยังกรอกไม่ครบ:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {missingItems.map((title) => {
+                    const matchedItem = items.find((it) => it.subCriteria.title === title);
+                    return (
+                      <button
+                        key={title}
+                        type="button"
+                        onClick={() => {
+                          if (matchedItem) {
+                            const el = document.getElementById(`criteria-row-${matchedItem.subCriteriaId}`);
+                            el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }
+                        }}
+                        className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-destructive/15 hover:bg-destructive/25 text-destructive transition cursor-pointer"
+                      >
+                        • {title}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Main Studio Workspace: 2 คอลัมน์แยก scroll อิสระบน desktop */}
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-stretch">
+        {/* ฝั่งซ้าย: ข้อมูลผู้สมัคร (อ่านอย่างเดียว) สัดส่วน 5/12 */}
+        <div className="lg:col-span-5 h-full overflow-y-auto pr-1 lg:pr-2 custom-scrollbar">
           <ApplicantProfilePanel detail={detail} />
         </div>
 
-        {/* ฝั่งขวา: ฟอร์มคะแนน */}
-        <div className="lg:col-span-3 flex flex-col gap-4 lg:max-h-[calc(100vh-10rem)] lg:overflow-y-auto lg:pl-1">
-          <ScoreFormPanel
-            items={items}
-            values={values}
-            scoreErrors={scoreErrors}
-            readOnly={readOnly}
-            totalScore={totalScore}
-            maxTotal={maxTotal}
-            onChange={handleChange}
-          />
+        {/* ฝั่งขวา: ฟอร์มคะแนน สัดส่วน 7/12 */}
+        <div className="lg:col-span-7 h-full flex flex-col min-h-0">
+          <div className="flex-1 overflow-y-auto pr-1 lg:pr-2 space-y-4 custom-scrollbar">
+            <ScoreFormPanel
+              items={items}
+              values={values}
+              scoreErrors={scoreErrors}
+              readOnly={readOnly}
+              totalScore={totalScore}
+              maxTotal={maxTotal}
+              onChange={handleChange}
+            />
 
-          {/* คะแนนรวมสุดท้าย (ฝั่ง server) หลังส่งผลแล้ว */}
-          {readOnly && evaluation.status === 'SUBMITTED' && evaluation.totalScore !== null && (
-            <div className="flex items-center justify-between px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm">
-              <span className="font-semibold text-emerald-800">คะแนนรวมสุดท้าย</span>
-              <span className="font-bold font-mono text-emerald-800">
-                {evaluation.totalScore}{' '}
-                <span className="text-sm font-normal">/ {maxTotal}</span>
-              </span>
-            </div>
-          )}
-
-          {/* แถบปุ่มบันทึก/ส่งผล (ซ่อนเมื่อเป็นโหมดอ่านอย่างเดียว) */}
-          {!readOnly && (
-            <div className="p-4 bg-white border border-slate-200 rounded-xl flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <SaveStatusIndicator status={saveStatus} savedAt={savedAt} />
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleSaveNow}
-                    disabled={saveStatus === 'saving'}
-                    className="px-4 py-2.5 text-base font-medium rounded-xl border border-slate-400 bg-white text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
-                  >
-                    บันทึกร่าง
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSubmitClick}
-                    disabled={submitting || saveStatus === 'saving'}
-                    className="px-4 py-2.5 text-base font-medium rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    ส่งผลการประเมิน
-                  </button>
-                </div>
+            {/* คะแนนรวมสุดท้าย (ฝั่ง server) หลังส่งผลแล้ว */}
+            {readOnly && evaluation.status === 'SUBMITTED' && evaluation.totalScore !== null && (
+              <div className="flex items-center justify-between px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm">
+                <span className="font-semibold text-emerald-800">คะแนนรวมสุดท้าย</span>
+                <span className="font-bold font-mono text-emerald-800">
+                  {evaluation.totalScore}{' '}
+                  <span className="text-sm font-normal">/ {maxTotal}</span>
+                </span>
               </div>
-              <p className="text-sm text-slate-600">
-                ระบบบันทึกอัตโนมัติหลังหยุดพิมพ์ 3 วินาที การส่งผลแล้วจะแก้ไขไม่ได้อีก
-              </p>
+            )}
+          </div>
+
+          {/* แถบปุ่มบันทึก/ส่งผล (ตรึงล่างฝั่งขวา) */}
+          {!readOnly && (
+            <div className="shrink-0 pt-3">
+              <div className="p-3.5 bg-card/95 backdrop-blur-md border border-border/80 rounded-2xl shadow-sm flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={handleSaveNow}
+                  disabled={saveStatus === 'saving'}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl border border-border bg-background hover:bg-muted text-foreground transition disabled:opacity-50 cursor-pointer shadow-2xs btn-interactive"
+                >
+                  <Save className="w-3.5 h-3.5 text-muted-foreground" />
+                  บันทึกร่างทันที
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmitClick}
+                  disabled={submitting || saveStatus === 'saving'}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer btn-interactive"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  ส่งผลการประเมิน
+                </button>
+              </div>
             </div>
           )}
         </div>
