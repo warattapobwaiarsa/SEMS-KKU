@@ -6,6 +6,7 @@
 import { apiClient } from '@/lib/api-client';
 import { getEvaluatorId } from '@/lib/mock-evaluator';
 import type {
+  ApiEnvelope,
   EvaluatorApplicant,
   PaginationMeta,
   EvaluatorApplicantsQuery,
@@ -49,6 +50,10 @@ export async function fetchEvaluatorApplicants(
 // ============================================================
 // Step 9: API ของหน้าประเมินแบ่งจอ
 // ทุก endpoint ต้องส่ง header X-User-Id (mock auth ชั่วคราว [FR-AUTH-01])
+//
+// หมายเหตุสำคัญ: backend ครอบ response สำเร็จไว้เป็น envelope
+// { success, statusCode, data } แต่ apiClient "ไม่ได้แกะ .data ออก"
+// จึงต้อง unwrap เองในไฟล์นี้ทุก function (ไม่งั้นหน้าจออ่าน items ไม่เจอ)
 // ============================================================
 
 /**
@@ -58,12 +63,17 @@ export async function fetchEvaluatorApplicants(
 export async function fetchApplicantDetail(
   applicantId: number,
 ): Promise<EvaluatorApplicantDetail> {
-  return apiClient<EvaluatorApplicantDetail>(`/applicants/${applicantId}`, {
-    method: 'GET',
-    headers: {
-      'X-User-Id': getEvaluatorId(),
+  const res = await apiClient<ApiEnvelope<EvaluatorApplicantDetail>>(
+    `/applicants/${applicantId}`,
+    {
+      method: 'GET',
+      headers: {
+        'X-User-Id': getEvaluatorId(),
+      },
     },
-  });
+  );
+  // apiClient ไม่ unwrap envelope -> คืนเฉพาะ data ตรงๆ
+  return res.data;
 }
 
 /**
@@ -73,7 +83,7 @@ export async function fetchApplicantDetail(
 export async function fetchMyEvaluation(
   applicantId: number,
 ): Promise<MyEvaluationView> {
-  return apiClient<MyEvaluationView>(
+  const res = await apiClient<ApiEnvelope<MyEvaluationView>>(
     `/applicants/${applicantId}/my-evaluation`,
     {
       method: 'GET',
@@ -82,6 +92,8 @@ export async function fetchMyEvaluation(
       },
     },
   );
+  // apiClient ไม่ unwrap envelope -> คืนเฉพาะ data ตรงๆ
+  return res.data;
 }
 
 /**
@@ -93,7 +105,7 @@ export async function saveMyEvaluation(
   applicantId: number,
   items: SaveEvaluationItem[],
 ): Promise<MyEvaluationView> {
-  return apiClient<MyEvaluationView>(
+  const res = await apiClient<ApiEnvelope<MyEvaluationView>>(
     `/applicants/${applicantId}/my-evaluation`,
     {
       method: 'PUT',
@@ -103,6 +115,8 @@ export async function saveMyEvaluation(
       body: JSON.stringify({ items }),
     },
   );
+  // apiClient ไม่ unwrap envelope -> คืนเฉพาะ data ตรงๆ
+  return res.data;
 }
 
 /**
@@ -112,7 +126,7 @@ export async function saveMyEvaluation(
 export async function submitMyEvaluation(
   applicantId: number,
 ): Promise<MyEvaluationView> {
-  return apiClient<MyEvaluationView>(
+  const res = await apiClient<ApiEnvelope<MyEvaluationView>>(
     `/applicants/${applicantId}/my-evaluation/submit`,
     {
       method: 'POST',
@@ -121,4 +135,6 @@ export async function submitMyEvaluation(
       },
     },
   );
+  // apiClient ไม่ unwrap envelope -> คืนเฉพาะ data ตรงๆ
+  return res.data;
 }

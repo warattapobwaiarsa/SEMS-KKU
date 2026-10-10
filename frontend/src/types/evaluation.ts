@@ -149,3 +149,15 @@ export interface SaveEvaluationItem {
   /** ส่งเฉพาะเกณฑ์ย่อยแบบ TEXT */
   textValue?: string | null;
 }
+
+/**
+ * ซอง (envelope) ที่ backend ครอบทุก response สำเร็จไว้
+ * เช่น { success: true, statusCode: 200, data: {...}, meta?: {...} }
+ * apiClient ไม่ได้แกะชั้นนี้ออก จึงต้อง unwrap เองใน service ก่อนใช้งาน
+ */
+export interface ApiEnvelope<T> {
+  success: boolean;
+  statusCode: number;
+  data: T;
+  meta?: unknown;
+}
