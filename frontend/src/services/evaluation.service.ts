@@ -9,6 +9,9 @@ import type {
   EvaluatorApplicant,
   PaginationMeta,
   EvaluatorApplicantsQuery,
+  EvaluatorApplicantDetail,
+  MyEvaluationView,
+  SaveEvaluationItem,
 } from '@/types/evaluation';
 
 /**
@@ -40,5 +43,82 @@ export async function fetchEvaluatorApplicants(
         'X-User-Id': getEvaluatorId(),
       },
     }
+  );
+}
+
+// ============================================================
+// Step 9: API ของหน้าประเมินแบ่งจอ
+// ทุก endpoint ต้องส่ง header X-User-Id (mock auth ชั่วคราว [FR-AUTH-01])
+// ============================================================
+
+/**
+ * ดึงรายละเอียดผู้สมัคร (ฝั่งซ้ายของหน้าประเมิน) [FR-APP-03] [BR-APP-04]
+ * GET /applicants/:id — ผ่าน RoleDispatchGuard จึงต้องส่ง X-User-Id เสมอ
+ */
+export async function fetchApplicantDetail(
+  applicantId: number,
+): Promise<EvaluatorApplicantDetail> {
+  return apiClient<EvaluatorApplicantDetail>(`/applicants/${applicantId}`, {
+    method: 'GET',
+    headers: {
+      'X-User-Id': getEvaluatorId(),
+    },
+  });
+}
+
+/**
+ * ดึงผลการประเมินของตัวเอง + เกณฑ์ย่อยครบทุกข้อ (ฝั่งขวาของหน้าประเมิน) [FR-EVL-14]
+ * GET /applicants/:applicantId/my-evaluation
+ */
+export async function fetchMyEvaluation(
+  applicantId: number,
+): Promise<MyEvaluationView> {
+  return apiClient<MyEvaluationView>(
+    `/applicants/${applicantId}/my-evaluation`,
+    {
+      method: 'GET',
+      headers: {
+        'X-User-Id': getEvaluatorId(),
+      },
+    },
+  );
+}
+
+/**
+ * บันทึก Draft (auto-save / ปุ่มบันทึกร่าง) [FR-EVL-04] [FR-EVL-08]
+ * PUT /applicants/:applicantId/my-evaluation
+ * body: { items: [...] } — อย่างน้อย 1 ข้อ ห้ามส่งฟิลด์อื่นนอกเหนือจากนี้
+ */
+export async function saveMyEvaluation(
+  applicantId: number,
+  items: SaveEvaluationItem[],
+): Promise<MyEvaluationView> {
+  return apiClient<MyEvaluationView>(
+    `/applicants/${applicantId}/my-evaluation`,
+    {
+      method: 'PUT',
+      headers: {
+        'X-User-Id': getEvaluatorId(),
+      },
+      body: JSON.stringify({ items }),
+    },
+  );
+}
+
+/**
+ * ยืนยันส่งผลการประเมิน DRAFT -> SUBMITTED [FR-EVL-11] [FR-EVL-13]
+ * POST /applicants/:applicantId/my-evaluation/submit — ไม่มี body
+ */
+export async function submitMyEvaluation(
+  applicantId: number,
+): Promise<MyEvaluationView> {
+  return apiClient<MyEvaluationView>(
+    `/applicants/${applicantId}/my-evaluation/submit`,
+    {
+      method: 'POST',
+      headers: {
+        'X-User-Id': getEvaluatorId(),
+      },
+    },
   );
 }
