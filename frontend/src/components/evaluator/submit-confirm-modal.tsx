@@ -42,24 +42,24 @@ export function SubmitConfirmModal({
       />
 
       <ModalBody>
-        {/* สรุปก่อนส่ง */}
-        <div className="border border-slate-200 rounded-xl divide-y divide-slate-200 text-sm">
-          <div className="flex items-center justify-between px-4 py-2.5">
-            <span className="text-slate-500">ผู้สมัคร:</span>
-            <span className="font-medium text-slate-800">
-              {applicantName} <span className="font-mono text-xs text-slate-500">({studentCode})</span>
+        {/* สรุปก่อนส่ง — ทั้ง 2 แถวใช้พื้นหลังและสไตล์ตัวอักษรเดียวกัน */}
+        <div className="border border-slate-200 rounded-xl divide-y divide-slate-200 text-base bg-slate-50">
+          <div className="flex items-center justify-between px-4 py-3">
+            <span className="text-slate-700">ผู้สมัคร:</span>
+            <span className="font-semibold text-slate-900">
+              {applicantName} <span className="font-mono text-sm font-normal text-slate-600">({studentCode})</span>
             </span>
           </div>
-          <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50">
-            <span className="text-slate-500">คะแนนรวมของคุณ:</span>
+          <div className="flex items-center justify-between px-4 py-3">
+            <span className="text-slate-700">คะแนนรวมของคุณ:</span>
             <span className="font-bold font-mono text-slate-900">
-              {totalScore} <span className="text-xs font-normal text-slate-500">/ {maxTotal}</span>
+              {totalScore} <span className="text-sm font-normal text-slate-600">/ {maxTotal}</span>
             </span>
           </div>
         </div>
 
         {/* ข้อความแจ้งสถานะหลังส่ง */}
-        <p className="text-xs text-slate-500 border border-dashed border-slate-300 rounded-xl p-3">
+        <p className="text-sm text-slate-700 border border-dashed border-slate-300 rounded-xl p-3">
           ผลการประเมินจะถูกส่งเข้าระบบประมวลผลส่วนกลาง และสถานะของคุณจะเปลี่ยนเป็น &quot;ส่งแล้ว (Submitted)&quot;
         </p>
       </ModalBody>
@@ -69,7 +69,7 @@ export function SubmitConfirmModal({
           type="button"
           onClick={onClose}
           disabled={submitting}
-          className="px-4 py-2 text-sm font-medium rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition disabled:opacity-50"
+          className="px-5 py-2.5 text-base font-medium rounded-xl border border-slate-400 bg-white text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
         >
           ยกเลิก
         </button>
@@ -77,7 +77,7 @@ export function SubmitConfirmModal({
           type="button"
           onClick={onConfirm}
           disabled={submitting}
-          className="px-4 py-2 text-sm font-medium rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-5 py-2.5 text-base font-semibold rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? 'กำลังบันทึกข้อมูล...' : 'ยืนยันส่งผล'}
         </button>

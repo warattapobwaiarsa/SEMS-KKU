@@ -25,7 +25,7 @@ export function SaveStatusIndicator({ status, savedAt }: SaveStatusIndicatorProp
   // กำลังบันทึก...
   if (status === 'saving') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-blue-600">
+      <span className="inline-flex items-center gap-1.5 text-sm text-blue-700">
         <span className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
         กำลังบันทึก...
       </span>
@@ -35,7 +35,7 @@ export function SaveStatusIndicator({ status, savedAt }: SaveStatusIndicatorProp
   // บันทึกอัตโนมัติแล้ว (พร้อมเวลาล่าสุด)
   if (status === 'saved') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600">
+      <span className="inline-flex items-center gap-1.5 text-sm text-emerald-700">
         ✓ บันทึกอัตโนมัติแล้ว{savedAt ? ` ${savedAt}` : ''}
       </span>
     );
@@ -44,12 +44,12 @@ export function SaveStatusIndicator({ status, savedAt }: SaveStatusIndicatorProp
   // บันทึกไม่สำเร็จ (มีข้อผิดพลาด)
   if (status === 'error') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-rose-600">
+      <span className="inline-flex items-center gap-1.5 text-sm text-rose-700">
         ✗ บันทึกไม่สำเร็จ
       </span>
     );
   }
 
   // มีการแก้ไขแต่ยังไม่ถึงเวลา auto-save
-  return <span className="text-xs text-amber-600">มีการแก้ไขที่ยังไม่ได้บันทึก</span>;
+  return <span className="text-sm text-amber-700">มีการแก้ไขที่ยังไม่ได้บันทึก</span>;
 }

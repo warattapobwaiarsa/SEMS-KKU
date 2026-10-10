@@ -399,7 +399,7 @@ export default function EvaluatorScoringPage({
         <div className="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
           ✓ {successMessage}
           {evaluation.submittedAt && (
-            <span className="block mt-1 text-xs text-emerald-600">
+            <span className="block mt-1 text-sm text-emerald-700">
               ส่งผลเมื่อ {new Date(evaluation.submittedAt).toLocaleString('th-TH')}
             </span>
           )}
@@ -435,7 +435,7 @@ export default function EvaluatorScoringPage({
         <div className="mt-4 p-4 rounded-xl bg-rose-50 border border-rose-200 text-sm text-rose-700">
           <p className="font-semibold">{submitError}</p>
           {missingItems.length > 0 && (
-            <ul className="mt-2 list-disc list-inside text-xs">
+            <ul className="mt-2 list-disc list-inside text-sm">
               {missingItems.map((title) => (
                 <li key={title}>{title}</li>
               ))}
@@ -446,7 +446,7 @@ export default function EvaluatorScoringPage({
 
       {/* แบนเนอร์: ยังมีของที่ยังไม่ได้บันทึก */}
       {saveStatus === 'dirty' && !readOnly && (
-        <div className="mt-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800">
+        <div className="mt-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-800">
           มีการแก้ไขที่ยังไม่ได้บันทึก — จะบันทึกอัตโนมัติใน 3 วินาที หรือกด &quot;บันทึกร่าง&quot;
         </div>
       )}
@@ -476,7 +476,7 @@ export default function EvaluatorScoringPage({
               <span className="font-semibold text-emerald-800">คะแนนรวมสุดท้าย</span>
               <span className="font-bold font-mono text-emerald-800">
                 {evaluation.totalScore}{' '}
-                <span className="text-xs font-normal">/ {maxTotal}</span>
+                <span className="text-sm font-normal">/ {maxTotal}</span>
               </span>
             </div>
           )}
@@ -491,7 +491,7 @@ export default function EvaluatorScoringPage({
                     type="button"
                     onClick={handleSaveNow}
                     disabled={saveStatus === 'saving'}
-                    className="px-4 py-2 text-sm font-medium rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition disabled:opacity-50"
+                    className="px-4 py-2.5 text-base font-medium rounded-xl border border-slate-400 bg-white text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
                   >
                     บันทึกร่าง
                   </button>
@@ -499,13 +499,13 @@ export default function EvaluatorScoringPage({
                     type="button"
                     onClick={handleSubmitClick}
                     disabled={submitting || saveStatus === 'saving'}
-                    className="px-4 py-2 text-sm font-medium rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2.5 text-base font-medium rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     ส่งผลการประเมิน
                   </button>
                 </div>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-sm text-slate-600">
                 ระบบบันทึกอัตโนมัติหลังหยุดพิมพ์ 3 วินาที การส่งผลแล้วจะแก้ไขไม่ได้อีก
               </p>
             </div>

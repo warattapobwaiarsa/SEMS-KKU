@@ -35,11 +35,11 @@ export function ScoreFormPanel({
     <div className="flex flex-col gap-4">
       {/* หัวแผง */}
       <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl">
-        <span className="text-sm font-bold text-slate-800">
+        <span className="text-base font-bold text-slate-900">
           เกณฑ์การให้คะแนน ({items.length} ข้อ)
         </span>
         {readOnly && (
-          <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+          <span className="inline-flex items-center gap-1 text-sm text-slate-700">
             🔒 โหมดอ่านอย่างเดียว
           </span>
         )}
@@ -47,7 +47,7 @@ export function ScoreFormPanel({
 
       {/* รายการเกณฑ์ย่อยทุกข้อ */}
       {items.length === 0 ? (
-        <p className="text-sm text-slate-500 p-4 border border-dashed border-slate-300 rounded-xl">
+        <p className="text-sm text-slate-700 p-4 border border-dashed border-slate-300 rounded-xl">
           รอบนี้ยังไม่มีเกณฑ์ย่อยสำหรับประเมิน
         </p>
       ) : (
@@ -68,9 +68,9 @@ export function ScoreFormPanel({
 
       {/* คะแนนรวมสด (นับเฉพาะ SCORED ที่กรอกแล้ว) [FR-SCR-02] */}
       <div className="flex items-center justify-between px-4 py-3 bg-slate-900 text-white rounded-xl">
-        <span className="text-sm font-semibold">คะแนนรวม</span>
-        <span className="text-lg font-bold font-mono">
-          {totalScore} <span className="text-sm font-normal text-slate-300">/ {maxTotal}</span>
+        <span className="text-base font-semibold">คะแนนรวม</span>
+        <span className="text-xl font-bold font-mono">
+          {totalScore} <span className="text-base font-normal text-slate-200">/ {maxTotal}</span>
         </span>
       </div>
     </div>

@@ -44,11 +44,11 @@ export function ScoreInputRow({
     <div className="flex flex-col gap-2 p-4 rounded-xl border border-slate-200 bg-white">
       {/* หัวข้อเกณฑ์ย่อย + คะแนนเต็ม */}
       <div className="flex items-start justify-between gap-3">
-        <span className="text-sm font-semibold text-slate-800">
+        <span className="text-base font-semibold text-slate-900">
           {index}. {sub.title}
         </span>
         {isScored && sub.maxScore !== null && (
-          <span className="shrink-0 text-xs text-slate-500 font-mono">เต็ม {sub.maxScore}</span>
+          <span className="shrink-0 text-sm text-slate-700 font-mono">เต็ม {sub.maxScore}</span>
         )}
       </div>
 
@@ -65,18 +65,19 @@ export function ScoreInputRow({
               value={value.score}
               disabled={readOnly}
               onChange={(e) => onChange(item.subCriteriaId, 'score', e.target.value)}
-              className={`w-24 h-10 px-3 text-center text-sm font-mono border rounded-lg bg-slate-50
-                focus:outline-none focus:border-slate-900 disabled:cursor-not-allowed disabled:opacity-70
-                ${scoreError ? 'border-rose-400 bg-rose-50' : 'border-slate-300'}`}
+              className={`w-28 h-11 px-3 text-center text-base font-mono border rounded-lg bg-white
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                disabled:cursor-not-allowed disabled:text-slate-700 disabled:bg-slate-100
+                ${scoreError ? 'border-rose-500 bg-rose-50' : 'border-slate-400'}`}
               placeholder="-"
             />
-            <span className="text-sm text-slate-500">
+            <span className="text-base text-slate-700">
               / {sub.maxScore ?? '-'} คะแนน
             </span>
           </div>
 
           {/* ข้อผิดพลาดของคะแนน (เช่น ค่าเกินเต็ม หรือไม่ใช่จำนวนเต็ม) */}
-          {scoreError && <p className="text-xs text-rose-600">{scoreError}</p>}
+          {scoreError && <p className="text-sm text-rose-600">{scoreError}</p>}
         </>
       ) : (
         /* แบบ TEXT: ช่องกรอกข้อความ */
@@ -86,23 +87,25 @@ export function ScoreInputRow({
           onChange={(e) => onChange(item.subCriteriaId, 'textValue', e.target.value)}
           rows={3}
           placeholder="กรอกข้อความ"
-          className="w-full p-2.5 text-sm border border-slate-300 rounded-lg bg-slate-50 resize-y
-            focus:outline-none focus:border-slate-900 disabled:cursor-not-allowed disabled:opacity-70"
+          className="w-full p-2.5 text-base border border-slate-400 rounded-lg bg-white resize-y
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+            disabled:cursor-not-allowed disabled:text-slate-700 disabled:bg-slate-100"
         />
       )}
 
       {/* ช่องคอมเมนต์ แสดงเฉพาะข้อที่เปิดรับคอมเมนต์ */}
       {sub.allowComment && (
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-slate-500">ความเห็นเพิ่มเติมรายข้อ:</label>
+          <label className="text-sm text-slate-700">ความเห็นเพิ่มเติมรายข้อ:</label>
           <textarea
             value={value.comment}
             disabled={readOnly}
             onChange={(e) => onChange(item.subCriteriaId, 'comment', e.target.value)}
             rows={2}
             placeholder="ไม่บังคับ"
-            className="w-full p-2.5 text-sm border border-slate-300 rounded-lg bg-slate-50 resize-y
-              focus:outline-none focus:border-slate-900 disabled:cursor-not-allowed disabled:opacity-70"
+            className="w-full p-2.5 text-base border border-slate-400 rounded-lg bg-white resize-y
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+              disabled:cursor-not-allowed disabled:text-slate-700 disabled:bg-slate-100"
           />
         </div>
       )}

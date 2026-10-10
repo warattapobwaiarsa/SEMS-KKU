@@ -60,8 +60,8 @@ function displayValue(value: string | null | undefined): string {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-xs text-slate-500">{label}</span>
-      <span className="text-sm font-medium text-slate-800 break-words">{value}</span>
+      <span className="text-sm text-slate-700">{label}</span>
+      <span className="text-base font-medium text-slate-900 break-words">{value}</span>
     </div>
   );
 }
@@ -76,7 +76,7 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
   return (
     <div className="flex flex-col gap-4">
       {/* หัวแผง */}
-      <div className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800">
+      <div className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base font-bold text-slate-900">
         ข้อมูลผู้สมัครและประวัติการศึกษา (อ่านอย่างเดียว)
       </div>
 
@@ -84,7 +84,7 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
       <div className="p-4 bg-white border border-slate-200 rounded-xl flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <span className="text-lg font-bold text-slate-900">{fullName}</span>
-          <span className="text-sm font-mono text-slate-600">{detail.studentCode}</span>
+          <span className="text-sm font-mono text-slate-700">{detail.studentCode}</span>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <Field label="คณะ" value={displayValue(detail.faculty)} />
@@ -100,13 +100,13 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
       {/* ลิงก์แผนที่ (ถ้ามี) [FR-APP-05] */}
       {mapUrl && (
         <div className="p-4 bg-white border border-slate-200 rounded-xl flex flex-col gap-1">
-          <span className="text-xs text-slate-500">ลิงก์แผนที่ที่อยู่อาศัย</span>
+          <span className="text-sm text-slate-700">ลิงก์แผนที่ที่อยู่อาศัย</span>
           {mapUrlIsSafe ? (
             <a
               href={mapUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-600 underline break-all hover:text-blue-800"
+              className="text-sm text-blue-700 underline break-all hover:text-blue-900"
             >
               {mapUrl}
             </a>
@@ -118,9 +118,9 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
 
       {/* ข้อมูลประกอบทั้งหมด (ค่าว่างแสดง "-") [FR-APP-04] */}
       <div className="p-4 bg-white border border-slate-200 rounded-xl">
-        <span className="text-sm font-bold text-slate-800">ข้อมูลประกอบการพิจารณา</span>
+        <span className="text-base font-bold text-slate-900">ข้อมูลประกอบการพิจารณา</span>
         {info === null ? (
-          <p className="mt-2 text-sm text-slate-500">-</p>
+          <p className="mt-2 text-sm text-slate-700">-</p>
         ) : (
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
             {SUPPORTING_LABELS.map(({ key, label }) => (
@@ -131,7 +131,7 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
       </div>
 
       {/* หมายเหตุด้านความเป็นส่วนตัว */}
-      <p className="text-xs text-slate-500 border-l-2 border-slate-300 pl-3 py-1">
+      <p className="text-sm text-slate-600 border-l-2 border-slate-300 pl-3 py-1">
         หน้านี้แสดงเฉพาะข้อมูลที่จำเป็นต่อการประเมิน ไม่รวมเลขบัตรประชาชน โทรศัพท์ และอีเมล
       </p>
     </div>

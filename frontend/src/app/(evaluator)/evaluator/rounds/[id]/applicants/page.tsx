@@ -153,7 +153,7 @@ export default function EvaluatorApplicantsPage({
       return (
         <a
           href={applicantLink}
-          className="inline-flex items-center justify-center w-full px-3 py-1.5 text-xs font-medium rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition"
+          className="inline-flex items-center justify-center w-full px-3 py-2 text-sm font-medium rounded-xl border border-slate-400 bg-white text-slate-700 hover:bg-slate-100 transition"
         >
           ดูผล
         </a>
@@ -164,7 +164,7 @@ export default function EvaluatorApplicantsPage({
       return (
         <a
           href={applicantLink}
-          className="inline-flex items-center justify-center w-full px-3 py-1.5 text-xs font-medium rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition"
+          className="inline-flex items-center justify-center w-full px-3 py-2 text-sm font-medium rounded-xl border border-slate-400 bg-white text-slate-700 hover:bg-slate-100 transition"
         >
           ประเมินต่อ
         </a>
@@ -177,11 +177,11 @@ export default function EvaluatorApplicantsPage({
         <div className="relative group">
           <button
             disabled
-            className="w-full px-3 py-1.5 text-xs font-medium rounded-xl bg-slate-100 text-slate-400 border border-dashed border-slate-300 cursor-not-allowed"
+            className="w-full px-3 py-2 text-sm font-medium rounded-xl bg-slate-100 text-slate-600 border border-dashed border-slate-400 cursor-not-allowed"
           >
             เริ่มประเมิน
           </button>
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block w-52 p-2 bg-slate-900 text-white text-[11px] rounded shadow-lg z-10 leading-tight whitespace-nowrap">
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block w-60 p-2 bg-slate-900 text-white text-xs rounded shadow-lg z-10 leading-tight whitespace-nowrap">
             บัญชีหมดอายุ ไม่สามารถเริ่มประเมินผู้สมัครรายใหม่ได้
           </div>
         </div>
@@ -191,7 +191,7 @@ export default function EvaluatorApplicantsPage({
     return (
       <a
         href={applicantLink}
-        className="inline-flex items-center justify-center w-full px-3 py-1.5 text-xs font-medium rounded-xl border border-slate-700 bg-slate-900 text-white hover:bg-slate-800 transition"
+        className="inline-flex items-center justify-center w-full px-3 py-2 text-sm font-medium rounded-xl border border-slate-700 bg-slate-900 text-white hover:bg-slate-800 transition"
       >
         เริ่มประเมิน
       </a>
@@ -239,9 +239,9 @@ export default function EvaluatorApplicantsPage({
             onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full px-4 py-2 text-sm border border-slate-300 bg-white focus:outline-none focus:border-slate-900 rounded-xl"
           />
-          <div className="absolute right-3 top-2.5 text-xs text-slate-400">🔍</div>
+          <div className="absolute right-3 top-2.5 text-sm text-slate-500">🔍</div>
         </div>
-        <div className="text-sm text-slate-500">
+        <div className="text-sm text-slate-700">
           แสดง {applicants.length} รายการจาก {pagination.total} รายการ
         </div>
       </div>
@@ -251,7 +251,7 @@ export default function EvaluatorApplicantsPage({
         <div className="border border-slate-200 overflow-hidden rounded-xl">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
+              <tr className="bg-slate-50 border-b border-slate-200 text-sm font-semibold text-slate-700">
                 <th className="py-3 px-4 w-16 text-center">ลำดับ</th>
                 <th className="py-3 px-4 w-36">รหัสนักศึกษา</th>
                 <th className="py-3 px-4">ชื่อ - นามสกุล</th>
@@ -271,7 +271,7 @@ export default function EvaluatorApplicantsPage({
         <div className="border border-slate-200 rounded-xl overflow-hidden">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
+              <tr className="bg-slate-50 border-b border-slate-200 text-sm font-semibold text-slate-700">
                 <th className="py-3 px-4 w-16 text-center">ลำดับ</th>
                 <th className="py-3 px-4 w-36">รหัสนักศึกษา</th>
                 <th className="py-3 px-4">ชื่อ - นามสกุล</th>
@@ -284,13 +284,13 @@ export default function EvaluatorApplicantsPage({
             <tbody>
               <tr>
                 <td colSpan={7} className="py-16 text-center bg-slate-50">
-                  <div className="w-12 h-12 border border-slate-200 bg-white mx-auto mb-3 flex items-center justify-center text-slate-400 font-mono text-lg">?</div>
+                  <div className="w-12 h-12 border border-slate-200 bg-white mx-auto mb-3 flex items-center justify-center text-slate-500 font-mono text-lg">?</div>
                   <div className="text-base font-bold text-slate-800">
                     {debouncedSearch
                       ? 'ไม่พบผู้สมัครที่ตรงกับการค้นหา'
                       : 'ไม่พบผู้สมัครในรอบนี้'}
                   </div>
-                  <div className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                  <div className="text-sm text-slate-600 mt-1 max-w-sm mx-auto">
                     {debouncedSearch
                       ? `ไม่พบข้อมูลที่ตรงกับคำค้นหา "${debouncedSearch}" กรุณาตรวจสอบรหัสนักศึกษาหรือชื่อ-สกุลใหม่อีกครั้ง`
                       : 'ยังไม่มีผู้สมัครในรอบทุนนี้'}
@@ -298,7 +298,7 @@ export default function EvaluatorApplicantsPage({
                   {debouncedSearch && (
                     <button
                       onClick={() => setSearch('')}
-                      className="mt-4 px-4 py-1.5 border border-slate-300 bg-white text-xs hover:bg-slate-50 font-medium rounded-xl"
+                      className="mt-4 px-4 py-1.5 border border-slate-300 bg-white text-sm hover:bg-slate-50 font-medium rounded-xl"
                     >
                       ล้างการค้นหา
                     </button>
@@ -313,7 +313,7 @@ export default function EvaluatorApplicantsPage({
         <div className="border border-slate-200 overflow-hidden rounded-xl">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
+              <tr className="bg-slate-50 border-b border-slate-200 text-sm font-semibold text-slate-700">
                 <th className="py-3 px-4 w-16 text-center">ลำดับ</th>
                 <th className="py-3 px-4 w-36">รหัสนักศึกษา</th>
                 <th className="py-3 px-4">ชื่อ - นามสกุล</th>
@@ -328,13 +328,13 @@ export default function EvaluatorApplicantsPage({
                 const statusBadge = getStatusBadge(row.myStatus);
                 return (
                   <tr key={row.id} className="h-[60px] hover:bg-slate-50">
-                    <td className="px-4 text-center text-slate-500 font-mono text-sm">
+                    <td className="px-4 text-center text-slate-700 font-mono text-sm">
                       {String((pagination.page - 1) * pagination.limit + idx + 1).padStart(2, '0')}
                     </td>
                     <td className="px-4 font-mono font-medium">{row.studentCode}</td>
                     <td className="px-4 font-medium">{`${row.titlePrefix}${row.firstName} ${row.lastName}`}</td>
-                    <td className="px-4 text-slate-600">{row.major || '-'}</td>
-                    <td className="px-4 text-center text-slate-600">
+                    <td className="px-4 text-slate-700">{row.major || '-'}</td>
+                    <td className="px-4 text-center text-slate-700">
                       {row.submittedCount > 0
                         ? `${row.submittedCount} คน`
                         : '0 คน'}
@@ -366,7 +366,7 @@ export default function EvaluatorApplicantsPage({
       />
 
       {/* Caption */}
-      <div className="mt-4 text-xs text-slate-500 border-l-2 border-slate-300 pl-3 py-1">
+      <div className="mt-4 text-sm text-slate-600 border-l-2 border-slate-300 pl-3 py-1">
         คำแนะนำ: ผู้ประเมินหลายคนประเมินผู้สมัครรายเดียวกันได้ แต่ประเมินซ้ำในรอบเดียวกันไม่ได้
       </div>
     </div>
