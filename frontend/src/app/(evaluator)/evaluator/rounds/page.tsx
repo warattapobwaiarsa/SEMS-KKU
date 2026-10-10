@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   Award,
@@ -21,7 +22,7 @@ import { ApiError } from '@/lib/api-client';
 import { fetchEvaluatorRounds } from '@/services/evaluation.service';
 import type { EvaluatorRound, PaginationMeta } from '@/types/evaluation';
 
-export default function EvaluatorRoundsPage() {
+function EvaluatorRoundsContent() {
   const searchParams = useSearchParams();
   const [rounds, setRounds] = useState<EvaluatorRound[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta>({
@@ -211,14 +212,36 @@ export default function EvaluatorRoundsPage() {
 
       {/* Pagination */}
       {!loading && pagination.totalPages > 1 && (
-        <div className="pt-4 flex justify-center">
+        <div className="pt-4 rounded-xl overflow-hidden border border-border/80">
           <Pagination
-            currentPage={pagination.page}
+            page={pagination.page}
             totalPages={pagination.totalPages}
+            total={pagination.total}
+            limit={pagination.limit}
             onPageChange={handlePageChange}
           />
         </div>
       )}
     </div>
+  );
+}
+
+export default function EvaluatorRoundsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex-1 flex flex-col space-y-6 animate-pulse">
+          <div className="h-10 w-64 bg-slate-200 rounded-xl" />
+          <div className="h-14 w-full bg-slate-100 rounded-2xl" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-48 bg-slate-100 rounded-2xl" />
+            ))}
+          </div>
+        </div>
+      }
+    >
+      <EvaluatorRoundsContent />
+    </Suspense>
   );
 }
