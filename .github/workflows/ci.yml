@@ -26,12 +26,18 @@ jobs:
 
       - name: Check for committed secrets (.env, keys)
         run: |
-          echo "Scanning for sensitive patterns..."
-          if git log -p -n 20 | grep -E "BEGIN (RSA|OPENSSH|PRIVATE) KEY|DATABASE_URL=postgresql://.*:.*@" ; then
-            echo "::error::Potential secret leak detected in recent git commits!"
+          echo "Scanning for sensitive files and credentials..."
+          # ตรวจสอบว่าไม่มีการ commit ไฟล์ .env เข้ามา
+          if git ls-files | grep -E "(^\.env|\.env\.local|\.key|\.pem)$" ; then
+            echo "::error::Direct secret file (.env or key) detected in git repository!"
             exit 1
           fi
-          echo "No obvious secret patterns found."
+          # ตรวจสอบ private key patterns ใน source code (ไม่รวม workflow)
+          if git grep -I -E "BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY" -- ':!.github/workflows/*' ; then
+            echo "::error::Private key pattern detected in repository codebase!"
+            exit 1
+          fi
+          echo "Security scan passed: No secret files or private keys detected."
 
   backend-ci:
     name: Backend (Prisma, Lint, Build, Test)
