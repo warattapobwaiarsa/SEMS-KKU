@@ -34,6 +34,7 @@ export function SubmitConfirmModal({
 }: SubmitConfirmModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={submitting ? () => {} : onClose} size="md">
+    <div className="bg-white text-slate-900 rounded-xl p-6">
       <ModalHeader
         title="ยืนยันส่งผลการประเมิน?"
         subtitle="เมื่อส่งผลแล้วจะไม่สามารถแก้ไขหรือประเมินผู้สมัครรายนี้ซ้ำได้ โปรดตรวจสอบความถูกต้องของคะแนนอีกครั้ง"
@@ -82,6 +83,7 @@ export function SubmitConfirmModal({
           {submitting ? 'กำลังบันทึกข้อมูล...' : 'ยืนยันส่งผล'}
         </button>
       </ModalFooter>
+      </div>
     </Modal>
   );
 }
