@@ -198,18 +198,18 @@ export default function EvaluatorApplicantsPage({
     );
   };
 
-  // Loading skeleton rows
+  // Loading skeleton rows (ใช้ Tailwind animate-pulse แทน custom CSS)
   const renderSkeletonRows = () => (
     <>
       {[1, 2, 3].map((i) => (
         <tr key={i} className="h-[60px]">
-          <td className="px-4 text-center"><div className="skeleton-bar h-4 w-6 mx-auto" /></td>
-          <td className="px-4"><div className="skeleton-bar h-4 w-24" /></td>
-          <td className="px-4"><div className="skeleton-bar h-4 w-36" /></td>
-          <td className="px-4"><div className="skeleton-bar h-4 w-32" /></td>
-          <td className="px-4 text-center"><div className="skeleton-bar h-4 w-12 mx-auto" /></td>
-          <td className="px-4 text-center"><div className="skeleton-bar h-6 w-20 mx-auto rounded-full" /></td>
-          <td className="px-4 text-center"><div className="skeleton-bar h-8 w-24 mx-auto" /></td>
+          <td className="px-4 text-center"><div className="animate-pulse bg-slate-200 h-4 w-6 mx-auto rounded" /></td>
+          <td className="px-4"><div className="animate-pulse bg-slate-200 h-4 w-24 rounded" /></td>
+          <td className="px-4"><div className="animate-pulse bg-slate-200 h-4 w-36 rounded" /></td>
+          <td className="px-4"><div className="animate-pulse bg-slate-200 h-4 w-32 rounded" /></td>
+          <td className="px-4 text-center"><div className="animate-pulse bg-slate-200 h-4 w-12 mx-auto rounded" /></td>
+          <td className="px-4 text-center"><div className="animate-pulse bg-slate-200 h-6 w-20 mx-auto rounded-full" /></td>
+          <td className="px-4 text-center"><div className="animate-pulse bg-slate-200 h-8 w-24 mx-auto rounded" /></td>
         </tr>
       ))}
     </>
