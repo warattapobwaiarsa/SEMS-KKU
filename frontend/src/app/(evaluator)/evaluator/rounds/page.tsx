@@ -212,13 +212,14 @@ function EvaluatorRoundsContent() {
 
       {/* Pagination */}
       {!loading && pagination.totalPages > 1 && (
-        <div className="pt-4 rounded-xl overflow-hidden border border-border/80">
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
           <Pagination
             page={pagination.page}
             totalPages={pagination.totalPages}
             total={pagination.total}
             limit={pagination.limit}
             onPageChange={handlePageChange}
+            disabled={loading}
           />
         </div>
       )}
