@@ -2,29 +2,36 @@
 
 import React from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface PaginationProps {
-  page: number;
+  page?: number;
+  currentPage?: number;
   totalPages: number;
-  total: number;
-  limit: number;
+  total?: number;
+  limit?: number;
   onPageChange: (page: number) => void;
   disabled?: boolean;
+  className?: string;
 }
 
 export function Pagination({
-  page,
+  page: propPage,
+  currentPage,
   totalPages,
-  total,
-  limit,
+  total = 0,
+  limit = 10,
   onPageChange,
   disabled = false,
+  className,
 }: PaginationProps) {
+  const page = propPage ?? currentPage ?? 1;
+
   if (total === 0 || totalPages <= 1) {
     // Show total info even on single page if there are items
     if (total > 0) {
       return (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 bg-muted/30 border-t border-border/80 text-xs text-muted-foreground">
+        <div className={cn("flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 bg-muted/30 border-t border-border/80 text-xs text-muted-foreground", className)}>
           <div>
             แสดงทั้งหมด <span className="font-semibold text-foreground font-mono">{total}</span> รายการ
           </div>
@@ -75,7 +82,7 @@ export function Pagination({
   const pages = getPageNumbers();
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-muted/30 border-t border-border/80 text-xs text-muted-foreground">
+    <div className={cn("flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-muted/30 border-t border-border/80 text-xs text-muted-foreground", className)}>
       {/* Item Range Info */}
       <div className="text-center sm:text-left select-none">
         แสดงรายการที่{' '}
