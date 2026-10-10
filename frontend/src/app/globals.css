@@ -15,6 +15,13 @@
   --destructive-foreground: #ffffff;
 }
 
+html {
+  /* Scale up base font size from standard 16px to 17px (~106.25%)
+     This proportionately scales all rem units across the web app,
+     improving readability for Thai script (IBM Plex Sans Thai). */
+  font-size: 17px;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -35,6 +42,7 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-ibm-plex-sans-thai), var(--font-ibm-plex-sans), system-ui, sans-serif;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -91,4 +99,20 @@ input[type="number"] {
   .btn-interactive:active {
     transform: none !important;
   }
+}
+
+/* Sleek subtle scrollbar for split panes */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

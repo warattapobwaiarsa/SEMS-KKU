@@ -13,6 +13,7 @@ import {
   Search,
   AlertCircle,
   Inbox,
+  RefreshCw,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -98,9 +99,18 @@ function EvaluatorRoundsContent() {
 
       {/* Error Alert */}
       {error && (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-sm text-rose-700 flex items-center gap-2.5">
-          <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
-          <span>{error}</span>
+        <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-sm text-destructive flex items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={() => void loadRounds()}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-destructive text-destructive-foreground rounded-xl hover:bg-destructive/90 transition cursor-pointer shrink-0"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            ลองใหม่
+          </button>
         </div>
       )}
 

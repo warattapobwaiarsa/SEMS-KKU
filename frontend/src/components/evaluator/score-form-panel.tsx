@@ -15,10 +15,8 @@ interface ScoreFormPanelProps {
   /** ข้อผิดพลาดคะแนนรายข้อ: key = subCriteriaId */
   scoreErrors: Record<number, string>;
   readOnly: boolean;
-  /** คะแนนรวมสดที่ฝั่งหน้าจอคำนวณ (Draft ฝั่ง server ยังเป็น null) */
-  totalScore: number;
-  /** คะแนนเต็มรวมของข้อแบบ SCORED ทั้งหมด */
-  maxTotal: number;
+  totalScore?: number;
+  maxTotal?: number;
   onChange: (subCriteriaId: number, field: keyof ScoreFormValue, value: string) => void;
 }
 
@@ -27,27 +25,13 @@ export function ScoreFormPanel({
   values,
   scoreErrors,
   readOnly,
-  totalScore,
-  maxTotal,
   onChange,
 }: ScoreFormPanelProps) {
   return (
     <div className="flex flex-col gap-4">
-      {/* หัวแผง */}
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl">
-        <span className="text-base font-bold text-slate-900">
-          เกณฑ์การให้คะแนน ({items.length} ข้อ)
-        </span>
-        {readOnly && (
-          <span className="inline-flex items-center gap-1 text-sm text-slate-700">
-            🔒 โหมดอ่านอย่างเดียว
-          </span>
-        )}
-      </div>
-
       {/* รายการเกณฑ์ย่อยทุกข้อ */}
       {items.length === 0 ? (
-        <p className="text-sm text-slate-700 p-4 border border-dashed border-slate-300 rounded-xl">
+        <p className="text-sm text-muted-foreground p-8 text-center border border-dashed border-border rounded-2xl">
           รอบนี้ยังไม่มีเกณฑ์ย่อยสำหรับประเมิน
         </p>
       ) : (
@@ -65,14 +49,6 @@ export function ScoreFormPanel({
           />
         ))
       )}
-
-      {/* คะแนนรวมสด (นับเฉพาะ SCORED ที่กรอกแล้ว) [FR-SCR-02] */}
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-900 text-white rounded-xl">
-        <span className="text-base font-semibold">คะแนนรวม</span>
-        <span className="text-xl font-bold font-mono">
-          {totalScore} <span className="text-base font-normal text-slate-200">/ {maxTotal}</span>
-        </span>
-      </div>
     </div>
   );
 }

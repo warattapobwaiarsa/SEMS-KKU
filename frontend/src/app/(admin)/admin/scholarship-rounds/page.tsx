@@ -14,12 +14,15 @@ import {
   Eye,
   Filter,
   CheckCircle2,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import { useDebounce } from '@/lib/use-debounce';
 
 export default function ScholarshipRoundsPage() {
   const [rounds, setRounds] = useState<ScholarshipRoundListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 400);
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -34,6 +37,7 @@ export default function ScholarshipRoundsPage() {
   const loadRounds = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const res = await fetchRoundsList({
         page,
         limit: 10,
@@ -46,6 +50,8 @@ export default function ScholarshipRoundsPage() {
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการโหลดรอบทุน';
+      setError(msg);
+      setRounds([]);
       console.warn('API connection:', msg);
     } finally {
       setLoading(false);
@@ -120,6 +126,26 @@ export default function ScholarshipRoundsPage() {
         </div>
       </div>
 
+      {/* Error Alert with Retry */}
+      {error && (
+        <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 shrink-0" />
+            <div>
+              <p className="font-semibold">ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้</p>
+              <p className="text-xs text-destructive/90">{error} (เซิร์ฟเวอร์ Backend อาจกำลังเริ่มต้นระบบ กรุณารอสักครู่แล้วลองใหม่)</p>
+            </div>
+          </div>
+          <button
+            onClick={() => void loadRounds()}
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold bg-destructive text-destructive-foreground rounded-xl hover:bg-destructive/90 transition cursor-pointer shrink-0 self-end sm:self-auto"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            ลองใหม่อีกครั้ง
+          </button>
+        </div>
+      )}
+
       {/* Main Table */}
       <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs">
         {loading ? (
@@ -127,7 +153,7 @@ export default function ScholarshipRoundsPage() {
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em]" />
             <p className="mt-4 text-sm text-muted-foreground animate-pulse">กำลังโหลดรายการรอบทุน...</p>
           </div>
-        ) : rounds.length === 0 ? (
+        ) : error ? null : rounds.length === 0 ? (
           <div className="p-16 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/60 text-muted-foreground border border-border/60">
               <Calendar className="h-7 w-7" />
