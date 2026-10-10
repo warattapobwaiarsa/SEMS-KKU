@@ -2,6 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RoundsController } from './rounds.controller';
 import { RoundsService } from './rounds.service';
 import { RoundStatus } from '@prisma/client';
+import { RoleDispatchGuard } from '../common/guards/role-dispatch.guard';
+import { EvaluationReadService } from '../evaluation/evaluation-read.service';
+import { RequestWithResolvedRole } from '../common/guards/role-dispatch.guard';
 
 describe('RoundsController', () => {
   let controller: RoundsController;
@@ -18,6 +21,15 @@ describe('RoundsController', () => {
     closeRound: jest.fn(),
   };
 
+  const mockEvaluationReadService = {
+    getRoundForEvaluator: jest.fn(),
+  };
+
+  // Mock guard that always returns true
+  const mockRoleDispatchGuard = {
+    canActivate: jest.fn(() => true),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RoundsController],
@@ -26,11 +38,27 @@ describe('RoundsController', () => {
           provide: RoundsService,
           useValue: mockRoundsService,
         },
+        {
+          provide: EvaluationReadService,
+          useValue: mockEvaluationReadService,
+        },
       ],
-    }).compile();
+    })
+      .overrideGuard(RoleDispatchGuard)
+      .useValue(mockRoleDispatchGuard)
+      .compile();
 
     controller = module.get<RoundsController>(RoundsController);
     jest.clearAllMocks();
+  });
+
+  // Helper to create mock request with resolvedRole
+  const mockRequest = (
+    role: 'ADMIN' | 'EVALUATOR',
+  ): RequestWithResolvedRole => ({
+    resolvedRole: role,
+    headers: {},
+    query: {},
   });
 
   describe('findAll', () => {
@@ -84,14 +112,42 @@ describe('RoundsController', () => {
   });
 
   describe('findOne', () => {
-    it('should delegate to roundsService.findOne with id and role', async () => {
+    it('should delegate to roundsService.findOne with id and role for ADMIN', async () => {
       const mockRound = { id: 1, name: 'ทุนใหม่' };
       mockRoundsService.findOne.mockResolvedValueOnce(mockRound);
 
-      const result = await controller.findOne(1, 'EVALUATOR', undefined);
+      const result = await controller.findOne(
+        1,
+        'EVALUATOR',
+        undefined,
+        mockRequest('ADMIN'),
+      );
 
       expect(mockRoundsService.findOne).toHaveBeenCalledWith(1, 'EVALUATOR');
       expect(result).toBe(mockRound);
+    });
+
+    it('should delegate to evaluationReadService.getRoundForEvaluator for EVALUATOR', async () => {
+      const mockEvaluatorRound = {
+        id: 1,
+        name: 'ทุนใหม่',
+        status: RoundStatus.OPEN,
+      };
+      mockEvaluationReadService.getRoundForEvaluator.mockResolvedValueOnce(
+        mockEvaluatorRound,
+      );
+
+      const result = await controller.findOne(
+        1,
+        'EVALUATOR',
+        undefined,
+        mockRequest('EVALUATOR'),
+      );
+
+      expect(
+        mockEvaluationReadService.getRoundForEvaluator,
+      ).toHaveBeenCalledWith(1);
+      expect(result).toBe(mockEvaluatorRound);
     });
   });
 
