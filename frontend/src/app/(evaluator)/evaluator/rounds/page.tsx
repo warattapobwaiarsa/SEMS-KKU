@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -21,7 +21,7 @@ import { ApiError } from '@/lib/api-client';
 import { fetchEvaluatorRounds } from '@/services/evaluation.service';
 import type { EvaluatorRound, PaginationMeta } from '@/types/evaluation';
 
-export default function EvaluatorRoundsPage() {
+function EvaluatorRoundsContent() {
   const searchParams = useSearchParams();
   const [rounds, setRounds] = useState<EvaluatorRound[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta>({
@@ -210,15 +210,38 @@ export default function EvaluatorRoundsPage() {
       )}
 
       {/* Pagination */}
-      {!loading && pagination.totalPages > 1 && (
-        <div className="pt-4 flex justify-center">
+      {!loading && rounds.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
           <Pagination
-            currentPage={pagination.page}
+            page={pagination.page}
             totalPages={pagination.totalPages}
+            total={pagination.total}
+            limit={pagination.limit}
             onPageChange={handlePageChange}
+            disabled={loading}
           />
         </div>
       )}
     </div>
+  );
+}
+
+export default function EvaluatorRoundsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex-1 flex flex-col space-y-6">
+          <PageHeader
+            title="รอบทุนการศึกษาที่เปิดประเมิน"
+            description="เลือกรอบทุนการศึกษาที่เปิดรับการประเมินเพื่อเข้าสู่การตรวจรายชื่อและให้คะแนนผู้สมัคร"
+          />
+          <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-500">
+            กำลังโหลดข้อมูลรอบทุน...
+          </div>
+        </div>
+      }
+    >
+      <EvaluatorRoundsContent />
+    </Suspense>
   );
 }
