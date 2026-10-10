@@ -30,6 +30,14 @@ export class MockAuthGuard implements CanActivate {
   constructor(private readonly prismaService: PrismaService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // 0) ป้องกันความปลอดภัย: ห้ามใช้ MockAuthGuard บน Production เด็ดขาด
+    if (process.env.NODE_ENV === 'production') {
+      throw new AppException(
+        'MOCK_AUTH_PROHIBITED_IN_PRODUCTION',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     const request = context.switchToHttp().getRequest<RequestWithUser>();
 
     // 1) ต้องส่ง header X-User-Id มา ไม่งั้นถือว่าไม่ได้ล็อกอิน [FR-AUTH-02]

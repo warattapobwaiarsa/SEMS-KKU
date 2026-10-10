@@ -22,9 +22,20 @@
     "test:cov": "npm run test:cov --workspace=backend",
     "prisma:generate": "npm run --workspace=backend prisma generate",
     "prisma:migrate": "npm run --workspace=backend prisma migrate dev",
-    "prisma:seed": "npm run --workspace=backend prisma db seed"
+    "prisma:seed": "npm run --workspace=backend prisma db seed",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "backend/**/*.ts": [
+      "npm run --workspace=backend lint --"
+    ],
+    "frontend/**/*.{ts,tsx}": [
+      "npm run --workspace=frontend lint --"
+    ]
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0"
   }
 }
