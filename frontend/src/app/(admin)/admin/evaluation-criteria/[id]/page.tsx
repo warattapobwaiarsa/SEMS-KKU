@@ -302,7 +302,7 @@ export default function EditOrViewCriteriaPage() {
             <Lock className="h-5 w-5 text-slate-700" />
           </div>
           <div>
-            <h4 className="font-bold text-slate-900 text-base">เกณฑ์นี้ถูกล็อกการแก้ไขตามกฎ BR-CRT-09</h4>
+            <h4 className="font-bold text-slate-900 text-base">เกณฑ์นี้ถูกล็อกไม่สามารถแก้ไขได้</h4>
             <p className="mt-1 text-slate-600 leading-relaxed">
               เนื่องจากชุดเกณฑ์นี้ถูกนำไปใช้ในรอบทุนที่เปิดรับประเมิน (Open) หรือปิดรอบแล้ว (Closed) เพื่อรักษาความถูกต้องของข้อมูลประเมิน หากต้องการเปลี่ยนแปลงเกณฑ์ ให้สร้างชุดเกณฑ์ใหม่
             </p>

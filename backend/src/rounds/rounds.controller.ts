@@ -35,6 +35,7 @@ export class RoundsController {
   ) {}
 
   @Get()
+  @UseGuards(RoleDispatchGuard)
   async findAll(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
@@ -44,8 +45,10 @@ export class RoundsController {
     @Query('status') status?: RoundStatus,
     @Headers('x-user-role') roleHeader?: string,
     @Query('userRole') roleQuery?: string,
+    @Req() request?: RequestWithResolvedRole,
   ) {
-    const userRole = roleHeader || roleQuery;
+    const resolvedRole = request?.resolvedRole;
+    const userRole = resolvedRole || roleHeader || roleQuery;
     return this.roundsService.findAll({
       page,
       limit,

@@ -8,6 +8,7 @@ import { getEvaluatorId } from '@/lib/mock-evaluator';
 import type {
   ApiEnvelope,
   EvaluatorApplicant,
+  EvaluatorRound,
   PaginationMeta,
   EvaluatorApplicantsQuery,
   EvaluatorApplicantDetail,
@@ -37,6 +38,33 @@ export async function fetchEvaluatorApplicants(
   const endpoint = `/scholarship-rounds/${roundId}/applicants${params.toString() ? `?${params.toString()}` : ''}`;
 
   return apiClient<{ data: EvaluatorApplicant[]; meta: { page: number; limit: number; total: number; totalPages: number } }>(
+    endpoint,
+    {
+      method: 'GET',
+      headers: {
+        'X-User-Id': getEvaluatorId(),
+      },
+    }
+  );
+}
+
+/**
+ * ดึงรายการรอบทุนที่เปิดประเมินสำหรับ Evaluator
+ * GET /scholarship-rounds?search=&page=&limit=
+ * Header: X-User-Id
+ */
+export async function fetchEvaluatorRounds(
+  query: { search?: string; page?: number; limit?: number } = {},
+): Promise<{ data: EvaluatorRound[]; meta: PaginationMeta }> {
+  const params = new URLSearchParams();
+
+  if (query.search) params.set('search', query.search);
+  if (query.page) params.set('page', String(query.page));
+  if (query.limit) params.set('limit', String(query.limit));
+
+  const endpoint = `/scholarship-rounds${params.toString() ? `?${params.toString()}` : ''}`;
+
+  return apiClient<{ data: EvaluatorRound[]; meta: PaginationMeta }>(
     endpoint,
     {
       method: 'GET',

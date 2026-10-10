@@ -64,6 +64,12 @@ export function ScoreInputRow({
               step={1}
               value={value.score}
               disabled={readOnly}
+              onWheel={(e) => (e.target as HTMLInputElement).blur()}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                  e.preventDefault();
+                }
+              }}
               onChange={(e) => onChange(item.subCriteriaId, 'score', e.target.value)}
               className={`w-28 h-11 px-3 text-center text-base font-mono border rounded-lg bg-white
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500

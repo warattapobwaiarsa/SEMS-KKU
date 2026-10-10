@@ -46,6 +46,22 @@ export interface EvaluatorApplicantsQuery {
   limit?: number;
 }
 
+// ข้อมูลรอบทุนสำหรับ Evaluator
+export interface EvaluatorRound {
+  id: number;
+  name: string;
+  academicYear: number;
+  semester: number;
+  status: 'DRAFT' | 'OPEN' | 'CLOSED';
+  criteriaId: number | null;
+  criteriaName: string | null;
+  applicantCount: number;
+  createdAt: string;
+  openedAt: string | null;
+  closedAt: string | null;
+  updatedAt: string;
+}
+
 // ============================================================
 // Step 9: หน้าประเมินแบบแบ่งจอ (split-screen scoring page)
 // ============================================================

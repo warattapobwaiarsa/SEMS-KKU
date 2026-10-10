@@ -82,7 +82,7 @@ export function Modal({
     >
       <div
         className={cn(
-          'bg-card text-foreground border border-border/90 rounded-2xl shadow-2xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 ring-1 ring-slate-900/10',
+          'bg-white text-foreground border border-slate-200 rounded-2xl shadow-2xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 ring-1 ring-slate-900/10',
           sizeClasses[size],
           className,
         )}
