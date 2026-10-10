@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   Award,
@@ -210,7 +211,7 @@ function EvaluatorRoundsContent() {
       )}
 
       {/* Pagination */}
-      {!loading && rounds.length > 0 && (
+      {!loading && pagination.totalPages > 1 && (
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
           <Pagination
             page={pagination.page}
@@ -230,13 +231,13 @@ export default function EvaluatorRoundsPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex-1 flex flex-col space-y-6">
-          <PageHeader
-            title="รอบทุนการศึกษาที่เปิดประเมิน"
-            description="เลือกรอบทุนการศึกษาที่เปิดรับการประเมินเพื่อเข้าสู่การตรวจรายชื่อและให้คะแนนผู้สมัคร"
-          />
-          <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-500">
-            กำลังโหลดข้อมูลรอบทุน...
+        <div className="flex-1 flex flex-col space-y-6 animate-pulse">
+          <div className="h-10 w-64 bg-slate-200 rounded-xl" />
+          <div className="h-14 w-full bg-slate-100 rounded-2xl" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-48 bg-slate-100 rounded-2xl" />
+            ))}
           </div>
         </div>
       }

@@ -103,21 +103,37 @@ cd SEMS-KKU
 docker compose up -d
 ```
 
-### 3. ติดตั้งและเริ่มรันฝั่ง Backend
+### 3. ติดตั้ง Dependencies ทั้งระบบ (NPM Workspaces)
+ติดตั้งทุกแพ็กเกจของทั้ง Frontend และ Backend ในคำสั่งเดียวจาก Root:
 ```bash
-cd backend
 npm install
-cp .env.example .env
-npx prisma migrate dev
-npm run start:dev
 ```
 
-### 4. ติดตั้งและเริ่มรันฝั่ง Frontend
+### 4. รันระบบสำหรับการพัฒนา (Local Development)
+สามารถเลือกรันได้ทั้งแบบคำสั่งเดียวเปิดพร้อมกัน (แนะนำ) หรือแยกรันทีละโฟลเดอร์:
+
+**วิธีที่ 1: รันพร้อมกันจาก Root Directory (Unified Terminal - แนะนำ)**
 ```bash
-cd frontend
-npm install
-cp .env.example .env
+# รันทั้ง Backend (API: 4000) และ Frontend (Web: 3000) พร้อมกันในหน้าต่างเดียว
 npm run dev
+```
+
+**วิธีที่ 2: รันแยกโฟลเดอร์ตามเดิม (Standard Sub-folders)**
+```bash
+# Terminal 1: Backend
+npm run dev:backend
+# หรือ: cd backend && npm run start:dev
+
+# Terminal 2: Frontend
+npm run dev:frontend
+# หรือ: cd frontend && npm run dev
+```
+
+### คำสั่งที่มีประโยชน์อื่นๆ จาก Root Directory:
+```bash
+npm run lint         # ตรวจสอบโค้ดทั้ง Frontend และ Backend
+npm test             # รันชุดทดสอบ Backend ทั้งหมด
+npm run prisma:seed  # รันคำสั่ง Seed ฐานข้อมูล
 ```
 
 เมื่อเปิดใช้งานเรียบร้อย ระบบ Frontend จะรันอยู่ที่ `http://localhost:3000` และ Backend API จะรันอยู่ที่ `http://localhost:4000`
