@@ -79,6 +79,9 @@ jobs:
     name: Frontend (Lint, Typecheck, Build)
     runs-on: ubuntu-latest
     needs: security-audit
+    defaults:
+      run:
+        working-directory: frontend
 
     steps:
       - name: Checkout repository
@@ -89,16 +92,16 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: frontend/package-lock.json
 
-      - name: Install dependencies (Workspace Root)
+      - name: Install dependencies (Frontend)
         run: npm ci
 
       - name: Run ESLint
-        run: npm run lint:frontend
+        run: npm run lint
 
       - name: TypeScript Typecheck
-        run: npx --workspace=frontend tsc --noEmit
+        run: npx tsc --noEmit
 
       - name: Build Next.js
-        run: npm run build:frontend
+        run: npm run build
