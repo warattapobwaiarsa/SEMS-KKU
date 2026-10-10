@@ -1,0 +1,30 @@
+{
+  "name": "sems-kku",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scholarship Evaluation Management System (SEMS-KKU) - Monorepo",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n \"backend,frontend\" -c \"cyan,magenta\" \"npm run start:dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "dev:backend": "npm run start:dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build": "npm run build --workspaces",
+    "build:backend": "npm run build --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend",
+    "lint": "npm run lint --workspaces",
+    "lint:backend": "npm run lint --workspace=backend",
+    "lint:frontend": "npm run lint --workspace=frontend",
+    "test": "npm run test --workspace=backend",
+    "test:watch": "npm run test:watch --workspace=backend",
+    "test:cov": "npm run test:cov --workspace=backend",
+    "prisma:generate": "npm run --workspace=backend prisma generate",
+    "prisma:migrate": "npm run --workspace=backend prisma migrate dev",
+    "prisma:seed": "npm run --workspace=backend prisma db seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
