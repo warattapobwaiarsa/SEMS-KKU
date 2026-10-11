@@ -38,10 +38,22 @@ async function main() {
     },
   });
 
+  const evaluator3 = await prisma.user.upsert({
+    where: { email: 'evaluator3@kku.ac.th' },
+    update: {},
+    create: {
+      email: 'evaluator3@kku.ac.th',
+      name: 'รศ.ดร. กรรมการ ประเมินทุน 3',
+      role: UserRole.EVALUATOR,
+      isActive: true,
+    },
+  });
+
   console.log('✅ Users created:', {
     admin: admin.email,
     evaluator1: evaluator1.email,
     evaluator2: evaluator2.email,
+    evaluator3: evaluator3.email,
   });
 
   console.log('🎉 Seeding completed successfully!');

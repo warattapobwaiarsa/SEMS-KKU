@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Menu, LogOut, User } from "lucide-react";
 import type { UserProfile } from "@/types/navigation";
+import { EvaluatorSwitcher } from "@/components/evaluator/evaluator-switcher";
 
 interface AppHeaderProps {
   user: UserProfile;
@@ -47,6 +48,8 @@ export function AppHeader({ user, onMenuToggle }: AppHeaderProps) {
 
       {/* Right: User Information & Actions (Strictly NO notifications per Scope 1.3.5) */}
       <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+        {isEvaluator && <EvaluatorSwitcher />}
+
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700">
             <User className="w-4 h-4" aria-hidden="true" />
