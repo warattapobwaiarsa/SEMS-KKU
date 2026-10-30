@@ -34,7 +34,6 @@ export class RoundsService {
 
     const where: Prisma.ScholarshipRoundWhereInput = {};
 
-    // Evaluator can only see OPEN rounds (BR-EVL-01)
     if (query?.userRole === 'EVALUATOR') {
       where.status = RoundStatus.OPEN;
     } else if (query?.status) {
@@ -130,7 +129,6 @@ export class RoundsService {
       });
     }
 
-    // IDOR protection: Evaluator can only see OPEN rounds
     if (userRole === 'EVALUATOR' && round.status !== RoundStatus.OPEN) {
       throw new NotFoundException({
         errorCode: 'NOT_FOUND',
@@ -158,7 +156,6 @@ export class RoundsService {
   }
 
   async create(dto: CreateScholarshipRoundDto) {
-    // Validate academic year & semester
     if (dto.academicYear < 2550 || dto.academicYear > 2700) {
       throw new BusinessException({
         errorCode: 'ACADEMIC_YEAR_OUT_OF_RANGE',

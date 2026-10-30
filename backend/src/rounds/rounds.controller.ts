@@ -76,13 +76,11 @@ export class RoundsController {
   ): Promise<unknown> {
     const resolvedRole = request?.resolvedRole;
 
-    // ADMIN path: ใช้ service เดิม (role จาก header/query หรือ ADMIN legacy)
     if (resolvedRole === 'ADMIN') {
       const userRole = roleHeader || roleQuery || 'ADMIN';
       return this.roundsService.findOne(id, userRole);
     }
 
-    // EVALUATOR path: ใช้ service ของ Evaluator (return EvaluatorRoundDetail)
     return this.evaluationReadService.getRoundForEvaluator(id);
   }
 
