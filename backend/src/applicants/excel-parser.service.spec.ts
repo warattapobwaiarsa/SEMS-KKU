@@ -36,13 +36,13 @@ describe('ExcelParserService', () => {
 
     // Verify first applicant row
     const first = result.validApplicants[0];
-    expect(first.studentCode).toBe('683040000-1');
-    expect(first.phone).toBe('0810000001'); // Auto-prefixed with 0 (BR-IMP-08)
-    expect(first.gpa).toBe(3.02);
-    expect(first.rawCitizenId).toBe('1410100000001');
-    expect(first.maskedCitizenId).toBe('1-4101-XXXXX-XX-1'); // BR-PDP-03: เปิดเผยหลักที่ 1, 2-5 และ 13
+    expect(first.studentCode).toBe('663040001-2');
+    expect(first.phone).toBe('0812345671'); // (BR-IMP-08)
+    expect(first.gpa).toBe(3.25);
+    expect(first.rawCitizenId).toBe('1409900123454');
+    expect(first.maskedCitizenId).toBe('1-4099-XXXXX-XX-4'); // BR-PDP-03: เปิดเผยหลักที่ 1, 2-5 และ 13
     expect(first.supportingInfo.accommodationMapUrl).toBe(
-      'https://maps.app.goo.gl/4iM5zfDSZf5jX7WZA',
+      'https://www.google.com/maps?q=16.478950,102.825630',
     );
   });
 
@@ -143,7 +143,7 @@ describe('ExcelParserService', () => {
 
     if (sheet) {
       // Add non-breaking space \u00A0 and zero-width space \u200B to studentCode in row 3
-      sheet.getRow(3).getCell(2).value = '\u00A0683040000-1\u200B';
+      sheet.getRow(3).getCell(2).value = '\u00A0663040001-2\u200B';
     }
 
     const buffer = await wb.xlsx.writeBuffer();
@@ -151,6 +151,6 @@ describe('ExcelParserService', () => {
 
     const first = result.validApplicants.find((a) => a.rowNumber === 3);
     expect(first).toBeDefined();
-    expect(first?.studentCode).toBe('683040000-1');
+    expect(first?.studentCode).toBe('663040001-2');
   });
 });
