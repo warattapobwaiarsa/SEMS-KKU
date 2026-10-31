@@ -3,11 +3,13 @@
  * - ค่าว่าง/ null แสดงเป็น "-" [FR-APP-04]
  * - ลิงก์แผนที่ แสดงเป็นลิงก์เฉพาะเมื่อขึ้นต้นด้วย http:// หรือ https:// [FR-APP-05]
  * - ไม่แสดงเลขบัตรประชาชน / โทรศัพท์ / อีเมล (PDPA Compliance)
+ * - รองรับ Google Maps Platform API Interactive Modal
  */
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import type { EvaluatorApplicantDetail } from '@/types/evaluation';
+import { GoogleMapsModal } from './google-maps-modal';
 import {
   User,
   Home,
@@ -41,6 +43,7 @@ function InfoField({ label, value }: { label: string; value: string }) {
 }
 
 export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const fullName = `${detail.titlePrefix}${detail.firstName} ${detail.lastName}`.trim();
   const info = detail.supportingInfo;
   const mapUrl = info?.accommodationMapUrl ?? '';
@@ -87,18 +90,27 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
             <Home className="w-4 h-4 text-primary" />
             ข้อมูลที่อยู่อาศัยและค่าใช้จ่าย
           </h4>
-          {mapUrl && mapUrlIsSafe && (
-            <a
-              href={mapUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition"
-            >
-              <MapPin className="w-3.5 h-3.5" />
-              <span>ดูแผนที่ที่พัก</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
+          {mapUrl && mapUrlIsSafe ? (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setIsMapModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition cursor-pointer"
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                <span>ดูแผนที่ Google Maps</span>
+              </button>
+              <a
+                href={mapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="เปิดใน Google Maps (แท็บใหม่)"
+                className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          ) : null}
         </div>
 
         <div className="grid grid-cols-2 gap-3.5">
@@ -171,6 +183,15 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
           <strong>การคุ้มครองข้อมูลส่วนบุคคล (PDPA):</strong> ระบบแสดงเฉพาะข้อมูลที่จำเป็นต่อการประเมินความจำเป็นทางการเงิน ไม่เปิดเผยเลขบัตรประชาชน เบอร์โทรศัพท์ และอีเมลส่วนบุคคล
         </span>
       </div>
+
+      {/* Google Maps Interactive Modal */}
+      <GoogleMapsModal
+        isOpen={isMapModalOpen}
+        onClose={() => setIsMapModalOpen(false)}
+        destination={mapUrl || info?.accommodation || ''}
+        applicantName={fullName}
+        accommodationTitle={info?.accommodation ?? undefined}
+      />
     </div>
   );
 }
