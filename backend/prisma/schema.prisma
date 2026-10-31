@@ -1,0 +1,298 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  EVALUATOR
+}
+
+enum RoundStatus {
+  DRAFT
+  OPEN
+  CLOSED
+}
+
+enum SubCriteriaType {
+  SCORED
+  TEXT
+}
+
+enum EvaluationStatus {
+  DRAFT
+  SUBMITTED
+}
+
+enum AllocationStatus {
+  EDITING
+  FINALIZED
+}
+
+enum AuditAction {
+  VIEW_CITIZEN_ID          
+  EXPORT_EVALUATION_REPORT 
+  EXPORT_ALLOCATION_REPORT 
+  IMPORT_APPLICANTS        
+  ROUND_STATUS_CHANGE      
+  ALLOCATION_STATUS_CHANGE 
+  USER_CREATE
+  USER_UPDATE
+  USER_ACTIVATE
+  USER_DEACTIVATE
+  USER_AUTO_DEACTIVATE     
+  USER_EXTEND_EXPIRY       
+  CRITERIA_CREATE
+  CRITERIA_UPDATE
+  EVALUATION_SUBMIT
+  BUDGET_SET               
+  BUDGET_UPDATE            
+  ALLOCATION_UPDATE        
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  role      UserRole
+  isActive  Boolean  @default(true)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  session              UserSession?
+  importBatches        ImportBatch[]
+  evaluations          Evaluation[]
+  allocationStatusSets AllocationSummary[] @relation("AllocationStatusChangedBy")
+  auditLogs            AuditLog[]
+  @@index([role, isActive])
+  @@index([expiresAt])
+  @@map("users")
+}
+
+model UserSession {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @unique
+  sessionId      String   @unique
+  createdAt      DateTime @default(now())
+  lastActivityAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id])
+  @@map("user_sessions")
+}
+
+model Criteria {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  subCriteria SubCriteria[]
+  rounds      ScholarshipRound[]
+  @@map("criteria")
+}
+
+model SubCriteria {
+  id         Int             @id @default(autoincrement())
+  criteriaId Int
+  title      String
+  type       SubCriteriaType
+  maxScore   Int?
+  allowComment Boolean       @default(false)
+  sortOrder  Int
+  criteria Criteria         @relation(fields: [criteriaId], references: [id])
+  items    EvaluationItem[]
+  @@index([criteriaId, sortOrder])
+  @@map("sub_criteria")
+}
+
+model ScholarshipRound {
+  id           Int         @id @default(autoincrement())
+  name         String
+  academicYear Int
+  semester     Int
+  criteriaId   Int?
+  status       RoundStatus @default(DRAFT)
+  createdAt    DateTime    @default(now())
+  openedAt     DateTime?
+  closedAt     DateTime?
+  updatedAt    DateTime    @updatedAt
+  criteria      Criteria?          @relation(fields: [criteriaId], references: [id])
+  applicants    Applicant[]
+  importBatches ImportBatch[]
+  allocation    AllocationSummary?
+  @@index([status])
+  @@index([academicYear, semester])
+  @@index([name])
+  @@index([criteriaId])
+  @@map("scholarship_rounds")
+}
+
+model ImportBatch {
+  id           Int      @id @default(autoincrement())
+  roundId      Int
+  fileName     String
+  totalRows    Int
+  validRows    Int
+  invalidRows  Int
+  errorDetails Json?
+  importedById Int
+  importedAt   DateTime @default(now())
+  round      ScholarshipRound @relation(fields: [roundId], references: [id])
+  importedBy User             @relation(fields: [importedById], references: [id])
+  applicants Applicant[]
+  @@index([roundId, importedAt])
+  @@map("import_batches")
+}
+
+model Applicant {
+  id            Int      @id @default(autoincrement())
+  roundId       Int
+  importBatchId Int
+  legacySeq     Int?
+  studentCode   String
+  titlePrefix   String
+  firstName     String
+  lastName      String
+  faculty       String
+  major         String
+  studyYear     Int
+  gpa           Decimal  @db.Decimal(3, 2)
+  createdAt     DateTime @default(now())
+  anonymizedAt  DateTime?
+  round          ScholarshipRound        @relation(fields: [roundId], references: [id])
+  importBatch    ImportBatch             @relation(fields: [importBatchId], references: [id])
+  contact        ApplicantContact?
+  supportingInfo ApplicantSupportingInfo?
+  evaluations    Evaluation[]
+  allocation     Allocation?
+  @@unique([roundId, studentCode])
+  @@index([roundId, faculty])
+  @@index([roundId, lastName, firstName])
+  @@index([importBatchId])
+  @@map("applicants")
+}
+
+model ApplicantContact {
+  applicantId       Int    @id
+  phone             String
+  email             String
+  citizenIdEncrypted String
+  citizenIdMasked   String
+  applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  @@map("applicant_contacts")
+}
+
+model ApplicantSupportingInfo {
+  applicantId Int    @id
+  applicationDate String?
+  accommodation   String?
+  rent            String?
+  personalExpense String?
+  studyEquipmentCost String?
+  electronicDevices  String?
+  sideIncome      String?
+  fatherAge        String?
+  fatherOccupation String?
+  fatherIncome     String?
+  fatherStatus     String?
+  motherAge        String?
+  motherOccupation String?
+  motherIncome     String?
+  motherStatus     String?
+  parentsStatus    String?
+  tuitionPayer     String?
+  guardianRelation   String?
+  guardianOccupation String?
+  guardianIncome     String?
+  siblingsWorking    String?
+  siblingsNotWorking String?
+  siblingsStudying   String?
+  studentLoan        String?
+  previousScholarships String?
+  accommodationMapUrl String?
+  applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  @@map("applicant_supporting_info")
+}
+
+model Evaluation {
+  id          Int              @id @default(autoincrement())
+  applicantId Int
+  evaluatorId Int
+  status      EvaluationStatus @default(DRAFT)
+  totalScore  Int?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  submittedAt DateTime?
+  applicant Applicant        @relation(fields: [applicantId], references: [id])
+  evaluator User             @relation(fields: [evaluatorId], references: [id])
+  items     EvaluationItem[]
+  @@unique([evaluatorId, applicantId])
+  @@index([applicantId, status])
+  @@index([evaluatorId, status])
+  @@map("evaluations")
+}
+
+model EvaluationItem {
+  id            Int    @id @default(autoincrement())
+  evaluationId  Int
+  subCriteriaId Int
+  score         Int?
+  comment       String?
+  textValue     String?
+  evaluation  Evaluation  @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  subCriteria SubCriteria @relation(fields: [subCriteriaId], references: [id])
+  @@unique([evaluationId, subCriteriaId])
+  @@index([subCriteriaId])
+  @@map("evaluation_items")
+}
+
+model AllocationSummary {
+  id                Int              @id @default(autoincrement())
+  roundId           Int              @unique
+  totalBudget       Decimal          @db.Decimal(14, 2)
+  status            AllocationStatus @default(EDITING)
+  statusChangedById Int?
+  statusChangedAt   DateTime         @default(now())
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  round           ScholarshipRound @relation(fields: [roundId], references: [id])
+  statusChangedBy User?            @relation("AllocationStatusChangedBy", fields: [statusChangedById], references: [id])
+  allocations     Allocation[]
+  @@map("allocation_summaries")
+}
+
+model Allocation {
+  id          Int      @id @default(autoincrement())
+  summaryId   Int
+  applicantId Int      @unique
+  isAwarded   Boolean  @default(false)
+  amount      Decimal  @default(0) @db.Decimal(14, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  summary   AllocationSummary @relation(fields: [summaryId], references: [id])
+  applicant Applicant         @relation(fields: [applicantId], references: [id])
+  @@index([summaryId, isAwarded])
+  @@map("allocations")
+}
+
+model AuditLog {
+  id         BigInt      @id @default(autoincrement())
+  actorId    Int?
+  action     AuditAction
+  entityType String
+  entityId   String?
+  roundId    Int?
+  oldValue   Json?
+  newValue   Json?
+  detail     Json?
+  createdAt  DateTime    @default(now())
+  actor User? @relation(fields: [actorId], references: [id])
+  @@index([createdAt])
+  @@index([action, createdAt])
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
+  @@index([roundId])
+  @@map("audit_logs")
+}

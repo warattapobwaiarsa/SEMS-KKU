@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>V5 – Applicant list, loading skeleton and no-results</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'IBM Plex Sans Thai', sans-serif; font-size: 16px; line-height: 1.6; color: #374151; background-color: #ffffff; }
+  .wire-border { border: 1px solid #9CA3AF; }
+  .wire-panel { background-color: #F3F4F6; }
+  .wire-pill { border: 1px solid #9CA3AF; background-color: #ffffff; border-radius: 9999px; font-size: 14px; padding: 2px 10px; display: inline-flex; align-items: center; justify-content: center; }
+  .skeleton-bar { background-color: #E5E7EB; border: 1px solid #D1D5DB; }
+</style>
+</head>
+<body class="min-h-screen flex bg-white text-[#374151]">
+  <!-- EVALUATOR SIDEBAR -->
+  <aside class="w-[260px] min-h-screen border-r wire-border flex flex-col justify-between p-4 bg-white flex-shrink-0">
+    <div>
+      <div class="wire-border p-3 mb-6 bg-white">
+        <div class="font-bold text-xl tracking-tight text-[#374151]">SEMS <span class="text-xs font-normal text-gray-500">v2.4</span></div>
+        <div class="text-xs text-[#374151] mt-1 leading-snug">ระบบบริหารจัดการการประเมินทุนการศึกษา</div>
+      </div>
+      <nav class="space-y-2">
+        <a href="#" class="flex items-center justify-between px-3 py-3 wire-border wire-panel font-medium rounded-sm">
+          <span>รอบทุนที่เปิดประเมิน</span>
+          <span class="text-xs">›</span>
+        </a>
+        <a href="#" class="flex items-center justify-between px-3 py-3 border border-transparent hover:border-gray-300 text-gray-700">
+          <span>ผลการประเมินของฉัน</span>
+          <span class="text-xs text-gray-400">›</span>
+        </a>
+      </nav>
+    </div>
+    <div class="pt-4 border-t wire-border text-xs text-gray-500">
+      คณะวิศวกรรมศาสตร์<br>มหาวิทยาลัยขอนแก่น
+    </div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <header class="h-16 border-b wire-border px-8 flex items-center justify-between bg-white flex-shrink-0">
+      <div class="text-lg font-medium">ผู้สมัครทุน / รอบทุนที่เปิดประเมิน</div>
+      <div class="flex items-center space-x-3">
+        <span class="text-sm font-medium">ผศ.ดร.สมชาย ใจดี</span>
+        <span class="wire-pill text-xs font-semibold">Evaluator</span>
+        <button class="wire-border px-3 py-1 text-sm bg-white hover:bg-gray-100">ออกจากระบบ</button>
+      </div>
+    </header>
+
+    <main class="p-10 flex-1 bg-white space-y-12">
+      <!-- SECTION 1: LOADING SKELETON -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-mono text-gray-500">FRAME ID: V5.1 | STATE: LOADING SKELETON</span>
+          <span class="text-xs text-gray-400">จำลองสถานะกำลังดึงข้อมูลจากระบบ</span>
+        </div>
+        <div class="border-b wire-border pb-2 mb-4">
+          <div class="skeleton-bar h-6 w-72 mb-2"></div>
+          <div class="skeleton-bar h-4 w-48"></div>
+        </div>
+
+        <!-- Skeleton Search Bar -->
+        <div class="mb-4">
+          <div class="skeleton-bar h-10 w-96"></div>
+        </div>
+
+        <!-- Skeleton Table -->
+        <div class="wire-border overflow-hidden">
+          <table class="w-full text-left text-[15px] border-collapse">
+            <thead>
+              <tr class="wire-panel border-b wire-border text-xs font-semibold">
+                <th class="py-3 px-4 w-16 text-center">ลำดับ</th>
+                <th class="py-3 px-4 w-36">รหัสนักศึกษา</th>
+                <th class="py-3 px-4">ชื่อ - นามสกุล</th>
+                <th class="py-3 px-4">สาขาวิชา</th>
+                <th class="py-3 px-4 text-center">ผู้ประเมินที่ส่งผลแล้ว</th>
+                <th class="py-3 px-4 text-center">สถานะของฉัน</th>
+                <th class="py-3 px-4 text-center w-36">การจัดการ</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y wire-border">
+              <!-- Skeleton Row 1 -->
+              <tr class="h-[60px]">
+                <td class="px-4 text-center"><div class="skeleton-bar h-4 w-6 mx-auto"></div></td>
+                <td class="px-4"><div class="skeleton-bar h-4 w-24"></div></td>
+                <td class="px-4"><div class="skeleton-bar h-4 w-36"></div></td>
+                <td class="px-4"><div class="skeleton-bar h-4 w-32"></div></td>
+                <td class="px-4 text-center"><div class="skeleton-bar h-4 w-12 mx-auto"></div></td>
+                <td class="px-4 text-center"><div class="skeleton-bar h-6 w-20 mx-auto rounded-full"></div></td>
+                <td class="px-4 text-center"><div class="skeleton-bar h-8 w-24 mx-auto"></div></td>
+              </tr>
+              <!-- Skeleton Row 2 -->
+              <tr class="h-[60px]">
+                <td class="px-4 text-center"><div class="skeleton-bar h-4 w-6 mx-auto"></div></td>
+                <td class="px-4"><div class="skeleton-bar h-4 w-24"></div></td>
+                <td class="px-4"><div class="skeleton-bar h-4 w-40"></div></td>
+                <td class="px-4"><div class="skeleton-bar h-4 w-28"></div></td>
+                <td class="px-4 text-center"><div class="skeleton-bar h-4 w-12 mx-auto"></div></td>
+                <td class="px-4 text-center"><div class="skeleton-bar h-6 w-20 mx-auto rounded-full"></div></td>
+                <td class="px-4 text-center"><div class="skeleton-bar h-8 w-24 mx-auto"></div></td>
+              </tr>
+              <!-- Skeleton Row 3 -->
+              <tr class="h-[60px]">
+                <td class="px-4 text-center"><div class="skeleton-bar h-4 w-6 mx-auto"></div></td>
+                <td class="px-4"><div class="skeleton-bar h-4 w-24"></div></td>
+                <td class="px-4"><div class="skeleton-bar h-4 w-32"></div></td>
+                <td class="px-4"><div class="skeleton-bar h-4 w-36"></div></td>
+                <td class="px-4 text-center"><div class="skeleton-bar h-4 w-12 mx-auto"></div></td>
+                <td class="px-4 text-center"><div class="skeleton-bar h-6 w-20 mx-auto rounded-full"></div></td>
+                <td class="px-4 text-center"><div class="skeleton-bar h-8 w-24 mx-auto"></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- DIVIDER BETWEEN DEMO STATES -->
+      <div class="border-t-2 border-dashed wire-border pt-8">
+        <!-- SECTION 2: NO RESULTS STATE -->
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-mono text-gray-500">FRAME ID: V5.2 | STATE: NO-RESULTS FOUND</span>
+        </div>
+        <div class="pb-2 border-b wire-border mb-4">
+          <h2 class="text-xl font-bold">ผู้สมัครทุนการศึกษาเรียนดี 2569/1</h2>
+        </div>
+
+        <!-- Search Bar with query entered -->
+        <div class="mb-4 flex items-center justify-between">
+          <div class="relative w-96">
+            <input type="text" value="6740999999" class="w-full px-4 py-2 text-sm wire-border bg-white" />
+            <button class="absolute right-3 top-2.5 text-xs text-gray-500 font-bold">✕</button>
+          </div>
+          <span class="text-xs text-gray-500">พบ 0 รายการ</span>
+        </div>
+
+        <!-- Table with empty search result inside -->
+        <div class="wire-border overflow-hidden">
+          <table class="w-full text-left text-[15px] border-collapse">
+            <thead>
+              <tr class="wire-panel border-b wire-border text-xs font-semibold">
+                <th class="py-3 px-4 w-16 text-center">ลำดับ</th>
+                <th class="py-3 px-4 w-36">รหัสนักศึกษา</th>
+                <th class="py-3 px-4">ชื่อ - นามสกุล</th>
+                <th class="py-3 px-4">สาขาวิชา</th>
+                <th class="py-3 px-4 text-center">ผู้ประเมินที่ส่งผลแล้ว</th>
+                <th class="py-3 px-4 text-center">สถานะของฉัน</th>
+                <th class="py-3 px-4 text-center w-36">การจัดการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="7" class="py-16 text-center wire-panel">
+                  <div class="w-12 h-12 wire-border bg-white mx-auto mb-3 flex items-center justify-center text-gray-400 font-mono text-lg">
+                    ?
+                  </div>
+                  <div class="text-base font-bold text-[#374151]">ไม่พบผู้สมัครที่ตรงกับการค้นหา</div>
+                  <div class="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
+                    ไม่พบข้อมูลที่ตรงกับคำค้นหา "6740999999" กรุณาตรวจสอบรหัสนักศึกษาหรือชื่อ-สกุลใหม่อีกครั้ง
+                  </div>
+                  <button class="mt-4 px-4 py-1.5 wire-border bg-white text-xs hover:bg-gray-100 font-medium">ล้างการค้นหา</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

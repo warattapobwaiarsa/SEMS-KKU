@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html lang="th"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&amp;family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;font-family:'IBM Plex Sans Thai','IBM Plex Sans',sans-serif;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={"darkMode":"class","theme":{"extend":{"colors":{"on-primary-container":"#a3adc0","surface-container":"#eeeeee","primary":"#212b3a","outline-variant":"#c5c6cc","surface":"#f9f9f9","secondary-fixed":"#dce3f0","secondary":"#585f6a","on-secondary-container":"#5e6570","tertiary":"#282b2d","primary-fixed-dim":"#bdc7db","on-primary-fixed":"#121c2a","tertiary-fixed":"#e1e2e4","on-tertiary-fixed":"#191c1e","surface-bright":"#f9f9f9","on-surface":"#1a1c1c","surface-dim":"#dadada","inverse-surface":"#2f3131","primary-fixed":"#d9e3f7","secondary-fixed-dim":"#c0c7d3","on-secondary-fixed":"#151c25","inverse-on-surface":"#f0f1f1","surface-container-low":"#f3f3f4","tertiary-container":"#3e4143","on-tertiary":"#ffffff","inverse-primary":"#bdc7db","outline":"#75777d","on-error":"#ffffff","on-tertiary-container":"#abadaf","on-tertiary-fixed-variant":"#444749","surface-variant":"#e2e2e2","secondary-container":"#dce3f0","on-secondary":"#ffffff","on-primary":"#ffffff","on-error-container":"#93000a","surface-container-lowest":"#ffffff","surface-container-highest":"#e2e2e2","on-primary-fixed-variant":"#3d4757","primary-container":"#374151","on-surface-variant":"#44474c","on-secondary-fixed-variant":"#404752","tertiary-fixed-dim":"#c5c6c8","background":"#f9f9f9","surface-container-high":"#e8e8e8","surface-tint":"#555f70","error-container":"#ffdad6","error":"#ba1a1a","on-background":"#1a1c1c"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-md":"1rem","margin-lg":"2.5rem","margin":"1.5rem","space-sm":"0.5rem","space-lg":"1.5rem","gutter-lg":"1.5rem","gutter":"1rem","space-xs":"0.25rem","space-xl":"2rem"},"fontFamily":{"body-lg":["IBM Plex Sans"],"body-md":["IBM Plex Sans"],"label-sm":["IBM Plex Sans"],"headline-md":["IBM Plex Sans"],"headline-lg":["IBM Plex Sans"],"headline-xl":["IBM Plex Sans"],"code-score":["JetBrains Mono"],"table-cell":["IBM Plex Sans"],"table-header":["IBM Plex Sans"],"label-md":["IBM Plex Sans"]},"fontSize":{"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}],"body-md":["16px",{"lineHeight":"26px","fontWeight":"400"}],"label-sm":["14px",{"lineHeight":"22px","fontWeight":"400"}],"headline-md":["18px",{"lineHeight":"28px","fontWeight":"600"}],"headline-lg":["22px",{"lineHeight":"36px","letterSpacing":"-0.005em","fontWeight":"600"}],"headline-xl":["28px",{"lineHeight":"44px","letterSpacing":"-0.01em","fontWeight":"600"}],"code-score":["15px",{"lineHeight":"24px","fontWeight":"500"}],"table-cell":["15px",{"lineHeight":"24px","fontWeight":"400"}],"table-header":["15px",{"lineHeight":"24px","letterSpacing":"0.01em","fontWeight":"600"}],"label-md":["14px",{"lineHeight":"22px","fontWeight":"500"}]}}}};</script></head><body class="bg-surface-container-lowest font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-[260px] bg-surface-container-lowest border-r border-[#9CA3AF] z-50 flex flex-col"><div class="h-16 px-space-md flex flex-col justify-center border-b border-[#9CA3AF] bg-surface-container-lowest"><div class="flex items-baseline gap-space-xs"><span class="font-headline-lg text-headline-lg font-bold text-primary tracking-tight">SEMS</span><span class="font-label-sm text-[11px] text-secondary font-mono tracking-wider">v2.4</span></div><div class="font-label-sm text-[12px] leading-tight text-secondary truncate" title="ระบบบริหารจัดการการประเมินทุนการศึกษา">ระบบบริหารจัดการการประเมินทุนการศึกษา</div></div><nav class="flex-1 py-space-sm flex flex-col gap-0.5" data-active-classes="bg-surface-container-low font-semibold text-primary border-l-2 border-primary"><a class="px-space-md py-space-sm text-secondary hover:bg-surface-container-low hover:text-primary font-label-md text-label-md transition-colors flex items-center justify-between" data-path="users" href="#"><span>ผู้ใช้งาน</span><span class="material-symbols-outlined text-[16px] text-outline">chevron_right</span></a><a class="px-space-md py-space-sm text-secondary hover:bg-surface-container-low hover:text-primary font-label-md text-label-md transition-colors flex items-center justify-between" data-path="scholarship-rounds" href="#"><span>รอบทุนการศึกษา</span><span class="material-symbols-outlined text-[16px] text-outline">chevron_right</span></a><a class="px-space-md py-space-sm text-secondary hover:bg-surface-container-low hover:text-primary font-label-md text-label-md transition-colors flex items-center justify-between" data-path="evaluation-rubrics" href="#"><span>เกณฑ์การประเมิน</span><span class="material-symbols-outlined text-[16px] text-outline">chevron_right</span></a><a class="px-space-md py-space-sm text-secondary hover:bg-surface-container-low hover:text-primary font-label-md text-label-md transition-colors flex items-center justify-between" data-path="applicants" href="#"><span>ผู้สมัคร</span><span class="material-symbols-outlined text-[16px] text-outline">chevron_right</span></a><a class="px-space-md py-space-sm text-secondary hover:bg-surface-container-low hover:text-primary font-label-md text-label-md transition-colors flex items-center justify-between" data-path="evaluation-results" href="#"><span>ผลการประเมินและอันดับ</span><span class="material-symbols-outlined text-[16px] text-outline">chevron_right</span></a><a class="px-space-md py-space-sm text-secondary hover:bg-surface-container-low hover:text-primary font-label-md text-label-md transition-colors flex items-center justify-between" data-path="scholarship-allocation" href="#"><span>การจัดสรรทุน</span><span class="material-symbols-outlined text-[16px] text-outline">chevron_right</span></a><a aria-current="page" class="px-space-md py-space-sm transition-colors flex items-center justify-between bg-surface-container-low font-semibold text-primary border-l-2 border-primary" data-path="reports" href="#"><span>รายงาน</span><span class="material-symbols-outlined text-[16px] text-outline">chevron_right</span></a></nav><div class="p-space-sm border-t border-[#9CA3AF] bg-surface-container-lowest text-[11px] text-secondary font-label-sm"><div class="text-primary font-medium truncate">คณะวิศวกรรมศาสตร์</div><div class="truncate text-outline">มหาวิทยาลัยขอนแก่น</div></div></aside><div class="pl-[260px] min-h-screen flex flex-col bg-surface-container-lowest"><header class="fixed top-0 left-[260px] right-0 h-16 bg-surface-container-lowest border-b border-[#9CA3AF] z-40 flex items-center justify-between px-margin-lg"><div class="flex items-center gap-space-sm"><span class="font-headline-md text-headline-md font-bold text-primary">รายงาน</span><span class="text-secondary font-label-sm text-label-sm">/ บริหารจัดการข้อมูล</span></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md"><span class="material-symbols-outlined text-[20px] text-primary">account_circle</span><span class="text-primary font-medium">นายอนุชา ผู้ดูแล</span></div><span class="h-6 px-2.5 rounded-full border border-primary text-primary bg-surface-container-lowest font-label-sm text-[12px] flex items-center uppercase tracking-wide">Admin</span><a class="h-9 px-space-md border border-[#9CA3AF] bg-surface-container-lowest text-primary hover:bg-surface-container-low font-label-md text-label-md flex items-center justify-center transition-colors" data-path="logout" href="#">ออกจากระบบ</a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-space-xs"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative pt-16 w-full p-margin-lg bg-surface-container-lowest"><div class="flex flex-col w-full relative">
+<!-- Frame Metadata / Wireframe Annotation Bar -->
+<div class="flex items-center justify-between pb-space-md mb-space-lg border-b border-[#9CA3AF]">
+<div class="flex items-center gap-space-sm">
+<span class="font-code-score text-code-score font-semibold text-primary px-2 py-0.5 bg-surface-container-low border border-[#9CA3AF]">P6</span>
+<h1 class="font-headline-md text-headline-md text-primary font-bold">P6 – Password modal with errors</h1>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-sm text-label-sm text-secondary font-mono">SEMS-WF-EXCEL-SEC-ERR</span>
+<span class="inline-flex items-center px-2 py-0.5 border border-[#9CA3AF] text-secondary font-label-sm text-[12px] bg-surface-container-low">STATUS: VALIDATION_FAILED</span>
+</div>
+</div>
+<!-- Background Layer: Simulated Inactive Reports Page (Low-Fidelity Wireframe Context) -->
+<div class="w-full relative opacity-40 pointer-events-none select-none filter grayscale">
+<!-- Reports Content Top Controls -->
+<div class="flex justify-between items-center mb-space-lg">
+<div class="flex flex-col gap-1">
+<h2 class="font-headline-lg text-headline-lg text-primary font-bold">รายงานสรุปผลการประเมินและการจัดสรรทุน</h2>
+<p class="font-body-md text-body-md text-secondary">ปีการศึกษา 2567 / รอบที่ 1 (ทุนส่งเสริมการศึกษาคณะวิศวกรรมศาสตร์)</p>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="h-10 px-4 border border-[#9CA3AF] bg-surface-container-lowest text-primary font-label-md text-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+<span>ตัวกรองข้อมูล</span>
+</div>
+<div class="h-10 px-4 border border-[#374151] bg-[#374151] text-on-primary font-label-md text-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>ส่งออกรายงาน (.xlsx)</span>
+</div>
+</div>
+</div>
+<!-- Summary Metrics Grid -->
+<div class="grid grid-cols-4 gap-gutter-lg mb-space-lg">
+<div class="border border-[#9CA3AF] bg-surface-container-lowest p-space-md">
+<div class="font-label-sm text-label-sm text-secondary mb-1">ผู้สมัครทั้งหมด</div>
+<div class="font-headline-xl text-headline-xl font-bold text-primary font-code-score">142</div>
+<div class="font-label-sm text-[12px] text-secondary mt-1">คน</div>
+</div>
+<div class="border border-[#9CA3AF] bg-surface-container-lowest p-space-md">
+<div class="font-label-sm text-label-sm text-secondary mb-1">ผ่านเกณฑ์ขั้นต้น</div>
+<div class="font-headline-xl text-headline-xl font-bold text-primary font-code-score">98</div>
+<div class="font-label-sm text-[12px] text-secondary mt-1">69.01% ของผู้สมัคร</div>
+</div>
+<div class="border border-[#9CA3AF] bg-surface-container-lowest p-space-md">
+<div class="font-label-sm text-label-sm text-secondary mb-1">ได้รับทุนจัดสรร</div>
+<div class="font-headline-xl text-headline-xl font-bold text-primary font-code-score">25</div>
+<div class="font-label-sm text-[12px] text-secondary mt-1">โควตาเต็ม 100%</div>
+</div>
+<div class="border border-[#9CA3AF] bg-surface-container-lowest p-space-md">
+<div class="font-label-sm text-label-sm text-secondary mb-1">งบประมาณรวมที่จัดสรร</div>
+<div class="font-headline-xl text-headline-xl font-bold text-primary font-code-score">500,000</div>
+<div class="font-label-sm text-[12px] text-secondary mt-1">บาทถ้วน</div>
+</div>
+</div>
+<!-- Mock Report Table -->
+<div class="border border-[#9CA3AF] bg-surface-container-lowest">
+<div class="h-11 bg-surface-container-low border-b border-[#9CA3AF] px-4 flex items-center justify-between">
+<span class="font-table-header text-table-header text-primary font-semibold">บัญชีรายชื่อผู้ผ่านการพิจารณาจัดสรรทุน</span>
+<span class="font-code-score text-[13px] text-secondary">แสดง 1-4 จากทั้งหมด 25 รายการ</span>
+</div>
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-[#9CA3AF] text-primary font-table-header text-table-header">
+<th class="py-2.5 px-4 font-semibold w-16">อันดับ</th>
+<th class="py-2.5 px-4 font-semibold w-36">รหัสนักศึกษา</th>
+<th class="py-2.5 px-4 font-semibold">ชื่อ - นามสกุล</th>
+<th class="py-2.5 px-4 font-semibold w-48">สาขาวิชา</th>
+<th class="py-2.5 px-4 font-semibold text-right w-28">คะแนนรวม</th>
+<th class="py-2.5 px-4 font-semibold text-center w-32">สถานะสิทธิ์</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#E5E7EB] font-table-cell text-table-cell text-primary">
+<tr class="bg-surface-container-lowest">
+<td class="py-3 px-4 font-code-score">01</td>
+<td class="py-3 px-4 font-code-score">643040112-1</td>
+<td class="py-3 px-4">นายกิตติคุณ นามวิเศษ</td>
+<td class="py-3 px-4">วิศวกรรมคอมพิวเตอร์</td>
+<td class="py-3 px-4 text-right font-code-score">94.50</td>
+<td class="py-3 px-4 text-center">
+<span class="px-2 py-0.5 border border-[#374151] bg-[#374151] text-on-primary font-label-sm text-[12px] rounded-full">อนุมัติทุน</span>
+</td>
+</tr>
+<tr class="bg-surface-container-low">
+<td class="py-3 px-4 font-code-score">02</td>
+<td class="py-3 px-4 font-code-score">643040289-4</td>
+<td class="py-3 px-4">นางสาวพิมพิศา ชาญวิชัย</td>
+<td class="py-3 px-4">วิศวกรรมโยธา</td>
+<td class="py-3 px-4 text-right font-code-score">91.25</td>
+<td class="py-3 px-4 text-center">
+<span class="px-2 py-0.5 border border-[#374151] bg-[#374151] text-on-primary font-label-sm text-[12px] rounded-full">อนุมัติทุน</span>
+</td>
+</tr>
+<tr class="bg-surface-container-lowest">
+<td class="py-3 px-4 font-code-score">03</td>
+<td class="py-3 px-4 font-code-score">643040552-8</td>
+<td class="py-3 px-4">นายธนกฤต แสงอรุณ</td>
+<td class="py-3 px-4">วิศวกรรมไฟฟ้า</td>
+<td class="py-3 px-4 text-right font-code-score">88.00</td>
+<td class="py-3 px-4 text-center">
+<span class="px-2 py-0.5 border border-[#374151] bg-[#374151] text-on-primary font-label-sm text-[12px] rounded-full">อนุมัติทุน</span>
+</td>
+</tr>
+<tr class="bg-surface-container-low">
+<td class="py-3 px-4 font-code-score">04</td>
+<td class="py-3 px-4 font-code-score">643040671-0</td>
+<td class="py-3 px-4">นางสาวอริสรา พรรณประภา</td>
+<td class="py-3 px-4">วิศวกรรมเคมี</td>
+<td class="py-3 px-4 text-right font-code-score">86.75</td>
+<td class="py-3 px-4 text-center">
+<span class="px-2 py-0.5 border border-[#374151] bg-[#374151] text-on-primary font-label-sm text-[12px] rounded-full">อนุมัติทุน</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Modal Backdrop Dimmed Overlay -->
+<div class="fixed inset-0 top-16 left-[260px] bg-primary/45 flex items-center justify-center p-space-md z-50">
+<!-- Modal Window: Exactly 560px Wide, Grayscale Architecture -->
+<div aria-labelledby="modal-title" aria-modal="true" class="w-[560px] bg-surface-container-lowest border border-[#9CA3AF] p-8 flex flex-col gap-6 relative shadow-none" role="dialog">
+<!-- Modal Header -->
+<div class="flex items-start justify-between border-b border-[#9CA3AF] pb-4">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">lock</span>
+<h2 class="font-headline-md text-[20px] leading-[28px] font-bold text-primary" id="modal-title">ตั้งรหัสผ่านไฟล์ Excel</h2>
+</div>
+<span class="font-label-sm text-label-sm text-secondary mt-1">ไฟล์รายงานสรุปผล_รอบที่1_2567.xlsx</span>
+</div>
+<button aria-label="ปิดหน้าต่าง" class="w-8 h-8 flex items-center justify-center border border-[#9CA3AF] text-primary hover:bg-surface-container-low transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<!-- Modal Body / Form With Validation Errors -->
+<form class="flex flex-col gap-5" onsubmit="event.preventDefault();">
+<!-- Security Notice Box -->
+<div class="border border-[#9CA3AF] bg-surface-container-low p-3 flex items-start gap-2.5">
+<span class="material-symbols-outlined text-[20px] text-primary shrink-0 mt-0.5">info</span>
+<p class="font-body-md text-[13px] leading-[20px] text-primary">
+            ไฟล์มีข้อมูลส่วนบุคคลของนักศึกษา (PDPA) ระบบจำเป็นต้องเข้ารหัสผ่าน AES-128 ทุกครั้งก่อนดาวน์โหลด
+          </p>
+</div>
+<!-- Field 1: Password (with error & weak strength) -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md font-semibold text-primary flex items-center gap-1" for="input-password">
+<span>รหัสผ่าน</span>
+<span class="text-primary font-bold">*</span>
+</label>
+<span class="font-code-score text-[12px] text-secondary font-mono">ขั้นต่ำ 8 ตัวอักษร</span>
+</div>
+<!-- Input Box with Heavy Grayscale Error Border (2px solid #374151) -->
+<div class="relative flex items-center">
+<input aria-describedby="error-pwd-length pwd-strength-desc" aria-invalid="true" class="w-full h-10 px-3 pr-10 bg-surface-container-lowest border-2 border-primary text-primary font-code-score text-code-score focus:outline-none" id="input-password" type="password" value="pass123"/>
+<button aria-label="แสดงรหัสผ่าน" class="absolute right-2.5 text-primary hover:text-secondary flex items-center" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+<!-- Password Strength Indicator (Weak state: 1 active segment) -->
+<div class="flex flex-col gap-1 mt-1" id="pwd-strength-desc">
+<div class="grid grid-cols-4 gap-1.5 w-full h-1.5">
+<!-- Segment 1: Filled Dark Gray (Weak) -->
+<div class="bg-primary h-full"></div>
+<!-- Segment 2: Empty Outline / Light Gray -->
+<div class="bg-surface-container-low border border-[#9CA3AF] h-full"></div>
+<!-- Segment 3: Empty Outline / Light Gray -->
+<div class="bg-surface-container-low border border-[#9CA3AF] h-full"></div>
+<!-- Segment 4: Empty Outline / Light Gray -->
+<div class="bg-surface-container-low border border-[#9CA3AF] h-full"></div>
+</div>
+<div class="flex justify-between items-center text-[12px] font-label-sm">
+<span class="text-secondary">ระดับความปลอดภัย:</span>
+<span class="font-code-score font-semibold text-primary uppercase text-[11px] tracking-wider">อ่อนมาก (1/4)</span>
+</div>
+</div>
+<!-- Helper / Error Message 1 (Grayscale warning icon + bold primary text) -->
+<div class="flex items-center gap-1.5 mt-0.5 text-primary font-label-sm text-label-sm font-semibold" id="error-pwd-length">
+<span class="material-symbols-outlined text-[18px] text-primary" style="font-variation-settings: 'FILL' 1;">warning</span>
+<span>⚠ รหัสผ่านสั้นเกินไป (อย่างน้อย 8 ตัวอักษร)</span>
+</div>
+</div>
+<!-- Field 2: Confirm Password (with mismatch error) -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md font-semibold text-primary flex items-center gap-1" for="input-confirm-password">
+<span>ยืนยันรหัสผ่าน</span>
+<span class="text-primary font-bold">*</span>
+</label>
+<!-- Input Box with Heavy Grayscale Error Border (2px solid #374151) -->
+<div class="relative flex items-center">
+<input aria-describedby="error-pwd-mismatch" aria-invalid="true" class="w-full h-10 px-3 pr-10 bg-surface-container-lowest border-2 border-primary text-primary font-code-score text-code-score focus:outline-none" id="input-confirm-password" type="password" value="pass456"/>
+<button aria-label="แสดงรหัสผ่าน" class="absolute right-2.5 text-primary hover:text-secondary flex items-center" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+<!-- Helper / Error Message 2 -->
+<div class="flex items-center gap-1.5 mt-0.5 text-primary font-label-sm text-label-sm font-semibold" id="error-pwd-mismatch">
+<span class="material-symbols-outlined text-[18px] text-primary" style="font-variation-settings: 'FILL' 1;">warning</span>
+<span>⚠ รหัสผ่านไม่ตรงกัน</span>
+</div>
+</div>
+<!-- Bottom Caption Notice -->
+<div class="pt-1 flex items-center gap-1.5 text-secondary font-label-sm text-[13px]">
+<span class="material-symbols-outlined text-[16px]">lock_reset</span>
+<span>ต้องตั้งรหัสผ่านทุกครั้งที่ส่งออก</span>
+</div>
+<!-- Modal Footer Actions -->
+<div class="flex items-center justify-end gap-space-sm pt-4 border-t border-[#9CA3AF] mt-2">
+<!-- Button 'ยกเลิก' (Outlined Rectangle) -->
+<button class="h-10 px-6 border border-[#9CA3AF] bg-surface-container-lowest text-primary hover:bg-surface-container-low font-label-md text-label-md transition-colors" type="button">
+            ยกเลิก
+          </button>
+<!-- Button 'ส่งออก' (Disabled Wireframe Style: light gray bg, dashed 1px #9CA3AF border, text #9CA3AF) -->
+<button aria-disabled="true" class="h-10 px-6 bg-surface-container-low border border-dashed border-[#9CA3AF] text-[#9CA3AF] cursor-not-allowed font-label-md text-label-md flex items-center gap-2 select-none" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px] text-[#9CA3AF]">file_download</span>
+<span>ส่งออก</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+</div></main></div></body></html>

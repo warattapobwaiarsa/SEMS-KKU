@@ -1,0 +1,4249 @@
+openapi: 3.0.3
+info:
+  title: Scholarship Evaluation Management System (SEMS-KKU) REST API
+  version: 2.8.0
+  description: |-
+    ระบบบริหารจัดการการประเมินทุนการศึกษา มหาวิทยาลัยขอนแก่น (SEMS-KKU)
+    REST API Specification & Architecture Blueprint v2.8 (Final Sealed Benchmark)
+    สอดคล้องตาม Business Rules (BR v1.2), FRS v0.1, NFR v0.1, และ Prisma Schema (PostgreSQL)
+  contact:
+    name: SEMS-KKU Development Team
+    email: sems-kku@kku.ac.th
+  license:
+    name: Proprietary / Educational - Khon Kaen University
+    url: https://www.kku.ac.th
+servers:
+  - url: /api/v1
+    description: API v1 Base URL prefix
+tags:
+  - name: Auth
+    description: Authentication & Session Management
+  - name: Users
+    description: User & Evaluator Management (Admin Only)
+  - name: ScholarshipRounds
+    description: Scholarship Round Lifecycle (Draft -> Open -> Closed)
+  - name: Criteria
+    description: Independent Evaluation Criteria & Sub-criteria Configuration
+  - name: Applicants
+    description: Applicant Data & Excel Import Pipeline
+  - name: Evaluations
+    description: Evaluation Scoring, Auto-save & Real-time Rankings
+  - name: Allocations
+    description: Budgeting & Scholarship Allocation Management
+  - name: Reports
+    description: Password-protected Report Generation & Secure Binary Export
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sems_session
+      description: HttpOnly SameSite Session Cookie
+    csrfProtection:
+      type: apiKey
+      in: header
+      name: X-Requested-With
+      description: Custom CSRF protection header (e.g. XMLHttpRequest)
+  responses:
+    UnauthorizedError:
+      description: Unauthorized - Missing, expired, replaced session, or account deactivated
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/StandardErrorResponse"
+          examples:
+            missingSession:
+              summary: No session provided
+              value:
+                success: false
+                statusCode: 401
+                errorCode: UNAUTHORIZED
+                error: UNAUTHORIZED
+                params: null
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+            sessionReplaced:
+              summary: Logged in from another device (BR-EVL-08)
+              value:
+                success: false
+                statusCode: 401
+                errorCode: SESSION_REPLACED
+                error: UNAUTHORIZED
+                params: null
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+            sessionIdleTimeout:
+              summary: Session expired from inactivity (BR-SYS-02)
+              value:
+                success: false
+                statusCode: 401
+                errorCode: SESSION_IDLE_TIMEOUT
+                error: UNAUTHORIZED
+                params: null
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+            accountDeactivated:
+              summary: Account has been deactivated (BR-USR-01)
+              value:
+                success: false
+                statusCode: 401
+                errorCode: ACCOUNT_DEACTIVATED
+                error: UNAUTHORIZED
+                params: null
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+    ForbiddenError:
+      description: Forbidden - Insufficient role permissions or missing CSRF header
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/StandardErrorResponse"
+          examples:
+            roleForbidden:
+              summary: Role not permitted (Cross-role access)
+              value:
+                success: false
+                statusCode: 403
+                errorCode: FORBIDDEN
+                error: FORBIDDEN
+                params: null
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+            csrfRejected:
+              summary: Missing X-Requested-With header on mutation (NFR-SEC-10)
+              value:
+                success: false
+                statusCode: 403
+                errorCode: CSRF_REJECTED
+                error: FORBIDDEN
+                params: null
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+    NotFoundError:
+      description: Not Found - Resource not found or hidden by policy (IDOR protection)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/StandardErrorResponse"
+          example:
+            success: false
+            statusCode: 404
+            errorCode: NOT_FOUND
+            error: NOT_FOUND
+            params: null
+            timestamp: "2026-10-06T14:00:00.000+07:00"
+    RateLimitedError:
+      description: Too Many Requests - Rate limit exceeded
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Number of seconds to wait before retrying request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/StandardErrorResponse"
+          example:
+            success: false
+            statusCode: 429
+            errorCode: RATE_LIMITED
+            error: TOO_MANY_REQUESTS
+            params:
+              retryAfterSeconds: 60
+            timestamp: "2026-10-06T14:00:00.000+07:00"
+    PayloadTooLargeError:
+      description: Payload Too Large - Request body exceeds limit
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/StandardErrorResponse"
+          example:
+            success: false
+            statusCode: 413
+            errorCode: FILE_TOO_LARGE
+            error: PAYLOAD_TOO_LARGE
+            params:
+              maxSize: 50MB
+            timestamp: "2026-10-06T14:00:00.000+07:00"
+  schemas:
+    ErrorCode:
+      type: string
+      enum:
+        - FILE_TOO_LARGE
+        - RATE_LIMITED
+        - CSRF_REJECTED
+        - UNAUTHORIZED
+        - FORBIDDEN
+        - NOT_FOUND
+        - ACCOUNT_DEACTIVATED
+        - SESSION_REPLACED
+        - SESSION_IDLE_TIMEOUT
+        - CANNOT_DEACTIVATE_EVALUATOR_WITH_DRAFT
+        - CANNOT_DEACTIVATE_SELF_OR_LAST_ADMIN
+        - EXPIRY_DAYS_REQUIRED
+        - VALIDITY_DAYS_INVALID
+        - CRITERIA_SUM_NOT_100
+        - MAX_SCORE_OUT_OF_RANGE
+        - SCORED_CRITERIA_REQUIRED
+        - CRITERIA_LOCKED
+        - CRITERIA_NAME_DUPLICATE
+        - ROUND_OPEN_PRECHECK_FAILED
+        - INVALID_EXCEL_FILE
+        - INVALID_EXCEL_ROW
+        - EXCEL_NO_VALID_ROWS
+        - EXCEL_INVALID_ROWS_ACK_REQUIRED
+        - EXCEL_MISSING_SHEET_OR_COLUMNS
+        - PREVIEW_TOKEN_INVALID
+        - PREVIEW_TOKEN_EXPIRED
+        - PREVIEW_TOKEN_ALREADY_USED
+        - SCORE_OUT_OF_RANGE
+        - SCORES_INCOMPLETE
+        - ALREADY_EVALUATED
+        - EVALUATOR_EXPIRED_NEW_APPLICANT
+        - ROUND_CLOSED
+        - ROUND_CLOSE_STATE_CHANGED
+        - ROUND_CLOSE_ACK_REQUIRED
+        - STALE_VERSION
+        - BUDGET_MUST_BE_POSITIVE
+        - CANNOT_EDIT_BUDGET_ALLOCATED
+        - ALLOCATION_EXCEEDS_BUDGET
+        - ALLOCATION_AMOUNT_MISMATCH
+        - ZERO_SCORE_CANNOT_AWARD
+        - ALLOCATION_LOCKED_FINALIZED
+        - INVALID_ROUND_STATUS
+        - INVALID_ALLOCATION_STATUS
+        - EMAIL_ALREADY_EXISTS_OR_INVALID
+        - ACADEMIC_YEAR_OUT_OF_RANGE
+        - SEMESTER_OUT_OF_RANGE
+      description: Semantic error code for client-side localization (BR-SYS-01)
+    PaginationMeta:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
+        totalPages:
+          type: integer
+          example: 5
+    StandardErrorResponse:
+      type: object
+      required:
+        - success
+        - statusCode
+        - errorCode
+        - error
+        - timestamp
+      properties:
+        success:
+          type: boolean
+          example: false
+        statusCode:
+          type: integer
+          example: 422
+        errorCode:
+          $ref: "#/components/schemas/ErrorCode"
+        error:
+          type: string
+          example: UNPROCESSABLE_ENTITY
+        params:
+          type: object
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-10-06T14:00:00.000+07:00"
+    UnsubmittedApplicantItem:
+      type: object
+      required:
+        - applicantId
+        - studentCode
+        - titlePrefix
+        - firstName
+        - lastName
+      properties:
+        applicantId:
+          type: integer
+          example: 101
+        studentCode:
+          type: string
+          example: 643020000-1
+        titlePrefix:
+          type: string
+          example: นาย
+        firstName:
+          type: string
+          example: สมชาย
+        lastName:
+          type: string
+          example: ใจดี
+    UserRole:
+      type: string
+      enum:
+        - ADMIN
+        - EVALUATOR
+      example: ADMIN
+    SessionUserDto:
+      type: object
+      required:
+        - id
+        - email
+        - name
+        - role
+        - isActive
+        - serverTime
+        - idleTimeoutSeconds
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          format: email
+          example: admin@kku.ac.th
+        name:
+          type: string
+          example: ผศ.ดร. สมชาย ใจดี
+        role:
+          $ref: "#/components/schemas/UserRole"
+        isActive:
+          type: boolean
+          example: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        isExpired:
+          type: boolean
+          example: false
+        serverTime:
+          type: string
+          format: date-time
+          example: "2026-10-06T14:00:00.000+07:00"
+        idleTimeoutSeconds:
+          type: integer
+          example: 3600
+      description: Authenticated user profile returned by /auth/me and SSO callback
+    UserDto:
+      type: object
+      required:
+        - id
+        - email
+        - name
+        - role
+        - isActive
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          format: email
+          example: evaluator@kku.ac.th
+        name:
+          type: string
+          example: อ.ดร. นันทวัน รักเรียน
+        role:
+          $ref: "#/components/schemas/UserRole"
+        isActive:
+          type: boolean
+          example: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2026-12-31T23:59:59.000+07:00"
+        isExpired:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-10-01T08:30:00.000+07:00"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-10-06T14:00:00.000+07:00"
+      description: User record for Admin user management operations
+    CreateUserDto:
+      type: object
+      required:
+        - email
+        - name
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          example: evaluator@kku.ac.th
+        name:
+          type: string
+          example: อ.ดร. นันทวัน รักเรียน
+        role:
+          $ref: "#/components/schemas/UserRole"
+        days:
+          type: integer
+          minimum: 1
+          example: 90
+          description: Required for Evaluator (validity period in days per BR-USR-04, no ceiling); forbidden/ignored for Admin
+    UpdateUserDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: อ.ดร. นันทวัน รักเรียน (แก้ไข)
+    UpdateUserStatusDto:
+      type: object
+      required:
+        - isActive
+      properties:
+        isActive:
+          type: boolean
+          example: true
+        days:
+          type: integer
+          minimum: 1
+          example: 60
+          description: Required when reactivating an Evaluator (BR-USR-08, positive integer without ceiling)
+    ExtendUserExpiryDto:
+      type: object
+      required:
+        - days
+      properties:
+        days:
+          type: integer
+          minimum: 1
+          example: 30
+          description: Number of days to extend Evaluator validity (BR-USR-07, FR-USR-11, positive integer without ceiling)
+    RoundStatus:
+      type: string
+      enum:
+        - DRAFT
+        - OPEN
+        - CLOSED
+      example: DRAFT
+    ScholarshipRoundDto:
+      type: object
+      required:
+        - id
+        - name
+        - academicYear
+        - semester
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: ทุนการศึกษาเพื่อการศึกษาต่อ ระดับปริญญาตรี ประจำปี 2569
+        academicYear:
+          type: integer
+          minimum: 2550
+          maximum: 2700
+          example: 2569
+        semester:
+          type: integer
+          minimum: 1
+          maximum: 2
+          example: 1
+        criteriaId:
+          type: integer
+          nullable: true
+          example: 1
+        status:
+          $ref: "#/components/schemas/RoundStatus"
+        openedAt:
+          type: string
+          format: date-time
+          nullable: true
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateScholarshipRoundDto:
+      type: object
+      required:
+        - name
+        - academicYear
+        - semester
+      properties:
+        name:
+          type: string
+          example: ทุนการศึกษาคณะวิทยาการสารสนเทศ ประจำปี 2569
+        academicYear:
+          type: integer
+          minimum: 2550
+          maximum: 2700
+          example: 2569
+        semester:
+          type: integer
+          minimum: 1
+          maximum: 2
+          example: 1
+    UpdateScholarshipRoundDto:
+      type: object
+      properties:
+        name:
+          type: string
+          example: ทุนการศึกษาคณะวิทยาการสารสนเทศ ประจำปี 2569 (แก้ไข)
+        academicYear:
+          type: integer
+          minimum: 2550
+          maximum: 2700
+          example: 2569
+        semester:
+          type: integer
+          minimum: 1
+          maximum: 2
+          example: 1
+    LinkRoundCriteriaDto:
+      type: object
+      required:
+        - criteriaId
+      properties:
+        criteriaId:
+          type: integer
+          nullable: true
+          example: 1
+          description: Criteria ID to link, or null to unlink
+    RoundOpenPrecheckResponseDto:
+      type: object
+      required:
+        - canOpen
+        - checks
+        - lastInvalidRowsCount
+      properties:
+        canOpen:
+          type: boolean
+          example: true
+        lastInvalidRowsCount:
+          type: integer
+          example: 0
+          description: Number of invalid rows in last import batch (BR-RND-09)
+        checks:
+          type: object
+          required:
+            - hasCriteria
+            - criteriaSumValid
+            - hasApplicants
+          properties:
+            hasCriteria:
+              type: boolean
+              example: true
+            criteriaSumValid:
+              type: boolean
+              example: true
+            hasApplicants:
+              type: boolean
+              example: true
+            applicantCount:
+              type: integer
+              example: 45
+            criteriaSum:
+              type: integer
+              example: 100
+        reasons:
+          type: array
+          items:
+            type: string
+    RoundCloseCheckResponseDto:
+      type: object
+      required:
+        - unsubmittedCount
+        - applicants
+      properties:
+        unsubmittedCount:
+          type: integer
+          example: 2
+        applicants:
+          type: array
+          items:
+            $ref: "#/components/schemas/UnsubmittedApplicantItem"
+    CloseScholarshipRoundDto:
+      type: object
+      properties:
+        acknowledged:
+          type: boolean
+          example: true
+          description: Required when unsubmittedCount > 0
+        acknowledgedCount:
+          type: integer
+          example: 2
+          description: Required when unsubmittedCount > 0
+    SubCriteriaType:
+      type: string
+      enum:
+        - SCORED
+        - TEXT
+      example: SCORED
+    SubCriteriaDto:
+      type: object
+      required:
+        - id
+        - criteriaId
+        - sortOrder
+        - title
+        - type
+        - allowComment
+      properties:
+        id:
+          type: integer
+          example: 1
+        criteriaId:
+          type: integer
+          example: 1
+        sortOrder:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: ผลการเรียนเฉลี่ยสะสม (GPAX)
+        type:
+          $ref: "#/components/schemas/SubCriteriaType"
+        maxScore:
+          type: integer
+          minimum: 1
+          maximum: 100
+          nullable: true
+          example: 40
+        allowComment:
+          type: boolean
+          example: true
+    RoundUsageItemDto:
+      type: object
+      required:
+        - id
+        - name
+        - status
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: ทุนการศึกษาประจำปี 2569
+        status:
+          $ref: "#/components/schemas/RoundStatus"
+    CriteriaDetailDto:
+      type: object
+      required:
+        - id
+        - name
+        - isLocked
+        - usedByRounds
+        - subCriteria
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: เกณฑ์การประเมินประจำปี 2569
+        isLocked:
+          type: boolean
+          example: false
+          description: True if used by any OPEN or CLOSED round
+        totalScore:
+          type: integer
+          example: 100
+        usedByRounds:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoundUsageItemDto"
+        subCriteria:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubCriteriaDto"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateCriteriaDto:
+      type: object
+      required:
+        - name
+        - subCriteria
+      properties:
+        name:
+          type: string
+          example: เกณฑ์การประเมินประจำปี 2569
+        subCriteria:
+          type: array
+          items:
+            type: object
+            required:
+              - sortOrder
+              - title
+              - type
+            properties:
+              sortOrder:
+                type: integer
+                minimum: 1
+                example: 1
+              title:
+                type: string
+                example: ความประพฤติและกิจกรรม
+              type:
+                $ref: "#/components/schemas/SubCriteriaType"
+              maxScore:
+                type: integer
+                minimum: 1
+                maximum: 100
+                example: 40
+              allowComment:
+                type: boolean
+                default: false
+    UpdateCriteriaDto:
+      type: object
+      required:
+        - name
+        - subCriteria
+      properties:
+        name:
+          type: string
+          example: เกณฑ์การประเมินประจำปี 2569 (ปรับปรุง)
+        subCriteria:
+          type: array
+          items:
+            type: object
+            required:
+              - sortOrder
+              - title
+              - type
+            properties:
+              id:
+                type: integer
+                nullable: true
+                description: Existing subCriteria ID for in-place update; omit for new row
+              sortOrder:
+                type: integer
+                minimum: 1
+                example: 1
+              title:
+                type: string
+                example: ความประพฤติและกิจกรรม
+              type:
+                $ref: "#/components/schemas/SubCriteriaType"
+              maxScore:
+                type: integer
+                minimum: 1
+                maximum: 100
+                example: 40
+              allowComment:
+                type: boolean
+                default: false
+    ExcelPreviewRowDto:
+      type: object
+      required:
+        - rowNumber
+        - studentCode
+        - titlePrefix
+        - firstName
+        - lastName
+        - faculty
+        - major
+        - studyYear
+        - gpa
+        - maskedCitizenId
+        - isValid
+        - errors
+      properties:
+        rowNumber:
+          type: integer
+          example: 2
+        studentCode:
+          type: string
+          example: 643020000-1
+        titlePrefix:
+          type: string
+          example: นาย
+        firstName:
+          type: string
+          example: สมชาย
+        lastName:
+          type: string
+          example: ใจดี
+        faculty:
+          type: string
+          example: คณะวิทยาการสารสนเทศ
+        major:
+          type: string
+          example: วิทยาการคอมพิวเตอร์
+        studyYear:
+          type: integer
+          example: 3
+        gpa:
+          type: number
+          format: float
+          example: 3.75
+        maskedCitizenId:
+          type: string
+          example: 1-2345-XXXXX-XX-3
+        isValid:
+          type: boolean
+          example: true
+        errors:
+          type: array
+          items:
+            type: string
+    ExcelPreviewSummaryDto:
+      type: object
+      required:
+        - previewToken
+        - totalRows
+        - validRows
+        - invalidRows
+        - expiresAt
+        - rows
+      properties:
+        previewToken:
+          type: string
+          format: uuid
+          example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+        totalRows:
+          type: integer
+          example: 50
+        validRows:
+          type: integer
+          example: 48
+        invalidRows:
+          type: integer
+          example: 2
+        expiresAt:
+          type: string
+          format: date-time
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExcelPreviewRowDto"
+    ConfirmImportDto:
+      type: object
+      required:
+        - previewToken
+      properties:
+        previewToken:
+          type: string
+          format: uuid
+          example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+        acknowledgedInvalidRows:
+          type: boolean
+          default: false
+    ImportBatchDto:
+      type: object
+      required:
+        - id
+        - roundId
+        - fileName
+        - totalRows
+        - validRows
+        - invalidRows
+        - importedById
+        - importedByName
+        - importedAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        roundId:
+          type: integer
+          example: 1
+        fileName:
+          type: string
+          example: applicants_2569_batch1.xlsx
+        totalRows:
+          type: integer
+          example: 50
+        validRows:
+          type: integer
+          example: 48
+        invalidRows:
+          type: integer
+          example: 2
+        importedById:
+          type: integer
+          example: 1
+        importedByName:
+          type: string
+          example: Admin User
+        importedAt:
+          type: string
+          format: date-time
+    ApplicantListItemDto:
+      type: object
+      required:
+        - id
+        - roundId
+        - studentCode
+        - titlePrefix
+        - firstName
+        - lastName
+        - faculty
+        - major
+        - studyYear
+        - gpa
+      properties:
+        id:
+          type: integer
+          example: 101
+        roundId:
+          type: integer
+          example: 1
+        studentCode:
+          type: string
+          example: 643020000-1
+        titlePrefix:
+          type: string
+          example: นาย
+        firstName:
+          type: string
+          example: สมชาย
+        lastName:
+          type: string
+          example: ใจดี
+        faculty:
+          type: string
+          example: คณะวิทยาการสารสนเทศ
+        major:
+          type: string
+          example: วิทยาการคอมพิวเตอร์
+        studyYear:
+          type: integer
+          minimum: 1
+          maximum: 4
+          example: 3
+        gpa:
+          type: number
+          format: float
+          example: 3.75
+        legacySeq:
+          type: integer
+          nullable: true
+          example: 1
+          description: Sequential number from original imported Excel (FR-APP-03 E3)
+        submittedCount:
+          type: integer
+          example: 2
+          description: Number of submitted evaluations
+        myStatus:
+          type: string
+          enum:
+            - NOT_STARTED
+            - DRAFT
+            - SUBMITTED
+          example: DRAFT
+          description: Evaluator view only
+        canStart:
+          type: boolean
+          example: true
+          description: "Evaluator view: false if expired and no draft exists (BR-USR-11)"
+    ApplicantSupportingInfoDto:
+      type: object
+      properties:
+        applicationDate:
+          type: string
+          nullable: true
+        accommodation:
+          type: string
+          nullable: true
+        rent:
+          type: string
+          nullable: true
+        personalExpense:
+          type: string
+          nullable: true
+        studyEquipmentCost:
+          type: string
+          nullable: true
+        electronicDevices:
+          type: string
+          nullable: true
+        sideIncome:
+          type: string
+          nullable: true
+        fatherAge:
+          type: string
+          nullable: true
+        fatherOccupation:
+          type: string
+          nullable: true
+        fatherIncome:
+          type: string
+          nullable: true
+        fatherStatus:
+          type: string
+          nullable: true
+        motherAge:
+          type: string
+          nullable: true
+        motherOccupation:
+          type: string
+          nullable: true
+        motherIncome:
+          type: string
+          nullable: true
+        motherStatus:
+          type: string
+          nullable: true
+        parentsStatus:
+          type: string
+          nullable: true
+        tuitionPayer:
+          type: string
+          nullable: true
+        guardianRelation:
+          type: string
+          nullable: true
+        guardianOccupation:
+          type: string
+          nullable: true
+        guardianIncome:
+          type: string
+          nullable: true
+        siblingsWorking:
+          type: string
+          nullable: true
+        siblingsNotWorking:
+          type: string
+          nullable: true
+        siblingsStudying:
+          type: string
+          nullable: true
+        studentLoan:
+          type: string
+          nullable: true
+        previousScholarships:
+          type: string
+          nullable: true
+        accommodationMapUrl:
+          type: string
+          nullable: true
+    ApplicantDetailDto:
+      type: object
+      required:
+        - id
+        - roundId
+        - studentCode
+        - titlePrefix
+        - firstName
+        - lastName
+        - faculty
+        - major
+        - studyYear
+        - gpa
+        - createdAt
+      properties:
+        id:
+          type: integer
+          example: 101
+        roundId:
+          type: integer
+          example: 1
+        importBatchId:
+          type: integer
+          example: 1
+        legacySeq:
+          type: integer
+          nullable: true
+          example: 1
+          description: Sequential number from original imported Excel (FR-APP-03 E3)
+        studentCode:
+          type: string
+          example: 643020000-1
+        titlePrefix:
+          type: string
+          example: นาย
+        firstName:
+          type: string
+          example: สมชาย
+        lastName:
+          type: string
+          example: ใจดี
+        faculty:
+          type: string
+          example: คณะวิทยาการสารสนเทศ
+        major:
+          type: string
+          example: วิทยาการคอมพิวเตอร์
+        studyYear:
+          type: integer
+          example: 3
+        gpa:
+          type: number
+          format: float
+          example: 3.75
+        createdAt:
+          type: string
+          format: date-time
+        supportingInfo:
+          allOf:
+            - $ref: "#/components/schemas/ApplicantSupportingInfoDto"
+          type: object
+          nullable: true
+          description: Returned to Evaluators in OPEN rounds; null for Admin (BR-APP-02, BR-APP-04). Contact details and citizen ID are strictly omitted here.
+      description: "Applicant profile details. Note: Evaluators see academic profile, legacySeq, and supportingInfo; Admin sees academic profile without supportingInfo. Contact details and Citizen ID are strictly omitted here (accessible only to Admin at /allocations/:id per BR-PDP-05/04)."
+    EvaluationStatus:
+      type: string
+      enum:
+        - DRAFT
+        - SUBMITTED
+      example: DRAFT
+    EvaluationItemScoreDto:
+      type: object
+      required:
+        - subCriteriaId
+      properties:
+        subCriteriaId:
+          type: integer
+          example: 1
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          nullable: true
+          example: 35
+          description: Integer score (0..maxScore per BR-EVL-03)
+        comment:
+          type: string
+          nullable: true
+          example: ผลการเรียนโดดเด่น
+        textValue:
+          type: string
+          nullable: true
+    UpsertDraftEvaluationDto:
+      type: object
+      required:
+        - items
+      properties:
+        clientUpdatedAt:
+          type: string
+          format: date-time
+          description: Client timestamp for optimistic locking concurrency check
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/EvaluationItemScoreDto"
+    MyEvaluationItemDetailDto:
+      type: object
+      required:
+        - subCriteriaId
+        - subCriteria
+      properties:
+        subCriteriaId:
+          type: integer
+          example: 1
+        score:
+          type: integer
+          nullable: true
+          example: 35
+        comment:
+          type: string
+          nullable: true
+        textValue:
+          type: string
+          nullable: true
+        subCriteria:
+          type: object
+          required:
+            - id
+            - title
+            - type
+            - allowComment
+          properties:
+            id:
+              type: integer
+              example: 1
+            title:
+              type: string
+              example: ผลการเรียนเฉลี่ย
+            type:
+              $ref: "#/components/schemas/SubCriteriaType"
+            maxScore:
+              type: integer
+              nullable: true
+              example: 40
+            allowComment:
+              type: boolean
+              example: true
+    MyEvaluationResponseDto:
+      type: object
+      required:
+        - evaluationId
+        - applicantId
+        - status
+        - isLocked
+        - updatedAt
+        - items
+      properties:
+        evaluationId:
+          type: integer
+          nullable: true
+          example: 50
+        applicantId:
+          type: integer
+          example: 101
+        status:
+          $ref: "#/components/schemas/EvaluationStatus"
+        isLocked:
+          type: boolean
+          example: false
+          description: True if draft in closed round
+        totalScore:
+          type: integer
+          nullable: true
+          example: 88
+          description: Integer sum of scored sub-criteria
+        submittedAt:
+          type: string
+          format: date-time
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MyEvaluationItemDetailDto"
+    EvaluatorHistoryItemDto:
+      type: object
+      required:
+        - evaluationId
+        - applicantId
+        - studentCode
+        - studentName
+        - round
+        - criteria
+        - status
+        - isLocked
+        - updatedAt
+      properties:
+        evaluationId:
+          type: integer
+          example: 50
+        applicantId:
+          type: integer
+          example: 101
+        studentCode:
+          type: string
+          example: 643020000-1
+        studentName:
+          type: string
+          example: นายสมชาย ใจดี
+        status:
+          $ref: "#/components/schemas/EvaluationStatus"
+        isLocked:
+          type: boolean
+          example: false
+        round:
+          type: object
+          required:
+            - id
+            - name
+            - academicYear
+            - semester
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: ทุนการศึกษาประจำปี 2569
+            academicYear:
+              type: integer
+              example: 2569
+            semester:
+              type: integer
+              example: 1
+            status:
+              $ref: "#/components/schemas/RoundStatus"
+        criteria:
+          type: object
+          required:
+            - id
+            - name
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: เกณฑ์การประเมิน 2569
+        totalScore:
+          type: integer
+          nullable: true
+          example: 85
+        submittedAt:
+          type: string
+          format: date-time
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+    EvaluationRankingItemDto:
+      type: object
+      required:
+        - rank
+        - applicantId
+        - studentCode
+        - titlePrefix
+        - firstName
+        - lastName
+        - faculty
+        - major
+        - finalScore
+        - submittedCount
+      properties:
+        rank:
+          type: integer
+          example: 1
+        applicantId:
+          type: integer
+          example: 101
+        studentCode:
+          type: string
+          example: 643020000-1
+        titlePrefix:
+          type: string
+          example: นาย
+        firstName:
+          type: string
+          example: สมชาย
+        lastName:
+          type: string
+          example: ใจดี
+        faculty:
+          type: string
+          example: คณะวิทยาการสารสนเทศ
+        major:
+          type: string
+          example: วิทยาการคอมพิวเตอร์
+        finalScore:
+          type: number
+          format: float
+          example: 88.5
+          description: Calculated average score with 2 decimals (BR-SCR-03)
+        submittedCount:
+          type: integer
+          example: 3
+        evaluationCount:
+          type: integer
+          example: 3
+    ApplicantEvaluationBreakdownDto:
+      type: object
+      required:
+        - evaluatorId
+        - evaluatorName
+        - submittedAt
+        - totalScore
+        - items
+      properties:
+        evaluatorId:
+          type: integer
+          example: 2
+        evaluatorName:
+          type: string
+          example: ผศ.ดร. นันทวัน รักเรียน
+        submittedAt:
+          type: string
+          format: date-time
+        totalScore:
+          type: integer
+          example: 88
+        items:
+          type: array
+          items:
+            type: object
+            required:
+              - subCriteriaTitle
+              - score
+            properties:
+              subCriteriaTitle:
+                type: string
+                example: ผลการเรียนเฉลี่ยสะสม
+              score:
+                type: integer
+                example: 35
+              comment:
+                type: string
+                nullable: true
+                example: ผลการเรียนดีเด่น
+    AllocationStatus:
+      type: string
+      enum:
+        - EDITING
+        - FINALIZED
+      example: EDITING
+    AllocationSummaryDto:
+      type: object
+      required:
+        - id
+        - roundId
+        - totalBudget
+        - allocatedBudget
+        - remainingBudget
+        - status
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        roundId:
+          type: integer
+          example: 1
+        totalBudget:
+          type: number
+          format: float
+          example: 500000
+        allocatedBudget:
+          type: number
+          format: float
+          example: 350000
+        remainingBudget:
+          type: number
+          format: float
+          example: 150000
+        status:
+          $ref: "#/components/schemas/AllocationStatus"
+        statusChangedById:
+          type: integer
+          nullable: true
+          example: 1
+        updatedAt:
+          type: string
+          format: date-time
+    SetBudgetDto:
+      type: object
+      required:
+        - totalBudget
+      properties:
+        totalBudget:
+          type: number
+          format: float
+          minimum: 0
+          exclusiveMinimum: true
+          example: 500000
+    AllocationListItemDto:
+      type: object
+      required:
+        - id
+        - applicantId
+        - studentCode
+        - fullName
+        - faculty
+        - averageScore
+        - isAwarded
+        - amount
+      properties:
+        id:
+          type: integer
+          example: 101
+        applicantId:
+          type: integer
+          example: 101
+        studentCode:
+          type: string
+          example: 643020000-1
+        fullName:
+          type: string
+          example: นายสมชาย ใจดี
+        faculty:
+          type: string
+          example: คณะวิทยาการสารสนเทศ
+        averageScore:
+          type: number
+          format: float
+          example: 88.5
+        rank:
+          type: integer
+          example: 1
+        isAwarded:
+          type: boolean
+          example: true
+        amount:
+          type: number
+          format: float
+          example: 25000
+    AllocationDetailDto:
+      type: object
+      required:
+        - id
+        - applicantId
+        - studentCode
+        - fullName
+        - faculty
+        - averageScore
+        - isAwarded
+        - amount
+        - phone
+        - email
+        - maskedCitizenId
+      properties:
+        id:
+          type: integer
+          example: 101
+        applicantId:
+          type: integer
+          example: 101
+        studentCode:
+          type: string
+          example: 643020000-1
+        fullName:
+          type: string
+          example: นายสมชาย ใจดี
+        faculty:
+          type: string
+          example: คณะวิทยาการสารสนเทศ
+        averageScore:
+          type: number
+          format: float
+          example: 88.5
+        isAwarded:
+          type: boolean
+          example: true
+        amount:
+          type: number
+          format: float
+          example: 25000
+        phone:
+          type: string
+          example: "0812345678"
+        email:
+          type: string
+          format: email
+          example: somchai@kkumail.com
+        maskedCitizenId:
+          type: string
+          example: 1-2345-XXXXX-XX-3
+    UpdateAllocationDto:
+      type: object
+      required:
+        - isAwarded
+        - amount
+      properties:
+        isAwarded:
+          type: boolean
+          example: true
+        amount:
+          type: number
+          format: float
+          minimum: 0
+          example: 25000
+    ExportReportDto:
+      type: object
+      required:
+        - roundId
+        - password
+      properties:
+        roundId:
+          type: integer
+          example: 1
+        password:
+          type: string
+          writeOnly: true
+          example: SecretP@ss123
+paths:
+  /auth/sso/callback:
+    post:
+      tags:
+        - Auth
+      summary: KKU SSO Callback & Session Establishment [TBD Protocol]
+      description: Verifies SSO credential token, validates account status (BR-USR-01), enforces single-device session (BR-EVL-08), and sets HttpOnly SameSite session cookie.
+      operationId: ssoCallback
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  example: sso_auth_code_12345
+                state:
+                  type: string
+                  example: random_state_string
+      responses:
+        "200":
+          description: Login successful. Sets sems_session cookie.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: sems_session=jwt_session_token; Path=/; HttpOnly; Secure; SameSite=Lax
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/SessionUserDto"
+        "401":
+          description: Account deactivated or not authorized (BR-USR-01)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 401
+                errorCode: ACCOUNT_DEACTIVATED
+                error: UNAUTHORIZED
+                params: null
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "422":
+          description: Invalid email domain (not KKU)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 422
+                errorCode: EMAIL_ALREADY_EXISTS_OR_INVALID
+                error: UNPROCESSABLE_ENTITY
+                params: null
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Get Current Authenticated User
+      description: Returns profile, role, status, serverTime (ISO 8601), and idleTimeoutSeconds for countdown warning.
+      operationId: getCurrentUser
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Current session user profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/SessionUserDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: User Logout
+      description: Revokes active session in database and clears session cookie.
+      operationId: logout
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      responses:
+        "200":
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Logged out successfully
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /users:
+    get:
+      tags:
+        - Users
+      summary: List Users (Admin)
+      description: Server Paginated user list with role, isActive status, search, and sorting.
+      operationId: listUsers
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: role
+          in: query
+          schema:
+            $ref: "#/components/schemas/UserRole"
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum:
+              - createdAt
+              - name
+              - email
+              - expiresAt
+            default: createdAt
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+      responses:
+        "200":
+          description: Paginated list of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/UserDto"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+    post:
+      tags:
+        - Users
+      summary: Create User / Evaluator (Admin)
+      description: Creates a new user. Role is locked upon creation. Evaluators require days parameter (BR-USR-04). Audit log recorded.
+      operationId: createUser
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserDto"
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 201
+                  data:
+                    $ref: "#/components/schemas/UserDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "422":
+          description: Validation failed (Invalid email or days)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              examples:
+                invalidDomain:
+                  summary: Email already exists or invalid KKU domain (BR-USR-02)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: EMAIL_ALREADY_EXISTS_OR_INVALID
+                    error: UNPROCESSABLE_ENTITY
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+                invalidDays:
+                  summary: Days must be a positive integer (BR-USR-04)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: VALIDITY_DAYS_INVALID
+                    error: UNPROCESSABLE_ENTITY
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get User Detail (Admin)
+      operationId: getUserById
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/UserDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+    patch:
+      tags:
+        - Users
+      summary: Update User Profile (Admin)
+      description: Updates user display name. Cannot edit email or role directly.
+      operationId: updateUser
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserDto"
+      responses:
+        "200":
+          description: User profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/UserDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /users/{id}/status:
+    patch:
+      tags:
+        - Users
+      summary: Toggle User Active / Inactive Status (Admin)
+      description: Changes user status. Cannot deactivate evaluator with pending drafts in open rounds (BR-USR-09). Cannot deactivate self or last admin (BR-USR-14). Must specify days when reactivating evaluator (BR-USR-08).
+      operationId: updateUserStatus
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserStatusDto"
+      responses:
+        "200":
+          description: Status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/UserDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "422":
+          description: Business rule violation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              examples:
+                evaluatorWithDraft:
+                  summary: Evaluator has active drafts in OPEN rounds (BR-USR-09)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: CANNOT_DEACTIVATE_EVALUATOR_WITH_DRAFT
+                    error: UNPROCESSABLE_ENTITY
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+                selfDeactivation:
+                  summary: Admin cannot deactivate self or last active admin (BR-USR-14)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: CANNOT_DEACTIVATE_SELF_OR_LAST_ADMIN
+                    error: UNPROCESSABLE_ENTITY
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+                expiryDaysRequired:
+                  summary: Days parameter is required when activating evaluator (BR-USR-08)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: EXPIRY_DAYS_REQUIRED
+                    error: UNPROCESSABLE_ENTITY
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /users/{id}/extend-expiry:
+    patch:
+      tags:
+        - Users
+      summary: Extend Evaluator Expiration (Admin)
+      description: Extends Evaluator validity period by specified days calculated from request date (BR-USR-07, FR-USR-11). Positive integer without ceiling.
+      operationId: extendUserExpiry
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExtendUserExpiryDto"
+      responses:
+        "200":
+          description: Evaluator expiration extended
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/UserDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "422":
+          description: Invalid days parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 422
+                errorCode: VALIDITY_DAYS_INVALID
+                error: UNPROCESSABLE_ENTITY
+                params: null
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds:
+    get:
+      tags:
+        - ScholarshipRounds
+      summary: List Scholarship Rounds
+      description: Lists scholarship rounds with pagination and filters. Admin views all statuses; Evaluator only views OPEN rounds (BR-EVL-01).
+      operationId: listScholarshipRounds
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: academicYear
+          in: query
+          schema:
+            type: integer
+            minimum: 2550
+            maximum: 2700
+        - name: semester
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/RoundStatus"
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum:
+              - academicYear
+              - semester
+              - createdAt
+            default: createdAt
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+      responses:
+        "200":
+          description: Paginated list of scholarship rounds
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ScholarshipRoundDto"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+    post:
+      tags:
+        - ScholarshipRounds
+      summary: Create Scholarship Round (Admin)
+      description: Creates round in DRAFT status. Academic year 2550-2700 (BR-RND-01), Semester 1-2 (BR-RND-02).
+      operationId: createScholarshipRound
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateScholarshipRoundDto"
+      responses:
+        "201":
+          description: Round created in DRAFT status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 201
+                  data:
+                    $ref: "#/components/schemas/ScholarshipRoundDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "422":
+          description: Year or semester out of range
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              examples:
+                yearOutOfRange:
+                  summary: Academic year must be 2550-2700 (BR-RND-01)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: ACADEMIC_YEAR_OUT_OF_RANGE
+                    error: UNPROCESSABLE_ENTITY
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+                semesterOutOfRange:
+                  summary: Semester must be 1 or 2 (BR-RND-02)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: SEMESTER_OUT_OF_RANGE
+                    error: UNPROCESSABLE_ENTITY
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{id}:
+    get:
+      tags:
+        - ScholarshipRounds
+      summary: Get Scholarship Round Detail
+      description: Returns round details. Evaluators can only view OPEN rounds (404 on IDOR per BR-EVL-01).
+      operationId: getScholarshipRoundById
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Round details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/ScholarshipRoundDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+    patch:
+      tags:
+        - ScholarshipRounds
+      summary: Update Scholarship Round (Admin)
+      description: Updates round info. Only permitted when round is in DRAFT status (BR-RND-05).
+      operationId: updateScholarshipRound
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateScholarshipRoundDto"
+      responses:
+        "200":
+          description: Round updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/ScholarshipRoundDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          description: Round is not in DRAFT status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 409
+                errorCode: INVALID_ROUND_STATUS
+                error: CONFLICT
+                params:
+                  status: OPEN
+                  action: update_round
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{id}/criteria:
+    patch:
+      tags:
+        - ScholarshipRounds
+      summary: Link / Unlink Criteria to Round (Admin)
+      description: Connects or removes criteria from a round in DRAFT status (BR-RND-07). Returns 409 if round is OPEN or CLOSED.
+      operationId: linkRoundCriteria
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkRoundCriteriaDto"
+      responses:
+        "200":
+          description: Criteria linked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/ScholarshipRoundDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          description: Round not in DRAFT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 409
+                errorCode: INVALID_ROUND_STATUS
+                error: CONFLICT
+                params:
+                  status: OPEN
+                  action: link_criteria
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{id}/open-check:
+    get:
+      tags:
+        - ScholarshipRounds
+      summary: Pre-check Round Readiness to Open (Admin)
+      description: "Read-only check for round open criteria: criteria attached and scored sum = 100, applicants >= 1, and reports lastInvalidRowsCount (FR-RND-08, FR-RND-09)."
+      operationId: checkRoundOpenReadiness
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Pre-check readiness details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/RoundOpenPrecheckResponseDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{id}/open:
+    post:
+      tags:
+        - ScholarshipRounds
+      summary: Open Scholarship Round (Admin)
+      description: Transitions round from DRAFT to OPEN. Locks round info, applicant list, and criteria. Logs ROUND_STATUS_CHANGE.
+      operationId: openScholarshipRound
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Round opened successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/ScholarshipRoundDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          description: Round is not in DRAFT status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 409
+                errorCode: INVALID_ROUND_STATUS
+                error: CONFLICT
+                params:
+                  status: OPEN
+                  action: open_round
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "422":
+          description: Pre-check conditions not satisfied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 422
+                errorCode: ROUND_OPEN_PRECHECK_FAILED
+                error: UNPROCESSABLE_ENTITY
+                params:
+                  reasons:
+                    - ผลรวมเกณฑ์แบบมีคะแนนไม่เท่ากับ 100
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{id}/close-check:
+    get:
+      tags:
+        - ScholarshipRounds
+      summary: Pre-check Round Close Unsubmitted Applicants (Admin)
+      description: Returns unsubmittedCount and list of applicants who do not have any SUBMITTED evaluation (FR-RND-12, MSG-20).
+      operationId: checkRoundCloseStatus
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Unsubmitted applicant verification result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/RoundCloseCheckResponseDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{id}/close:
+    post:
+      tags:
+        - ScholarshipRounds
+      summary: Close Scholarship Round (Admin)
+      description: |-
+        Closes round (OPEN -> CLOSED).
+        Acknowledgment Pipeline:
+        1. If unsubmittedCount == 0: can close immediately without acknowledge flag.
+        2. If unsubmittedCount > 0 and client did not provide acknowledged: true or acknowledgedCount is undefined: returns 422 ROUND_CLOSE_ACK_REQUIRED.
+        3. If unsubmittedCount > 0 and acknowledgedCount does not match fresh server count: returns 409 ROUND_CLOSE_STATE_CHANGED.
+      operationId: closeScholarshipRound
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CloseScholarshipRoundDto"
+      responses:
+        "200":
+          description: Round closed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/ScholarshipRoundDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          description: "Conflict: Round already closed, not OPEN, or unsubmitted state changed"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              examples:
+                stateChanged:
+                  summary: Unsubmitted count changed between close-check and confirmation
+                  value:
+                    success: false
+                    statusCode: 409
+                    errorCode: ROUND_CLOSE_STATE_CHANGED
+                    error: CONFLICT
+                    params:
+                      count: 3
+                      applicants:
+                        - applicantId: 101
+                          studentCode: 643020000-1
+                          titlePrefix: นาย
+                          firstName: สมชาย
+                          lastName: ใจดี
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+                notOpen:
+                  summary: Round is not in OPEN status
+                  value:
+                    success: false
+                    statusCode: 409
+                    errorCode: INVALID_ROUND_STATUS
+                    error: CONFLICT
+                    params:
+                      status: DRAFT
+                      action: close_round
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+        "422":
+          description: Acknowledgment required for unsubmitted applicants
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 422
+                errorCode: ROUND_CLOSE_ACK_REQUIRED
+                error: UNPROCESSABLE_ENTITY
+                params:
+                  count: 2
+                  applicants:
+                    - applicantId: 101
+                      studentCode: 643020000-1
+                      titlePrefix: นาย
+                      firstName: สมชาย
+                      lastName: ใจดี
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /criteria:
+    get:
+      tags:
+        - Criteria
+      summary: List Evaluation Criteria (Admin)
+      description: Lists all criteria with usage in rounds (FR-CRT-12).
+      operationId: listCriteria
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated criteria list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CriteriaDetailDto"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+    post:
+      tags:
+        - Criteria
+      summary: Create Evaluation Criteria (Admin)
+      description: Creates new criteria. Name must be unique (MSG-31). Scored criteria must have >= 1 item and sum to 100 (BR-CRT-04, BR-CRT-06).
+      operationId: createCriteria
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCriteriaDto"
+      responses:
+        "201":
+          description: Criteria created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 201
+                  data:
+                    $ref: "#/components/schemas/CriteriaDetailDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "422":
+          description: Validation failed (Sum not 100, duplicate name, or missing scored criteria)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              examples:
+                sumNot100:
+                  summary: Scored sub-criteria sum must be 100 (BR-CRT-06)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: CRITERIA_SUM_NOT_100
+                    error: UNPROCESSABLE_ENTITY
+                    params:
+                      sum: 85
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+                duplicateName:
+                  summary: Criteria name already exists (BR-CRT-01)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: CRITERIA_NAME_DUPLICATE
+                    error: UNPROCESSABLE_ENTITY
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /criteria/{id}:
+    get:
+      tags:
+        - Criteria
+      summary: Get Criteria Details by ID
+      description: Returns criteria and sub-criteria details. Admin can view in any status; Evaluator can only view if criteria is linked to an OPEN round (404 on IDOR per BR-CRT-10).
+      operationId: getCriteriaById
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Criteria details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/CriteriaDetailDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+    put:
+      tags:
+        - Criteria
+      summary: In-place Update Criteria (Admin)
+      description: "Updates criteria and sub-criteria in-place (BR-CRT-08). Only allowed when NOT used by any OPEN or CLOSED rounds (BR-CRT-09). Note: Deleting criteria is not supported."
+      operationId: updateCriteria
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCriteriaDto"
+      responses:
+        "200":
+          description: Criteria updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/CriteriaDetailDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          description: Criteria locked because it is used by an OPEN or CLOSED round
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 409
+                errorCode: CRITERIA_LOCKED
+                error: CONFLICT
+                params: null
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "422":
+          description: Scored criteria sum must be 100
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 422
+                errorCode: CRITERIA_SUM_NOT_100
+                error: UNPROCESSABLE_ENTITY
+                params:
+                  sum: 90
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{roundId}/applicants/preview-excel:
+    post:
+      tags:
+        - Applicants
+      summary: Upload Excel for Import Preview (Admin)
+      description: Uploads .xlsx file for dry-run parsing & validation (BR-IMP-02..08). Max 50 MB, Rate limit 3/min/User. Returns 30-minute previewToken and rows array with maskedCitizenId (FR-IMP-08).
+      operationId: previewExcelImport
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Excel (.xlsx) file, max 50 MB
+      responses:
+        "200":
+          description: Parsed preview summary with previewToken and rows array
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/ExcelPreviewSummaryDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          description: Round not in DRAFT status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 409
+                errorCode: INVALID_ROUND_STATUS
+                error: CONFLICT
+                params:
+                  status: OPEN
+                  action: import_applicants
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "413":
+          $ref: "#/components/responses/PayloadTooLargeError"
+        "422":
+          description: Corrupted or invalid excel structure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 422
+                errorCode: INVALID_EXCEL_FILE
+                error: UNPROCESSABLE_ENTITY
+                params: null
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{roundId}/applicants/import:
+    post:
+      tags:
+        - Applicants
+      summary: Confirm Excel Import (Admin)
+      description: Commits valid rows from previewToken into database in an atomic transaction. Encrypts citizenId (BR-PDP-03). Single-use token. Cleans scratch file immediately.
+      operationId: confirmExcelImport
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfirmImportDto"
+      responses:
+        "201":
+          description: Applicants imported successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 201
+                  data:
+                    type: object
+                    properties:
+                      importBatchId:
+                        type: integer
+                        example: 10
+                      importedCount:
+                        type: integer
+                        example: 48
+                      skippedCount:
+                        type: integer
+                        example: 2
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          description: Preview token invalid or not owned by user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 404
+                errorCode: PREVIEW_TOKEN_INVALID
+                error: NOT_FOUND
+                params: null
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "409":
+          description: Round not in DRAFT status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 409
+                errorCode: INVALID_ROUND_STATUS
+                error: CONFLICT
+                params:
+                  status: OPEN
+                  action: import_applicants
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "410":
+          description: Preview token expired or already used
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              examples:
+                tokenExpired:
+                  summary: Preview token expired after 30 minutes (BR-IMP-11)
+                  value:
+                    success: false
+                    statusCode: 410
+                    errorCode: PREVIEW_TOKEN_EXPIRED
+                    error: GONE
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+                alreadyUsed:
+                  summary: Preview token already imported or cancelled (BR-IMP-16)
+                  value:
+                    success: false
+                    statusCode: 410
+                    errorCode: PREVIEW_TOKEN_ALREADY_USED
+                    error: GONE
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+        "422":
+          description: Must acknowledge invalid rows before importing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 422
+                errorCode: EXCEL_INVALID_ROWS_ACK_REQUIRED
+                error: UNPROCESSABLE_ENTITY
+                params:
+                  count: 2
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{roundId}/applicants/import-previews/{previewToken}:
+    delete:
+      tags:
+        - Applicants
+      summary: Cancel Excel Import Preview (Admin)
+      description: Cancels preview session, invalidates preview token, and immediately deletes scratch file (FR-IMP-13, BR-IMP-16). Verifies roundId ownership.
+      operationId: cancelImportPreview
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: previewToken
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Preview cancelled and scratch data cleaned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Preview cancelled successfully
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{roundId}/applicants/imports:
+    get:
+      tags:
+        - Applicants
+      summary: List Round Import History (Admin)
+      description: Returns historical batch records of applicant imports for round (Scope 1.3.2.5).
+      operationId: listImportHistory
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Import batch history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ImportBatchDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{roundId}/applicants:
+    get:
+      tags:
+        - Applicants
+      summary: List Applicants in Round
+      description: "Lists applicants with pagination and search. For Admin: includes academic profile view-only (no citizenId, phone, email, or supporting info per BR-APP-02). For Evaluator: includes legacySeq (FR-APP-03), submittedCount, myStatus, and canStart flag. Evaluator can only access in OPEN rounds (404 on IDOR)."
+      operationId: listApplicants
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: faculty
+          in: query
+          schema:
+            type: string
+        - name: myStatus
+          in: query
+          schema:
+            type: string
+            enum:
+              - NOT_STARTED
+              - DRAFT
+              - SUBMITTED
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum:
+              - studentCode
+              - firstName
+              - gpa
+            default: studentCode
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: asc
+      responses:
+        "200":
+          description: Paginated applicants list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ApplicantListItemDto"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /applicants/{id}:
+    get:
+      tags:
+        - Applicants
+      summary: Get Applicant Detail
+      description: |-
+        Detail of single applicant according to role (BR-APP-02/04, FR-APP-03, BR-PDP-02):
+        - Admin view: Academic profile only; Phone, Email, Masked Citizen ID are ONLY at /allocations/:id; Supporting Info is hidden (null).
+        - Evaluator view: Academic profile + legacySeq (FR-APP-03 E3) + Supporting Info; Phone, Email, Citizen ID are completely omitted. Evaluator gets 404 if round is not OPEN.
+      operationId: getApplicantById
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Applicant profile details with field-level visibility by role
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/ApplicantDetailDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /applicants/{applicantId}/my-evaluation:
+    get:
+      tags:
+        - Evaluations
+      summary: Get My Evaluation for Applicant (Evaluator)
+      description: |-
+        Returns evaluator's draft or submitted score for applicant.
+        Embeds subCriteria detail { id, title, type, maxScore, allowComment } in each item so evaluator can view evaluation details in CLOSED rounds without calling criteria endpoint.
+        If evaluator has an existing evaluation: accessible in both OPEN and CLOSED rounds (read-only).
+        If evaluator has no draft and round is CLOSED: returns 404 Not Found (IDOR protection).
+      operationId: getMyEvaluation
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: applicantId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Evaluation score details with embedded subCriteria
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/MyEvaluationResponseDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+    put:
+      tags:
+        - Evaluations
+      summary: Auto-save / Upsert Evaluation Draft (Evaluator)
+      description: |-
+        Upserts draft evaluation scores.
+        Rules:
+        - If existing evaluation and round is CLOSED: returns 409 ROUND_CLOSED (MSG-19).
+        - If no existing evaluation and round is not OPEN: returns 404 Not Found.
+        - If evaluation already SUBMITTED: returns 409 ALREADY_EVALUATED (MSG-17).
+        - If evaluator expired and starting a new applicant: returns 422 EVALUATOR_EXPIRED_NEW_APPLICANT (MSG-18).
+        - Concurrency & No-op: If payload equals DB exactly, returns 200 without updating DB or updatedAt. If clientUpdatedAt is older than DB updatedAt, returns 409 STALE_VERSION.
+      operationId: upsertDraftEvaluation
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: applicantId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertDraftEvaluationDto"
+      responses:
+        "200":
+          description: Draft saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/MyEvaluationResponseDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          description: "Conflict: Round closed, already submitted, or stale draft version"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              examples:
+                staleVersion:
+                  summary: Concurrency conflict (clientUpdatedAt older than DB updatedAt)
+                  value:
+                    success: false
+                    statusCode: 409
+                    errorCode: STALE_VERSION
+                    error: CONFLICT
+                    params:
+                      serverUpdatedAt: "2026-10-06T14:00:00.000+07:00"
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+                roundClosed:
+                  summary: Round closed while modifying draft (BR-EVL-12, MSG-19)
+                  value:
+                    success: false
+                    statusCode: 409
+                    errorCode: ROUND_CLOSED
+                    error: CONFLICT
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+                alreadyEvaluated:
+                  summary: Evaluation already submitted (BR-EVL-02, MSG-17)
+                  value:
+                    success: false
+                    statusCode: 409
+                    errorCode: ALREADY_EVALUATED
+                    error: CONFLICT
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+        "422":
+          description: Score out of range or expired evaluator starting new evaluation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              examples:
+                scoreOutOfRange:
+                  summary: Score exceeds max score (BR-EVL-03, MSG-15)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: SCORE_OUT_OF_RANGE
+                    error: UNPROCESSABLE_ENTITY
+                    params:
+                      max: 40
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+                evaluatorExpired:
+                  summary: Expired evaluator cannot start evaluating new applicant (BR-USR-11, MSG-18)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: EVALUATOR_EXPIRED_NEW_APPLICANT
+                    error: UNPROCESSABLE_ENTITY
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /applicants/{applicantId}/my-evaluation/submit:
+    post:
+      tags:
+        - Evaluations
+      summary: Submit Evaluation (Evaluator)
+      description: Locks draft and marks status as SUBMITTED (BR-EVL-12). Validates that round is OPEN (Pessimistic FOR SHARE lock), all scored sub-criteria are filled (BR-EVL-11), and evaluation has not been previously submitted.
+      operationId: submitEvaluation
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: applicantId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Evaluation submitted and permanently locked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/MyEvaluationResponseDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          description: Round closed or already submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              examples:
+                alreadyEvaluated:
+                  summary: Already submitted (BR-EVL-02, MSG-17)
+                  value:
+                    success: false
+                    statusCode: 409
+                    errorCode: ALREADY_EVALUATED
+                    error: CONFLICT
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+                roundClosed:
+                  summary: Round closed before submit completed (BR-EVL-12, MSG-19)
+                  value:
+                    success: false
+                    statusCode: 409
+                    errorCode: ROUND_CLOSED
+                    error: CONFLICT
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+        "422":
+          description: Scored criteria not completely filled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 422
+                errorCode: SCORES_INCOMPLETE
+                error: UNPROCESSABLE_ENTITY
+                params:
+                  items:
+                    - subCriteriaId1
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /evaluations/my:
+    get:
+      tags:
+        - Evaluations
+      summary: My Evaluation History (Evaluator)
+      description: Returns evaluator history across OPEN and CLOSED rounds with Server Pagination (FR-SYS-04), filtering by roundId and status, with nested round and criteria context data and isLocked flag.
+      operationId: listMyEvaluations
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: roundId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/EvaluationStatus"
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum:
+              - updatedAt
+              - submittedAt
+            default: updatedAt
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+      responses:
+        "200":
+          description: Paginated list of evaluator evaluations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EvaluatorHistoryItemDto"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{roundId}/evaluation-results:
+    get:
+      tags:
+        - Evaluations
+      summary: Round Evaluation Results & Ranking (Admin)
+      description: Real-time average score table, submitted evaluator counts, and tie-break rankings (BR-SCR-05).
+      operationId: getRoundEvaluationResults
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Paginated real-time ranking table
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EvaluationRankingItemDto"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /applicants/{id}/evaluation-results:
+    get:
+      tags:
+        - Evaluations
+      summary: Applicant Evaluation Results Breakdown (Admin)
+      description: Detailed breakdown of submitted scores, comments, and evaluator identities. Available in all round states (FR-SCR-06).
+      operationId: getApplicantEvaluationBreakdown
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Evaluator score breakdown for applicant
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ApplicantEvaluationBreakdownDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{roundId}/allocation-summary:
+    get:
+      tags:
+        - Allocations
+      summary: Get Allocation Summary (Admin)
+      description: Total budget, allocated sum, remaining balance, and status (EDITING vs FINALIZED).
+      operationId: getAllocationSummary
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Budget allocation summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/AllocationSummaryDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{roundId}/budget:
+    put:
+      tags:
+        - Allocations
+      summary: Set or Update Total Round Budget (Admin)
+      description: Idempotent budget setup (BR-ALC-02). Round must be CLOSED. If updating an existing budget, allocatedBudget must be 0 (BR-ALC-03).
+      operationId: setRoundBudget
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetBudgetDto"
+      responses:
+        "200":
+          description: Budget set successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/AllocationSummaryDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          description: Round not in CLOSED status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 409
+                errorCode: INVALID_ROUND_STATUS
+                error: CONFLICT
+                params:
+                  status: OPEN
+                  action: set_budget
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "422":
+          description: Budget must be > 0 or cannot edit when allocated > 0
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              examples:
+                mustBePositive:
+                  summary: Budget must be > 0 (BR-ALC-02, MSG-21)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: BUDGET_MUST_BE_POSITIVE
+                    error: UNPROCESSABLE_ENTITY
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+                cannotEditAllocated:
+                  summary: Cannot edit total budget when allocated > 0 (BR-ALC-03, MSG-22)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: CANNOT_EDIT_BUDGET_ALLOCATED
+                    error: UNPROCESSABLE_ENTITY
+                    params:
+                      allocated: 50000
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{roundId}/allocations:
+    get:
+      tags:
+        - Allocations
+      summary: List Round Allocations (Admin)
+      description: Table of scholarship applicants with ranks, awarded statuses, and amounts. Citizen ID is masked/hidden (FR-ALC-08).
+      operationId: listAllocations
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by student code or applicant name (BR-ALC-14)
+        - name: isAwarded
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Paginated allocation list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AllocationListItemDto"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /allocations/{id}:
+    get:
+      tags:
+        - Allocations
+      summary: Get Allocation Detail (Admin)
+      description: Shows applicant score, contact (phone, email) and masked citizen ID (1-2345-XXXXX-XX-3). Rate limit 30/min/User. Access is intentionally NOT audit logged per BR-PDP-05.
+      operationId: getAllocationById
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Allocation detail with masked citizen ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/AllocationDetailDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+    patch:
+      tags:
+        - Allocations
+      summary: Update Individual Allocation Award (Admin)
+      description: Sets isAwarded and amount. Executes pessimistic lock (SELECT FOR UPDATE) on allocation summary row to prevent over-allocation (BR-ALC-05). Score must be > 0.00 (BR-ALC-07). Status must be EDITING (BR-ALC-12).
+      operationId: updateAllocation
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAllocationDto"
+      responses:
+        "200":
+          description: Allocation updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/AllocationDetailDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          description: Allocation locked because status is FINALIZED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 409
+                errorCode: ALLOCATION_LOCKED_FINALIZED
+                error: CONFLICT
+                params: null
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "422":
+          description: Allocation exceeds budget, mismatch amount, or zero score awarded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              examples:
+                exceedsBudget:
+                  summary: Allocated sum exceeds total budget (BR-ALC-05, MSG-23)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: ALLOCATION_EXCEEDS_BUDGET
+                    error: UNPROCESSABLE_ENTITY
+                    params:
+                      total: 520000
+                      budget: 500000
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+                zeroScore:
+                  summary: Applicant with 0.00 score cannot be awarded (BR-ALC-07, MSG-25)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: ZERO_SCORE_CANNOT_AWARD
+                    error: UNPROCESSABLE_ENTITY
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+                amountMismatch:
+                  summary: Award status and amount mismatch (BR-ALC-06, MSG-24)
+                  value:
+                    success: false
+                    statusCode: 422
+                    errorCode: ALLOCATION_AMOUNT_MISMATCH
+                    error: UNPROCESSABLE_ENTITY
+                    params: null
+                    timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /allocations/{id}/reveal-citizen-id:
+    post:
+      tags:
+        - Allocations
+      summary: Reveal Full Citizen ID (Admin)
+      description: Decrypts full 13-digit citizen ID. Rate limit 10/min/User. Audits access in AuditLog table in the same database transaction before returning (BR-PDP-04, FR-ALC-10).
+      operationId: revealCitizenId
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Full decrypted citizen ID returned and audited
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      citizenId:
+                        type: string
+                        example: "1234567890123"
+                      viewedAt:
+                        type: string
+                        format: date-time
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{roundId}/allocation/finalize:
+    post:
+      tags:
+        - Allocations
+      summary: Finalize Scholarship Allocations (Admin)
+      description: Locks allocation results (EDITING -> FINALIZED) (BR-ALC-11). Logs ALLOCATION_STATUS_CHANGE.
+      operationId: finalizeAllocations
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Allocation finalized and locked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/AllocationSummaryDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          description: Already finalized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 409
+                errorCode: INVALID_ALLOCATION_STATUS
+                error: CONFLICT
+                params:
+                  status: FINALIZED
+                  action: finalize_allocation
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /scholarship-rounds/{roundId}/allocation/reopen:
+    post:
+      tags:
+        - Allocations
+      summary: Reopen Scholarship Allocations (Admin)
+      description: Unlocks allocation results (FINALIZED -> EDITING) (BR-ALC-12). Logs ALLOCATION_STATUS_CHANGE.
+      operationId: reopenAllocations
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      parameters:
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Allocation reopened for modifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/AllocationSummaryDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          description: Not currently finalized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 409
+                errorCode: INVALID_ALLOCATION_STATUS
+                error: CONFLICT
+                params:
+                  status: EDITING
+                  action: reopen_allocation
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /reports/evaluation-ranking/export:
+    post:
+      tags:
+        - Reports
+      summary: Export Evaluation Ranking Report (Admin)
+      description: Generates password-protected .xlsx file of evaluation rankings without citizen IDs (BR-EXP-06). Rate limit 5/min/User. Returns binary stream with Content-Disposition header.
+      operationId: exportEvaluationRankingReport
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExportReportDto"
+      responses:
+        "200":
+          description: Excel file stream (.xlsx)
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: attachment; filename="evaluation_ranking_2569.xlsx"
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "409":
+          description: Round not in CLOSED status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 409
+                errorCode: INVALID_ROUND_STATUS
+                error: CONFLICT
+                params:
+                  status: OPEN
+                  action: export_ranking_report
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"
+  /reports/allocation/export:
+    post:
+      tags:
+        - Reports
+      summary: Export Final Allocation Report (Admin)
+      description: Generates password-protected .xlsx file with full decrypted citizen IDs for authorized scholarship disbursement (BR-EXP-06). Round allocation must be FINALIZED. Rate limit 5/min/User.
+      operationId: exportAllocationReport
+      security:
+        - cookieAuth: []
+        - csrfProtection: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExportReportDto"
+      responses:
+        "200":
+          description: Excel file stream (.xlsx)
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: attachment; filename="allocation_final_2569.xlsx"
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "409":
+          description: Allocation is not yet finalized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardErrorResponse"
+              example:
+                success: false
+                statusCode: 409
+                errorCode: INVALID_ALLOCATION_STATUS
+                error: CONFLICT
+                params:
+                  status: EDITING
+                  action: export_report
+                timestamp: "2026-10-06T14:00:00.000+07:00"
+        "429":
+          $ref: "#/components/responses/RateLimitedError"

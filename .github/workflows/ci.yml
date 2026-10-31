@@ -1,0 +1,112 @@
+name: SEMS CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security-audit:
+    name: Security & Secret Scan (PDPA Compliance)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for committed secrets (.env, keys)
+        run: |
+          echo "Scanning for sensitive files and credentials..."
+          # ตรวจสอบว่าไม่มีการ commit ไฟล์ .env เข้ามา
+          if git ls-files | grep -E "(^\.env|\.env\.local|\.key|\.pem)$" ; then
+            echo "::error::Direct secret file (.env or key) detected in git repository!"
+            exit 1
+          fi
+          # ตรวจสอบ private key patterns ใน source code (ไม่รวม workflow)
+          if git grep -I -E "BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY" -- ':!.github/workflows/*' ; then
+            echo "::error::Private key pattern detected in repository codebase!"
+            exit 1
+          fi
+          echo "Security scan passed: No secret files or private keys detected."
+
+  backend-ci:
+    name: Backend (Prisma, Lint, Build, Test)
+    runs-on: ubuntu-latest
+    needs: security-audit
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/sems_ci?schema=public"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (LTS v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies (Workspace Root)
+        run: npm ci
+
+      - name: Validate Prisma Schema
+        run: npx --workspace=backend prisma validate --schema=prisma/schema.prisma
+
+      - name: Generate Prisma Client
+        run: npx --workspace=backend prisma generate --schema=prisma/schema.prisma
+
+      - name: Run ESLint
+        run: npm run lint:backend
+
+      - name: Build & Typecheck (NestJS)
+        run: npm run build:backend
+
+      - name: Run Unit Tests (Jest)
+        run: npm run test
+
+  frontend-ci:
+    name: Frontend (Lint, Typecheck, Build)
+    runs-on: ubuntu-latest
+    needs: security-audit
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (LTS v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies (Frontend)
+        run: |
+          npm ci
+          npm install --no-save --os=linux --cpu=x64 @tailwindcss/oxide-linux-x64-gnu lightningcss-linux-x64-gnu
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: TypeScript Typecheck
+        run: npx tsc --noEmit
+
+      - name: Run Unit Tests (Vitest)
+        run: npm run test
+
+      - name: Build Next.js
+        run: npm run build

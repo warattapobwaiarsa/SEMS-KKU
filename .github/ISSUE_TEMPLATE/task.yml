@@ -1,0 +1,43 @@
+name: 🛠️ Task (งานทั่วไป / ปรับปรุงระบบ / เอกสาร)
+description: สำหรับงานย่อย งานปรับปรุงโครงสร้างโค้ด (Refactor), DevOps, หรืองานอัปเดตเอกสาร
+title: "[Task]: "
+labels: ["task"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ใช้สำหรับบันทึกงานที่ต้องทำในโปรเจกต์ **SEMS-KKU** ที่ไม่ใช่การขอฟีเจอร์ใหม่หรือการรายงานบั๊ก
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 📂 หมวดหมู่งาน (Category)
+      options:
+        - "Refactoring / Code Quality (ปรับปรุงคุณภาพโค้ด)"
+        - "DevOps / CI/CD / Docker (ระบบและการติดตั้ง)"
+        - "Documentation / Docs (เอกสารและคู่มือ)"
+        - "Testing / Quality Assurance (ชุดทดสอบและตรวจคุณภาพ)"
+        - "Database / Migration (การปรับปรุงฐานข้อมูล)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: task_description
+    attributes:
+      label: 📌 รายละเอียดงาน (Description)
+      description: อธิบายวัตถุประสงค์และเหตุผลของงานนี้
+      placeholder: "อธิบายรายละเอียดงานที่ต้องทำ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: 📋 รายการสิ่งที่ต้องทำ (To-Do Checklist)
+      value: |
+        - [ ] 
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
