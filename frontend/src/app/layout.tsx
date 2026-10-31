@@ -1,21 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { IBM_Plex_Sans_Thai, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
-
-const ibmPlexSansThai = IBM_Plex_Sans_Thai({
-  weight: ["300", "400", "500", "600", "700"],
-  subsets: ["thai", "latin"],
-  variable: "--font-ibm-plex-sans-thai",
-  display: "swap",
-});
-
-const ibmPlexSans = IBM_Plex_Sans({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin"],
-  variable: "--font-ibm-plex-sans",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "SEMS - ระบบบริหารจัดการการประเมินทุนการศึกษา มหาวิทยาลัยขอนแก่น",
@@ -28,10 +13,15 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html
-      lang="th"
-      className={`${ibmPlexSansThai.variable} ${ibmPlexSans.variable} h-full antialiased`}
-    >
+    <html lang="th" className="h-full antialiased">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="min-h-full flex flex-col font-sans bg-[#FFFFFF] text-[#374151]">
         {children}
       </body>
