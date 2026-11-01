@@ -14,6 +14,7 @@ import type {
   EvaluatorApplicantDetail,
   MyEvaluationView,
   SaveEvaluationItem,
+  TravelDistanceInfo,
 } from '@/types/evaluation';
 
 /**
@@ -35,16 +36,19 @@ export async function fetchEvaluatorApplicants(
   if (query.page) params.set('page', String(query.page));
   if (query.limit) params.set('limit', String(query.limit));
 
-  const endpoint = `/scholarship-rounds/${roundId}/applicants${params.toString() ? `?${params.toString()}` : ''}`;
+  const queryString = params.toString();
+  const endpoint = `/scholarship-rounds/${roundId}/applicants${
+    queryString ? `?${queryString}` : ''
+  }`;
 
-  return apiClient<{ data: EvaluatorApplicant[]; meta: { page: number; limit: number; total: number; totalPages: number } }>(
+  return apiClient<{ data: EvaluatorApplicant[]; meta: PaginationMeta }>(
     endpoint,
     {
       method: 'GET',
       headers: {
         'X-User-Id': getEvaluatorId(),
       },
-    }
+    },
   );
 }
 
@@ -62,7 +66,10 @@ export async function fetchEvaluatorRounds(
   if (query.page) params.set('page', String(query.page));
   if (query.limit) params.set('limit', String(query.limit));
 
-  const endpoint = `/scholarship-rounds${params.toString() ? `?${params.toString()}` : ''}`;
+  const queryString = params.toString();
+  const endpoint = `/scholarship-rounds${
+    queryString ? `?${queryString}` : ''
+  }`;
 
   return apiClient<{ data: EvaluatorRound[]; meta: PaginationMeta }>(
     endpoint,
@@ -71,7 +78,7 @@ export async function fetchEvaluatorRounds(
       headers: {
         'X-User-Id': getEvaluatorId(),
       },
-    }
+    },
   );
 }
 
@@ -147,6 +154,8 @@ export async function saveMyEvaluation(
   return res.data;
 }
 
+export const saveMyEvaluationDraft = saveMyEvaluation;
+
 /**
  * ยืนยันส่งผลการประเมิน DRAFT -> SUBMITTED [FR-EVL-11] [FR-EVL-13]
  * POST /applicants/:applicantId/my-evaluation/submit — ไม่มี body
@@ -164,5 +173,25 @@ export async function submitMyEvaluation(
     },
   );
   // apiClient ไม่ unwrap envelope -> คืนเฉพาะ data ตรงๆ
+  return res.data;
+}
+
+/**
+ * คำนวณระยะทางและเวลาเดินทางจริงจากคณะวิศวะฯ มข. ไปยังที่พักผู้สมัคร
+ * GET /applicants/:applicantId/travel-distance
+ * ผ่าน External API (OSRM Open Source Machine)
+ */
+export async function fetchApplicantTravelDistance(
+  applicantId: number,
+): Promise<TravelDistanceInfo> {
+  const res = await apiClient<ApiEnvelope<TravelDistanceInfo>>(
+    `/applicants/${applicantId}/travel-distance`,
+    {
+      method: 'GET',
+      headers: {
+        'X-User-Id': getEvaluatorId(),
+      },
+    },
+  );
   return res.data;
 }

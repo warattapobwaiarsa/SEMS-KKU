@@ -27,6 +27,10 @@ import {
 } from '../common/guards/role-dispatch.guard';
 import { EvaluationService } from '../evaluation/evaluation.service';
 import { EvaluationReadService } from '../evaluation/evaluation-read.service';
+import {
+  LocationRoutingService,
+  TravelDistanceResponse,
+} from './location-routing.service';
 import { User } from '@prisma/client';
 
 @Controller()
@@ -35,6 +39,7 @@ export class ApplicantsController {
     private readonly applicantsService: ApplicantsService,
     private readonly evaluationService: EvaluationService,
     private readonly evaluationReadService: EvaluationReadService,
+    private readonly locationRoutingService: LocationRoutingService,
   ) {}
 
   @Post('scholarship-rounds/:roundId/applicants/preview-excel')
@@ -145,5 +150,18 @@ export class ApplicantsController {
 
     // EVALUATOR path: ใช้ service ของ Evaluator
     return this.evaluationReadService.getApplicantDetailForEvaluator(id);
+  }
+
+  @Get('applicants/:id/travel-distance')
+  @UseGuards(RoleDispatchGuard)
+  async getTravelDistance(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers('x-user-role') roleHeader?: string,
+    @Query('userRole') roleQuery?: string,
+    @Req() request?: RequestWithResolvedRole,
+  ): Promise<TravelDistanceResponse> {
+    const resolvedRole = request?.resolvedRole;
+    const role = resolvedRole || roleHeader || roleQuery || 'ADMIN';
+    return this.locationRoutingService.calculateTravelDistance(id, role);
   }
 }

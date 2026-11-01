@@ -4,11 +4,13 @@
  * - ลิงก์แผนที่ แสดงเป็นลิงก์เฉพาะเมื่อขึ้นต้นด้วย http:// หรือ https:// [FR-APP-05]
  * - ไม่แสดงเลขบัตรประชาชน / โทรศัพท์ / อีเมล (PDPA Compliance)
  * - รองรับ Google Maps Platform API Interactive Modal
+ * - ผสานรวม External API (OSRM Open Source Routing Machine) คำนวณระยะทางและเวลาเดินทางจริง
  */
 'use client';
 
-import React, { useState } from 'react';
-import type { EvaluatorApplicantDetail } from '@/types/evaluation';
+import React, { useState, useEffect, useCallback } from 'react';
+import type { EvaluatorApplicantDetail, TravelDistanceInfo } from '@/types/evaluation';
+import { fetchApplicantTravelDistance } from '@/services/evaluation.service';
 import { GoogleMapsModal } from './google-maps-modal';
 import {
   User,
@@ -16,8 +18,9 @@ import {
   Users,
   DollarSign,
   MapPin,
-  ExternalLink,
   ShieldCheck,
+  Car,
+  RotateCw,
 } from 'lucide-react';
 
 interface ApplicantProfilePanelProps {
@@ -44,10 +47,63 @@ function InfoField({ label, value }: { label: string; value: string }) {
 
 export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [travelInfo, setTravelInfo] = useState<TravelDistanceInfo | null>(null);
+  const [isLoadingTravel, setIsLoadingTravel] = useState(true);
+
   const fullName = `${detail.titlePrefix}${detail.firstName} ${detail.lastName}`.trim();
   const info = detail.supportingInfo;
   const mapUrl = info?.accommodationMapUrl ?? '';
   const mapUrlIsSafe = mapUrl.startsWith('http://') || mapUrl.startsWith('https://');
+
+  // ดึงข้อมูลระยะทางเมื่อเปลี่ยนผู้สมัคร
+  useEffect(() => {
+    if (!detail.id) return;
+    let active = true;
+
+    fetchApplicantTravelDistance(detail.id)
+      .then((data) => {
+        if (active) setTravelInfo(data);
+      })
+      .catch((err) => {
+        console.warn('Failed to fetch travel distance from OSRM:', err);
+        if (active) {
+          setTravelInfo({
+            available: false,
+            message: 'ไม่สามารถเชื่อมต่อบริการคำนวณระยะทางได้ในขณะนี้',
+          });
+        }
+      })
+      .finally(() => {
+        if (active) setIsLoadingTravel(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [detail.id]);
+
+  // ฟังก์ชันคำนวณใหม่เมื่อกดปุ่ม Retry
+  const handleRetry = useCallback(() => {
+    if (!detail.id) return;
+    setIsLoadingTravel(true);
+
+    fetchApplicantTravelDistance(detail.id)
+      .then((data) => setTravelInfo(data))
+      .catch((err) => {
+        console.warn('Failed to retry travel distance from OSRM:', err);
+        setTravelInfo({
+          available: false,
+          message: 'ไม่สามารถเชื่อมต่อบริการคำนวณระยะทางได้ในขณะนี้',
+        });
+      })
+      .finally(() => setIsLoadingTravel(false));
+  }, [detail.id]);
+
+  const isNetworkFailure =
+    !isLoadingTravel &&
+    travelInfo !== null &&
+    !travelInfo.available &&
+    Boolean(travelInfo.message?.includes('ไม่สามารถ'));
 
   return (
     <div className="flex flex-col gap-4">
@@ -90,31 +146,72 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
             <Home className="w-4 h-4 text-primary" />
             ข้อมูลที่อยู่อาศัยและค่าใช้จ่าย
           </h4>
-          {mapUrl && mapUrlIsSafe ? (
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setIsMapModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition cursor-pointer"
-              >
-                <MapPin className="w-3.5 h-3.5" />
-                <span>ดูแผนที่ Google Maps</span>
-              </button>
-              <a
-                href={mapUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="เปิดใน Google Maps (แท็บใหม่)"
-                className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+        </div>
+
+        {/* Accommodation & Distance Insight Box (รวมข้อมูลที่พัก ระยะทาง และปุ่มเปิดแผนที่เป็นชิ้นเดียว ไม่ซ้ำซ้อน) */}
+        <div className="p-3.5 rounded-xl bg-muted/30 border border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0 mt-0.5 sm:mt-0">
+              <MapPin className="w-4 h-4" />
             </div>
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="text-xs font-medium text-muted-foreground">ลักษณะที่พัก:</span>
+                <span className="text-sm font-semibold text-foreground">
+                  {displayValue(info?.accommodation)}
+                </span>
+              </div>
+              {/* OSRM Travel Distance badge with Tooltip & Retry */}
+              <div className="flex items-center gap-2 text-xs flex-wrap">
+                {isLoadingTravel ? (
+                  <span className="text-xs text-muted-foreground animate-pulse flex items-center gap-1.5">
+                    <RotateCw className="w-3 h-3 animate-spin text-primary" />
+                    <span>กำลังคำนวณระยะทางจาก มข. ...</span>
+                  </span>
+                ) : travelInfo?.available ? (
+                  <span
+                    title="คำนวณตามโครงข่ายถนนจริง (Driving Route) จากคณะวิศวกรรมศาสตร์ มข."
+                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium text-xs cursor-help"
+                  >
+                    <Car className="w-3.5 h-3.5" />
+                    <span className="font-bold font-mono">{travelInfo.distanceKm} กม.</span>
+                    <span className="text-muted-foreground/60">•</span>
+                    <span>~{travelInfo.durationMinutes} นาที จาก มข.</span>
+                  </span>
+                ) : travelInfo?.message ? (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>{travelInfo.message}</span>
+                    {isNetworkFailure && (
+                      <button
+                        type="button"
+                        onClick={handleRetry}
+                        title="ลองคำนวณระยะทางใหม่อีกครั้ง"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold text-primary hover:bg-primary/10 transition cursor-pointer"
+                      >
+                        <RotateCw className="w-3 h-3" />
+                        <span>ลองใหม่</span>
+                      </button>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          {mapUrl && mapUrlIsSafe ? (
+            <button
+              type="button"
+              onClick={() => setIsMapModalOpen(true)}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold shadow-2xs transition cursor-pointer shrink-0 self-start sm:self-center"
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>ดูแผนที่ / เส้นทาง</span>
+            </button>
           ) : null}
         </div>
 
-        <div className="grid grid-cols-2 gap-3.5">
-          <InfoField label="ที่อยู่อาศัย / ลักษณะที่พัก" value={displayValue(info?.accommodation)} />
+        {/* Expenses Grid */}
+        <div className="grid grid-cols-2 gap-3.5 pt-1">
           <InfoField label="ค่าเช่าที่อยู่อาศัย" value={displayValue(info?.rent)} />
           <InfoField label="ค่าใช้จ่ายส่วนตัว" value={displayValue(info?.personalExpense)} />
           <InfoField label="ค่าอุปกรณ์การเรียน" value={displayValue(info?.studyEquipmentCost)} />
@@ -184,13 +281,15 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
         </span>
       </div>
 
-      {/* Google Maps Interactive Modal */}
+      {/* Google Maps Interactive Modal พร้อมข้อมูล External API OSRM */}
       <GoogleMapsModal
         isOpen={isMapModalOpen}
         onClose={() => setIsMapModalOpen(false)}
         destination={mapUrl || info?.accommodation || ''}
         applicantName={fullName}
         accommodationTitle={info?.accommodation ?? undefined}
+        travelInfo={travelInfo}
+        isLoadingTravel={isLoadingTravel}
       />
     </div>
   );
