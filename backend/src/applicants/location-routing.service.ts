@@ -68,9 +68,9 @@ export class LocationRoutingService {
   private setCache(applicantId: number, data: TravelDistanceResponse): void {
     if (this.cache.size >= this.MAX_CACHE_ENTRIES) {
       // ลบรายการแรกสุดออก (FIFO eviction)
-      const firstKey = this.cache.keys().next().value;
-      if (firstKey !== undefined) {
-        this.cache.delete(firstKey);
+      for (const key of this.cache.keys()) {
+        this.cache.delete(key);
+        break;
       }
     }
 
