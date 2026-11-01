@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MapPin, Navigation, ExternalLink, X } from 'lucide-react';
+import { MapPin, Navigation, ExternalLink, X, Car, Clock } from 'lucide-react';
 import {
   getGoogleMapsEmbedUrl,
   getGoogleMapsDirectionsUrl,
   KKU_ENGINEERING_ORIGIN,
 } from '@/lib/google-maps';
+import type { TravelDistanceInfo } from '@/types/evaluation';
 
 interface GoogleMapsModalProps {
   isOpen: boolean;
@@ -14,6 +15,8 @@ interface GoogleMapsModalProps {
   destination: string;
   applicantName?: string;
   accommodationTitle?: string;
+  travelInfo?: TravelDistanceInfo | null;
+  isLoadingTravel?: boolean;
 }
 
 export function GoogleMapsModal({
@@ -22,6 +25,8 @@ export function GoogleMapsModal({
   destination,
   applicantName,
   accommodationTitle,
+  travelInfo,
+  isLoadingTravel,
 }: GoogleMapsModalProps) {
   const [mode, setMode] = useState<'place' | 'directions'>('place');
 
@@ -94,6 +99,42 @@ export function GoogleMapsModal({
             <span className="font-medium text-foreground">{KKU_ENGINEERING_ORIGIN}</span>
           </div>
         </div>
+
+        {/* Travel Distance & Route Info Bar */}
+        {isLoadingTravel ? (
+          <div className="px-5 py-2.5 bg-primary/5 border-b border-primary/20 flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0" />
+            <span>กำลังคำนวณระยะทางจากคณะวิศวะฯ มข. ...</span>
+          </div>
+        ) : travelInfo?.available ? (
+          <div className="px-5 py-3 bg-primary/5 border-b border-primary/20 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
+                <Car className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-sm text-foreground font-mono">
+                    {travelInfo.distanceKm} กม.
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium text-[11px]">
+                    <Clock className="w-3 h-3" />
+                    <span>เดินทางประมาณ {travelInfo.durationMinutes} นาที</span>
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  จาก <span className="font-medium text-foreground">{travelInfo.origin?.name || KKU_ENGINEERING_ORIGIN}</span> ถึง{' '}
+                  <span className="font-medium text-foreground">{travelInfo.destination?.title || accommodationTitle || 'ที่พักอาศัย'}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : travelInfo?.message ? (
+          <div className="px-5 py-2.5 bg-muted/20 border-b border-border/60 text-xs text-muted-foreground flex items-center justify-between">
+            <span>ℹ️ {travelInfo.message}</span>
+            <span className="text-[11px] text-muted-foreground/80">จุดอ้างอิง: {KKU_ENGINEERING_ORIGIN}</span>
+          </div>
+        ) : null}
 
         {/* Map Container */}
         <div className="relative flex-1 min-h-[350px] sm:min-h-[420px] bg-muted/40">

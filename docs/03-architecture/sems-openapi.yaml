@@ -1131,6 +1131,63 @@ components:
         textValue:
           type: string
           nullable: true
+    TravelDistanceResponseDto:
+      type: object
+      required:
+        - available
+      properties:
+        available:
+          type: boolean
+          description: Whether routing calculation was successfully completed
+          example: true
+        message:
+          type: string
+          description: Status or error message if available is false
+          example: "ผู้สมัครไม่ได้ระบุข้อมูลที่พักอาศัยหรือลิงก์แผนที่"
+        origin:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "คณะวิศวกรรมศาสตร์ มหาวิทยาลัยขอนแก่น"
+            lat:
+              type: number
+              example: 16.474448
+            lng:
+              type: number
+              example: 102.823439
+        destination:
+          type: object
+          properties:
+            title:
+              type: string
+              example: "หอพักกัลปพฤกษ์"
+            lat:
+              type: number
+              example: 16.48215
+            lng:
+              type: number
+              example: 102.81932
+        distanceKm:
+          type: number
+          description: Real driving distance in kilometers
+          example: 4.3
+        distanceMeters:
+          type: integer
+          example: 4300
+        durationMinutes:
+          type: integer
+          description: Estimated driving duration in minutes
+          example: 9
+        durationSeconds:
+          type: integer
+          example: 540
+        routeSummary:
+          type: string
+          example: "ระยะทางขับขี่ 4.3 กม. (~9 นาที)"
+        provider:
+          type: string
+          example: "OSRM (Open Source Routing Machine)"
     UpsertDraftEvaluationDto:
       type: object
       required:
@@ -3263,6 +3320,51 @@ paths:
           $ref: "#/components/responses/NotFoundError"
         "429":
           $ref: "#/components/responses/RateLimitedError"
+  /applicants/{id}/travel-distance:
+    get:
+      tags:
+        - Applicants
+      summary: Get Applicant Travel Distance from KKU Engineering (External API Integration)
+      description: |-
+        Calculates real road travel distance and estimated driving time from KKU Faculty of Engineering to the applicant accommodation using OSRM Open Source Routing Machine API.
+        Features In-Memory Caching (24-hour TTL) for high performance and rate-limit protection.
+        - Evaluator view: Allowed only for applicants in OPEN rounds (404 otherwise).
+        - Admin view: Allowed in any round state.
+      operationId: getApplicantTravelDistance
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: X-User-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Mock Auth user ID (required for evaluator role resolution)
+      responses:
+        "200":
+          description: Real road driving distance and duration calculated via OSRM External API
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: "#/components/schemas/TravelDistanceResponseDto"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
   /applicants/{applicantId}/my-evaluation:
     get:
       tags:
