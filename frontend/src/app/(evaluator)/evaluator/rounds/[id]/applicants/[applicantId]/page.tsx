@@ -131,6 +131,14 @@ function toThaiError(error: unknown): string {
     }
     return error.message;
   }
+  if (
+    error instanceof Error &&
+    (error.message.includes('fetch') ||
+      error.message.includes('network') ||
+      error.name === 'TypeError')
+  ) {
+    return 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ Failed to fetch (เซิร์ฟเวอร์ Backend อาจกำลังเริ่มต้นระบบ กรุณารอสักครู่แล้วลองใหม่)';
+  }
   return 'เกิดข้อผิดพลาดในการทำรายการ';
 }
 
