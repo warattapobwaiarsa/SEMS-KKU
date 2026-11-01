@@ -7,12 +7,37 @@ import { TransformInterceptor } from './common/transform.interceptor';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const corsOrigins = process.env.CORS_ORIGIN
+  const defaultOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+  const envOrigins = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
-    : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+    : [];
 
   app.enableCors({
-    origin: corsOrigins,
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      // Allow requests with no origin (such as mobile apps, server-to-server, or curl)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      // Allow configured origins or wildcard
+      if (
+        defaultOrigins.includes(origin) ||
+        envOrigins.includes(origin) ||
+        envOrigins.includes('*')
+      ) {
+        return callback(null, true);
+      }
+
+      // Automatically allow all Vercel deployments (*.vercel.app)
+      if (/^https:\/\/([a-zA-Z0-9-]+\.)*vercel\.app$/.test(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(null, false);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
