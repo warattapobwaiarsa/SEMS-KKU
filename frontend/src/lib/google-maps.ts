@@ -10,8 +10,8 @@ export const KKU_ENGINEERING_COORDS = '16.474448,102.823439';
 /**
  * สกัดค้นหาข้อความค้นหา (Search Query หรือ Coordinates) จากลิงก์ Google Maps
  */
-export function extractMapQuery(input: string): string {
-  if (!input) return KKU_ENGINEERING_ORIGIN;
+export function extractMapQuery(input?: string | null): string {
+  if (!input || !input.trim()) return KKU_ENGINEERING_ORIGIN;
   const trimmed = input.trim();
 
   // กรณีเป็น URL ของ Google Maps
@@ -19,7 +19,7 @@ export function extractMapQuery(input: string): string {
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
       const url = new URL(trimmed);
       const queryParam = url.searchParams.get('q') || url.searchParams.get('query');
-      if (queryParam) return queryParam;
+      if (queryParam && queryParam.trim()) return queryParam.trim();
 
       // กรณี URL รูปแบบ /maps/place/ หรือ /maps/dir/
       const match = trimmed.match(/\/maps\/(?:place|dir)\/([^/@]+)/);
@@ -34,7 +34,7 @@ export function extractMapQuery(input: string): string {
     // ถ้า parse URL ไม่ผ่าน ให้ใช้ข้อความเดิม
   }
 
-  return trimmed;
+  return trimmed || KKU_ENGINEERING_ORIGIN;
 }
 
 /**
@@ -43,7 +43,7 @@ export function extractMapQuery(input: string): string {
  * - หากไม่มี Key จะ fallback ไปใช้ Google Maps Iframe Embed มาตรฐาน
  */
 export function getGoogleMapsEmbedUrl(
-  destination: string,
+  destination?: string | null,
   options?: {
     apiKey?: string;
     mode?: 'place' | 'directions';
@@ -53,7 +53,8 @@ export function getGoogleMapsEmbedUrl(
   const apiKey = options?.apiKey || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const mode = options?.mode || 'place';
   const origin = options?.origin || KKU_ENGINEERING_ORIGIN;
-  const query = extractMapQuery(destination);
+  const rawQuery = extractMapQuery(destination);
+  const query = rawQuery && rawQuery.trim() ? rawQuery : KKU_ENGINEERING_ORIGIN;
 
   // 1. กรณีมี Google Maps Platform API Key (Official Embed API v1)
   if (apiKey) {
@@ -73,7 +74,8 @@ export function getGoogleMapsEmbedUrl(
 /**
  * สร้างลิงก์นำทางภายนอกไปยัง Google Maps
  */
-export function getGoogleMapsDirectionsUrl(destination: string, origin = KKU_ENGINEERING_ORIGIN): string {
-  const query = extractMapQuery(destination);
+export function getGoogleMapsDirectionsUrl(destination?: string | null, origin = KKU_ENGINEERING_ORIGIN): string {
+  const rawQuery = extractMapQuery(destination);
+  const query = rawQuery && rawQuery.trim() ? rawQuery : KKU_ENGINEERING_ORIGIN;
   return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(query)}`;
 }

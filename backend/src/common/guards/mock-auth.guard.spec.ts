@@ -48,9 +48,21 @@ function createMockUser(overrides: Partial<User>): User {
 describe('MockAuthGuard', () => {
   let guard: MockAuthGuard;
 
+  const originalNodeEnv = process.env.NODE_ENV;
+  const originalAllowMockAuth = process.env.ALLOW_MOCK_AUTH;
+
   beforeEach(() => {
     jest.clearAllMocks();
     guard = new MockAuthGuard(mockPrismaService);
+  });
+
+  afterEach(() => {
+    process.env.NODE_ENV = originalNodeEnv;
+    if (originalAllowMockAuth === undefined) {
+      delete process.env.ALLOW_MOCK_AUTH;
+    } else {
+      process.env.ALLOW_MOCK_AUTH = originalAllowMockAuth;
+    }
   });
 
   it('ปฏิเสธด้วย 401 UNAUTHORIZED เมื่อไม่ส่ง header X-User-Id', async () => {
@@ -123,6 +135,43 @@ describe('MockAuthGuard', () => {
   });
 
   it('อนุญาตและแนบข้อมูลผู้ใช้ไว้ที่ request.user เมื่อเป็นผู้ใช้ปกติ', async () => {
+    const mockUser = createMockUser({});
+    findUniqueMock.mockResolvedValue(mockUser);
+    const { context, request } = createContextWithHeaders({
+      'x-user-id': '2',
+    });
+
+    const result = await guard.canActivate(context);
+
+    expect(result).toBe(true);
+    expect(findUniqueMock).toHaveBeenCalledWith({ where: { id: 2 } });
+    expect(request.user).toEqual(mockUser);
+  });
+
+  it('ปฏิเสธด้วย 403 MOCK_AUTH_PROHIBITED_IN_PRODUCTION เมื่อ NODE_ENV=production และไม่ได้ตั้ง ALLOW_MOCK_AUTH', async () => {
+    process.env.NODE_ENV = 'production';
+    delete process.env.ALLOW_MOCK_AUTH;
+
+    const { context } = createContextWithHeaders({ 'x-user-id': '2' });
+
+    let caughtError: unknown;
+    try {
+      await guard.canActivate(context);
+    } catch (error) {
+      caughtError = error;
+    }
+
+    expect(caughtError).toBeInstanceOf(AppException);
+    const appError = caughtError as AppException;
+    expect(appError.errorCode).toBe('MOCK_AUTH_PROHIBITED_IN_PRODUCTION');
+    expect(appError.getStatus()).toBe(403);
+    expect(findUniqueMock).not.toHaveBeenCalled();
+  });
+
+  it('อนุญาตให้เข้าใช้งานเมื่อ NODE_ENV=production แต่มี ALLOW_MOCK_AUTH=true (สำหรับ Demo / Staging)', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.ALLOW_MOCK_AUTH = 'true';
+
     const mockUser = createMockUser({});
     findUniqueMock.mockResolvedValue(mockUser);
     const { context, request } = createContextWithHeaders({

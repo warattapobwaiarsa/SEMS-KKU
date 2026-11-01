@@ -30,8 +30,9 @@ export class MockAuthGuard implements CanActivate {
   constructor(private readonly prismaService: PrismaService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // 0) ป้องกันความปลอดภัย: ห้ามใช้ MockAuthGuard บน Production เด็ดขาด
-    if (process.env.NODE_ENV === 'production') {
+    // 0) ป้องกันความปลอดภัย: ห้ามใช้ MockAuthGuard บน Production เว้นแต่จะระบุชัดเจนว่าอนุญาต (เช่น สำหรับ Demo / Staging)
+    const isMockAuthAllowed = process.env.ALLOW_MOCK_AUTH === 'true';
+    if (process.env.NODE_ENV === 'production' && !isMockAuthAllowed) {
       throw new AppException(
         'MOCK_AUTH_PROHIBITED_IN_PRODUCTION',
         HttpStatus.FORBIDDEN,

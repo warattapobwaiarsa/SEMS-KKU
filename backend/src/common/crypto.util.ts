@@ -74,7 +74,8 @@ export function maskCitizenId(rawCitizenId: string | null | undefined): string {
  */
 export function validateThaiCitizenId(
   rawCitizenId: string | null | undefined,
-  allowMockPrefix: boolean = process.env.NODE_ENV !== 'production',
+  allowMockPrefix: boolean = process.env.NODE_ENV !== 'production' ||
+    process.env.ALLOW_MOCK_AUTH === 'true',
 ): boolean {
   if (!rawCitizenId) return false;
   const clean = rawCitizenId.replace(/[\s-]/g, '');
