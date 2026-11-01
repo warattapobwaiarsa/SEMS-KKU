@@ -126,6 +126,15 @@ export default function EvaluatorApplicantsPage({
         } else {
           setError(err.message);
         }
+      } else if (
+        err instanceof Error &&
+        (err.message.includes('fetch') ||
+          err.message.includes('network') ||
+          err.name === 'TypeError')
+      ) {
+        setError(
+          'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ Failed to fetch (เซิร์ฟเวอร์ Backend อาจกำลังเริ่มต้นระบบ กรุณารอสักครู่แล้วลองใหม่)',
+        );
       } else {
         setError('เกิดข้อผิดพลาดในการโหลดข้อมูลผู้สมัคร');
       }
