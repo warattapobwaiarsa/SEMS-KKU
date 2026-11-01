@@ -177,3 +177,27 @@ export interface ApiEnvelope<T> {
   data: T;
   meta?: unknown;
 }
+
+/**
+ * ข้อมูลระยะทางและเวลาเดินทางคำนวณผ่าน External API (OSRM Open Source Routing Machine)
+ */
+export interface TravelDistanceInfo {
+  available: boolean;
+  message?: string;
+  origin?: {
+    name: string;
+    lat: number;
+    lng: number;
+  };
+  destination?: {
+    title?: string;
+    lat: number;
+    lng: number;
+  };
+  distanceKm?: number;
+  distanceMeters?: number;
+  durationMinutes?: number;
+  durationSeconds?: number;
+  routeSummary?: string;
+  provider?: string;
+}
