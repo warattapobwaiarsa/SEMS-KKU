@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, ReactNode, SelectHTMLAttributes } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useSyncExternalStore, ReactNode, SelectHTMLAttributes } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Check, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -37,7 +37,7 @@ export function CustomSelect<T extends string | number>({
   width,
 }: CustomSelectProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const [coords, setCoords] = useState<{ top: number; left: number; width: number; placement: 'bottom' | 'top' }>({
     top: 0,
     left: 0,
@@ -48,11 +48,8 @@ export function CustomSelect<T extends string | number>({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
-  const updatePosition = () => {
+  const updatePosition = useCallback(() => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
     const dropdownHeight = Math.min(options.length * 48 + 20, 320);
@@ -67,7 +64,7 @@ export function CustomSelect<T extends string | number>({
       width: width ? parseInt(width) : Math.max(rect.width, 220),
       placement,
     });
-  };
+  }, [align, options.length, width]);
 
   const handleToggle = () => {
     if (disabled) return;
@@ -115,7 +112,7 @@ export function CustomSelect<T extends string | number>({
       window.removeEventListener('resize', handleScrollOrResize);
       window.removeEventListener('scroll', handleScrollOrResize, true);
     };
-  }, [isOpen, options.length]);
+  }, [isOpen, updatePosition]);
 
   const selectedOption = options.find((opt) => opt.value === value);
 

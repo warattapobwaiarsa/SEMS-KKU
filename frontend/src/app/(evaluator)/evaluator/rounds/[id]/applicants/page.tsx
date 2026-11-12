@@ -146,7 +146,7 @@ export default function EvaluatorApplicantsPage({
 
   // เรียก fetch เมื่อ debouncedSearch, page, limit เปลี่ยน
   useEffect(() => {
-    void fetchApplicants();
+    void Promise.resolve().then(() => fetchApplicants());
   }, [fetchApplicants]);
 
   // กรองตาม status tab

@@ -69,7 +69,7 @@ export default function EditOrViewCriteriaPage() {
   }, [criteriaId]);
 
   useEffect(() => {
-    void loadCriteria();
+    void Promise.resolve().then(() => loadCriteria());
   }, [loadCriteria]);
 
   const totalScore = subCriteria
@@ -239,7 +239,7 @@ export default function EditOrViewCriteriaPage() {
       const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการอัปเดตเกณฑ์';
       setErrorMessage(msg);
       if (msg.includes('LOCKED') || msg.includes('ห้ามแก้ไข') || msg.includes('Open/Closed')) {
-        void loadCriteria();
+        void Promise.resolve().then(() => loadCriteria());
       }
     } finally {
       setSaving(false);

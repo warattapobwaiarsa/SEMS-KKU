@@ -9,7 +9,7 @@ import {
   FileCheck2, 
   Plus, 
   Search, 
-  Calendar, 
+
   Edit3, 
   Eye, 
   CheckCircle2, 
@@ -57,13 +57,13 @@ export default function EvaluationCriteriaPage() {
   }, [page, debouncedSearch]);
 
   useEffect(() => {
-    void loadCriteria();
+    void Promise.resolve().then(() => loadCriteria());
   }, [loadCriteria]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    void loadCriteria();
+    void Promise.resolve().then(() => loadCriteria());
   };
 
   return (

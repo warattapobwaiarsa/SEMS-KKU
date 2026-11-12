@@ -59,13 +59,13 @@ export default function ScholarshipRoundsPage() {
   }, [page, debouncedSearch, statusFilter]);
 
   useEffect(() => {
-    void loadRounds();
+    void Promise.resolve().then(() => loadRounds());
   }, [loadRounds]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    void loadRounds();
+    void Promise.resolve().then(() => loadRounds());
   };
 
   return (

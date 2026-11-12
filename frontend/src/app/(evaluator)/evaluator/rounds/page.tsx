@@ -71,7 +71,7 @@ function EvaluatorRoundsContent() {
   }, [debouncedSearch, pagination.page, pagination.limit]);
 
   useEffect(() => {
-    void loadRounds();
+    void Promise.resolve().then(() => loadRounds());
   }, [loadRounds]);
 
   const handleSearchChange = (value: string) => {

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import Link from 'next/link';
 import { 
   Users, 
   Search, 
@@ -10,10 +9,6 @@ import {
   RefreshCw, 
   Filter, 
   Calendar,
-  ChevronDown,
-  GraduationCap,
-  Sparkles,
-  Award,
   AlertCircle
 } from 'lucide-react';
 import { PageHeader, StatusBadge, Pagination, Select } from '@/components/ui';
@@ -28,7 +23,7 @@ import { useDebounce } from '@/lib/use-debounce';
 export default function ApplicantsPage() {
   const [rounds, setRounds] = useState<ScholarshipRoundListItem[]>([]);
   const [selectedRoundId, setSelectedRoundId] = useState<number | null>(null);
-  const [selectedRound, setSelectedRound] = useState<ScholarshipRoundListItem | null>(null);
+  const selectedRound = useMemo(() => rounds.find((r) => r.id === selectedRoundId) ?? null, [rounds, selectedRoundId]);
 
   const [applicants, setApplicants] = useState<ApplicantListItem[]>([]);
   const [loadingApplicants, setLoadingApplicants] = useState(false);
@@ -54,15 +49,17 @@ export default function ApplicantsPage() {
   // Load rounds on mount
   useEffect(() => {
     let isMounted = true;
-    setLoadingRounds(true);
-    fetchRoundsList({ limit: 50 })
+    Promise.resolve().then(() => {
+      if (!isMounted) return;
+      setLoadingRounds(true);
+      return fetchRoundsList({ limit: 50 });
+    })
       .then((res) => {
-        if (!isMounted) return;
+        if (!isMounted || !res) return;
         const list = res.data || [];
         setRounds(list);
         if (list.length > 0) {
           setSelectedRoundId(list[0].id);
-          setSelectedRound(list[0]);
         }
       })
       .catch((err: unknown) => {
@@ -78,14 +75,6 @@ export default function ApplicantsPage() {
     };
   }, []);
 
-  // Update selectedRound object when id changes
-  useEffect(() => {
-    if (selectedRoundId) {
-      const found = rounds.find((r) => r.id === selectedRoundId);
-      setSelectedRound(found || null);
-      setPage(1);
-    }
-  }, [selectedRoundId, rounds]);
 
   // Load applicants
   const loadApplicants = useCallback(async () => {
@@ -112,12 +101,13 @@ export default function ApplicantsPage() {
   }, [selectedRoundId, page, debouncedSearch, facultyFilter]);
 
   useEffect(() => {
-    void loadApplicants();
+    void Promise.resolve().then(() => loadApplicants());
   }, [loadApplicants]);
 
   const handleRoundChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = Number(e.target.value);
     setSelectedRoundId(id);
+    setPage(1);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {

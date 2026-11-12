@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Users, Check } from "lucide-react";
 import {
   MOCK_EVALUATORS,
@@ -9,27 +9,21 @@ import {
   MockEvaluatorProfile,
 } from "@/lib/mock-evaluator";
 
+const subscribeEvaluator = (onStoreChange: () => void) => {
+  window.addEventListener("sems_evaluator_changed", onStoreChange);
+  return () => {
+    window.removeEventListener("sems_evaluator_changed", onStoreChange);
+  };
+};
+
 export function EvaluatorSwitcher() {
-  const [currentId, setCurrentId] = useState<string>("2");
   const [isOpen, setIsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    setCurrentId(getEvaluatorId());
-
-    const handleEvaluatorChanged = (e: Event) => {
-      const customEvent = e as CustomEvent<{ id: string }>;
-      if (customEvent.detail?.id) {
-        setCurrentId(customEvent.detail.id);
-      }
-    };
-
-    window.addEventListener("sems_evaluator_changed", handleEvaluatorChanged);
-    return () => {
-      window.removeEventListener("sems_evaluator_changed", handleEvaluatorChanged);
-    };
-  }, []);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
+  const currentId = useSyncExternalStore(
+    subscribeEvaluator,
+    () => getEvaluatorId(),
+    () => "2",
+  );
 
   if (!mounted) {
     return null;
@@ -48,7 +42,6 @@ export function EvaluatorSwitcher() {
       return;
     }
     setEvaluatorId(evaluator.id);
-    setCurrentId(evaluator.id);
     setIsOpen(false);
     // Reload page to re-fetch all queries with the new X-User-Id header
     window.location.reload();
@@ -67,7 +60,7 @@ export function EvaluatorSwitcher() {
         <span className="font-semibold text-amber-950 truncate max-w-[120px] sm:max-w-[160px]">
           {currentProfile.name.replace(/^(ศ\.|ผศ\.|รศ\.)ดร\.\s*/, "")}
         </span>
-        <span className="px-1.5 py-0.2 bg-amber-200/80 text-amber-800 rounded text-[10px] font-bold">
+        <span className="px-1.5 py-0.2 bg-amber-200/80 text-amber-800 rounded text-xs font-bold">
           ID: {currentProfile.id}
         </span>
       </button>
@@ -81,7 +74,7 @@ export function EvaluatorSwitcher() {
           />
           <div className="absolute right-0 mt-2 w-64 rounded-xl bg-white shadow-xl border border-slate-200 py-1.5 z-50 text-slate-800">
             <div className="px-3 py-1.5 border-b border-slate-100">
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 สลับตัวตนกรรมการ (ทดสอบค่าเฉลี่ย)
               </p>
             </div>
@@ -99,7 +92,7 @@ export function EvaluatorSwitcher() {
                   >
                     <div className="flex flex-col">
                       <span className="leading-tight">{ev.name}</span>
-                      <span className="text-[10px] text-slate-400 mt-0.5">{ev.email}</span>
+                      <span className="text-xs text-slate-400 mt-0.5">{ev.email}</span>
                     </div>
                     {isSelected && (
                       <Check className="w-4 h-4 text-amber-600 shrink-0 ml-2" />
