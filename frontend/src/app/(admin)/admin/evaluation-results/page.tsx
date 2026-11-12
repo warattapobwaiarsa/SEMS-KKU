@@ -68,11 +68,13 @@ export default function EvaluationResultsPage() {
   // Load rounds on initial mount
   useEffect(() => {
     let isMounted = true;
-    setLoadingRounds(true);
-
-    fetchRoundsList({ limit: 100 })
+    Promise.resolve().then(() => {
+      if (!isMounted) return;
+      setLoadingRounds(true);
+      return fetchRoundsList({ limit: 100 });
+    })
       .then((res) => {
-        if (!isMounted) return;
+        if (!isMounted || !res) return;
         const roundList = res.data || [];
         setRounds(roundList);
         if (roundList.length > 0) {
@@ -98,17 +100,19 @@ export default function EvaluationResultsPage() {
     if (!selectedRoundId) return;
 
     let isMounted = true;
-    setLoading(true);
-    setError(null);
-
-    fetchRoundEvaluationResults(selectedRoundId, {
-      page,
-      limit,
-      search: searchTerm.trim() || undefined,
-      faculty: facultyFilter.trim() || undefined,
+    Promise.resolve().then(() => {
+      if (!isMounted) return;
+      setLoading(true);
+      setError(null);
+      return fetchRoundEvaluationResults(selectedRoundId, {
+        page,
+        limit,
+        search: searchTerm.trim() || undefined,
+        faculty: facultyFilter.trim() || undefined,
+      });
     })
       .then((res) => {
-        if (isMounted) {
+        if (isMounted && res) {
           setResultsData(res.data);
           if (res.meta) {
             setMeta(res.meta);

@@ -11,10 +11,10 @@ describe('EvaluationResultsService', () => {
 
   beforeEach(() => {
     prismaMock = {
-      scholarshipRound: { findUnique: (jest.MockedFunction = jest.fn()) },
+      scholarshipRound: { findUnique: jest.fn() },
       applicant: {
-        findMany: (jest.MockedFunction = jest.fn()),
-        findUnique: (jest.MockedFunction = jest.fn()),
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
       },
     };
     service = new EvaluationResultsService(

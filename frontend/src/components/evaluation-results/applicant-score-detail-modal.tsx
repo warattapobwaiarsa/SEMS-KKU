@@ -23,19 +23,17 @@ export function ApplicantScoreDetailModal({
   const [activeTab, setActiveTab] = useState<number>(0);
 
   useEffect(() => {
-    if (!isOpen || !applicantId) {
-      setData(null);
-      setError(null);
-      return;
-    }
+    if (!isOpen || !applicantId) return;
 
     let isMounted = true;
-    setLoading(true);
-    setError(null);
-
-    fetchApplicantEvaluationResults(applicantId)
+    Promise.resolve().then(() => {
+      if (!isMounted) return;
+      setLoading(true);
+      setError(null);
+      return fetchApplicantEvaluationResults(applicantId);
+    })
       .then((res) => {
-        if (isMounted) {
+        if (isMounted && res) {
           setData(res);
           setActiveTab(0);
         }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, ReactNode } from 'react';
+import React, { useEffect, useSyncExternalStore, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -36,10 +36,10 @@ export function Modal({
   className,
   preventCloseOnBackdrop = false,
 }: ModalProps) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
 
   useEffect(() => {
-    setMounted(true);
+    // handled by useSyncExternalStore
   }, []);
 
   // Lock body scroll using global stack counter to handle nested modals
