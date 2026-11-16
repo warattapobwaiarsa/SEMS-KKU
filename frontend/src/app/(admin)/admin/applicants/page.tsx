@@ -8,10 +8,9 @@ import {
   History, 
   RefreshCw, 
   Filter, 
-  Calendar,
-  AlertCircle
+  Calendar
 } from 'lucide-react';
-import { PageHeader, StatusBadge, Pagination, Select } from '@/components/ui';
+import { PageHeader, StatusBadge, Pagination, Select, Button, Input, Alert, EmptyState } from '@/components/ui';
 import { fetchRoundsList } from '@/services/rounds.service';
 import { fetchApplicants } from '@/services/applicants.service';
 import { ScholarshipRoundListItem } from '@/types/rounds';
@@ -151,14 +150,13 @@ export default function ApplicantsPage() {
         description="ตรวจสอบรายชื่อ ค้นหา และนำเข้าข้อมูลผู้สมัครทุนการศึกษาจากไฟล์ Excel"
         action={
           isRoundDraft ? (
-            <button
+            <Button
               type="button"
               onClick={() => setShowImportModal(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
+              leftIcon={<FileSpreadsheet className="h-4 w-4" />}
             >
-              <FileSpreadsheet className="h-4 w-4" />
               นำเข้าไฟล์ Excel
-            </button>
+            </Button>
           ) : undefined
         }
       />
@@ -221,25 +219,27 @@ export default function ApplicantsPage() {
         {/* Action Buttons in Context Bar */}
         <div className="flex items-center gap-2 shrink-0">
           {selectedRoundId && (
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => setShowHistoryModal(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted border border-border/60 rounded-xl transition hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+              leftIcon={<History className="h-3.5 w-3.5" />}
             >
-              <History className="h-3.5 w-3.5" />
-              <span>ประวัตินำเข้า</span>
-            </button>
+              ประวัตินำเข้า
+            </Button>
           )}
 
           {isRoundDraft ? (
-            <button
+            <Button
               type="button"
+              variant="primary"
+              size="sm"
               onClick={() => setShowImportModal(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-xl shadow-xs transition hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+              leftIcon={<FileSpreadsheet className="h-3.5 w-3.5" />}
             >
-              <FileSpreadsheet className="h-3.5 w-3.5" />
-              <span>{meta.total > 0 ? 'นำเข้าข้อมูลใหม่ (แทนที่)' : 'นำเข้าไฟล์ Excel'}</span>
-            </button>
+              {meta.total > 0 ? 'นำเข้าข้อมูลใหม่ (แทนที่)' : 'นำเข้าไฟล์ Excel'}
+            </Button>
           ) : (
             <span className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-muted-foreground/70 bg-muted/30 border border-border/40 rounded-xl cursor-not-allowed">
               <FileSpreadsheet className="h-3.5 w-3.5 text-muted-foreground/50" />
@@ -252,13 +252,11 @@ export default function ApplicantsPage() {
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card border border-border/80 rounded-2xl p-3 shadow-xs">
         <form onSubmit={handleSearchSubmit} className="relative flex-1 w-full">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input
-            type="text"
+          <Input
+            leftIcon={<Search className="h-4 w-4" />}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="ค้นหาชื่อ, สกุล, รหัสนักศึกษา..."
-            className="w-full pl-10 pr-4 py-2.5 text-sm bg-background/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
           />
         </form>
 
@@ -282,31 +280,31 @@ export default function ApplicantsPage() {
           )}
 
           {(searchTerm || facultyFilter) && (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={handleClearFilters}
-              className="px-3 py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition cursor-pointer shrink-0"
             >
               ล้างตัวกรอง
-            </button>
+            </Button>
           )}
 
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={() => { setPage(1); void loadApplicants(); }}
-            className="px-5 py-2.5 text-sm font-medium bg-muted hover:bg-muted/80 text-foreground rounded-xl transition hover:scale-[1.01] active:scale-[0.99] cursor-pointer shrink-0"
           >
             ค้นหา
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Error Banner */}
       {error && (
-        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-center gap-3 text-destructive text-sm">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <span>{error}</span>
-        </div>
+        <Alert variant="destructive">
+          {error}
+        </Alert>
       )}
 
       {/* Main Applicants Card Container */}
@@ -318,50 +316,41 @@ export default function ApplicantsPage() {
           </div>
         ) : applicants.length === 0 ? (
           /* Empty States (A1 / A14) */
-          <div className="p-16 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/60 text-muted-foreground border border-border/60">
+          <div className="p-8 sm:p-12">
+            <EmptyState
+              icon={searchTerm || facultyFilter ? Search : Users}
+              title={
+                searchTerm || facultyFilter
+                  ? 'ไม่พบข้อมูลผู้สมัครที่ค้นหา'
+                  : 'ยังไม่มีข้อมูลผู้สมัครในรอบนี้'
+              }
+              description={
+                searchTerm || facultyFilter
+                  ? 'ลองปรับคำค้นหาหรือตัวกรองคณะใหม่อีกครั้ง'
+                  : isRoundDraft
+                  ? 'เริ่มต้นนำเข้าข้อมูลผู้สมัครจากไฟล์ Excel (.xlsx) เพื่อเตรียมความพร้อมสำหรับเปิดรอบ'
+                  : 'รอบนี้ยังไม่มีข้อมูลผู้สมัครที่บันทึกในระบบ'
+              }
+            >
               {searchTerm || facultyFilter ? (
-                <Search className="h-7 w-7 text-muted-foreground" />
-              ) : (
-                <Users className="h-7 w-7 text-muted-foreground" />
-              )}
-            </div>
-
-            <h3 className="mt-4 text-lg font-semibold text-foreground">
-              {searchTerm || facultyFilter
-                ? 'ไม่พบข้อมูลผู้สมัครที่ค้นหา'
-                : 'ยังไม่มีข้อมูลผู้สมัครในรอบนี้'}
-            </h3>
-
-            <p className="mt-1 text-sm text-muted-foreground max-w-sm mx-auto">
-              {searchTerm || facultyFilter
-                ? 'ลองปรับคำค้นหาหรือตัวกรองคณะใหม่อีกครั้ง'
-                : isRoundDraft
-                ? 'เริ่มต้นนำเข้าข้อมูลผู้สมัครจากไฟล์ Excel (.xlsx) เพื่อเตรียมความพร้อมสำหรับเปิดรอบ'
-                : 'รอบนี้ยังไม่มีข้อมูลผู้สมัครที่บันทึกในระบบ'}
-            </p>
-
-            <div className="mt-6 flex items-center justify-center gap-3">
-              {searchTerm || facultyFilter ? (
-                <button
-                  type="button"
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={handleClearFilters}
-                  className="inline-flex items-center gap-2 rounded-xl bg-muted px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-muted/80 shadow-xs transition hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                  leftIcon={<RefreshCw className="h-4 w-4" />}
                 >
-                  <RefreshCw className="h-4 w-4" />
                   ล้างตัวกรองทั้งหมด
-                </button>
+                </Button>
               ) : isRoundDraft ? (
-                <button
-                  type="button"
+                <Button
+                  size="sm"
                   onClick={() => setShowImportModal(true)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-sm transition hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                  leftIcon={<FileSpreadsheet className="h-4 w-4" />}
                 >
-                  <FileSpreadsheet className="h-4 w-4" />
                   นำเข้าไฟล์ Excel ตอนนี้
-                </button>
+                </Button>
               ) : null}
-            </div>
+            </EmptyState>
           </div>
         ) : (
           <>
@@ -371,7 +360,7 @@ export default function ApplicantsPage() {
                 <div key={app.id} className="p-4 space-y-3 hover:bg-muted/10 transition">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <span className="text-[11px] font-mono font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+                      <span className="text-xs font-mono font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
                         #{app.legacySeq ?? app.id}
                       </span>
                       <h4 className="mt-1 font-semibold text-foreground text-sm leading-snug">
@@ -382,7 +371,7 @@ export default function ApplicantsPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <span className="text-[10px] text-muted-foreground/80 block">GPA</span>
+                      <span className="text-xs text-muted-foreground/80 block">GPA</span>
                       <span className="font-mono font-bold text-sm text-foreground">
                         {app.gpa.toFixed(2)}
                       </span>
@@ -391,15 +380,15 @@ export default function ApplicantsPage() {
 
                   <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground bg-muted/30 p-2.5 rounded-xl border border-border/40">
                     <div>
-                      <span className="block text-[10px] text-muted-foreground/80">คณะ</span>
+                      <span className="block text-xs text-muted-foreground/80">คณะ</span>
                       <span className="font-medium text-foreground truncate block">{app.faculty}</span>
                     </div>
                     <div>
-                      <span className="block text-[10px] text-muted-foreground/80">สาขาวิชา</span>
+                      <span className="block text-xs text-muted-foreground/80">สาขาวิชา</span>
                       <span className="font-medium text-foreground truncate block">{app.major}</span>
                     </div>
                     <div className="col-span-2 border-t border-border/40 pt-1.5 mt-0.5 flex justify-between items-center">
-                      <span className="text-[10px] text-muted-foreground/80">ชั้นปีการศึกษา</span>
+                      <span className="text-xs text-muted-foreground/80">ชั้นปีการศึกษา</span>
                       <span className="font-mono font-semibold text-foreground">ปี {app.studyYear}</span>
                     </div>
                   </div>
@@ -469,14 +458,16 @@ export default function ApplicantsPage() {
                         {app.gpa.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
+                          size="sm"
+                          className="bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-white"
                           onClick={() => handleOpenStudentHistory(app.studentCode)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-xl transition cursor-pointer"
+                          leftIcon={<History className="h-3.5 w-3.5" />}
                         >
-                          <History className="h-3.5 w-3.5" />
                           ดูประวัติ
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   ))}
