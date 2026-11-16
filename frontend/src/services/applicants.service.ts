@@ -6,6 +6,7 @@ import {
   ApplicantsListResponse,
   ImportBatchItem,
 } from '@/types/applicants';
+import { AdminApplicantHistoryResponse } from '@/types/evaluation';
 
 export async function uploadAndPreviewExcel(
   roundId: number,
@@ -87,6 +88,22 @@ export async function fetchImportHistory(
 ): Promise<ImportBatchItem[]> {
   const res = await apiClient<{ data: ImportBatchItem[] } | ImportBatchItem[]>(
     `/scholarship-rounds/${roundId}/applicants/imports`,
+    {
+      method: 'GET',
+      headers: {
+        'x-user-role': 'ADMIN',
+      },
+    },
+  );
+
+  return 'data' in res ? res.data : res;
+}
+
+export async function fetchApplicantCrossRoundHistory(
+  studentCode: string,
+): Promise<AdminApplicantHistoryResponse> {
+  const res = await apiClient<{ data: AdminApplicantHistoryResponse } | AdminApplicantHistoryResponse>(
+    `/applicants/history/${encodeURIComponent(studentCode)}`,
     {
       method: 'GET',
       headers: {

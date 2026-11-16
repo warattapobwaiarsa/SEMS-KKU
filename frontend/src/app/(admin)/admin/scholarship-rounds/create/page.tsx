@@ -5,12 +5,16 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createRound } from '@/services/rounds.service';
 import { fetchCriteriaList } from '@/services/criteria.service';
+import { fetchScholarshipTypes } from '@/services/scholarship-types.service';
 import { CriteriaDetail } from '@/types/criteria';
+import { ScholarshipTypeListItem } from '@/types/scholarship-type';
 import { 
   ArrowLeft, 
   Save, 
   AlertCircle,
   Layers,
+  Award,
+  Sparkles,
 } from 'lucide-react';
 import { Select } from '@/components/ui';
 
@@ -19,22 +23,44 @@ export default function CreateScholarshipRoundPage() {
   const [name, setName] = useState('');
   const [academicYear, setAcademicYear] = useState<number>(2569);
   const [semester, setSemester] = useState<number>(1);
+  const [scholarshipTypeId, setScholarshipTypeId] = useState<number | undefined>(undefined);
+  const [scholarshipTypes, setScholarshipTypes] = useState<ScholarshipTypeListItem[]>([]);
   const [criteriaId, setCriteriaId] = useState<number | undefined>(undefined);
   const [criteriaList, setCriteriaList] = useState<CriteriaDetail[]>([]);
+  const [autoSelectedNotice, setAutoSelectedNotice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadCriteria = async () => {
+    const loadInitialData = async () => {
       try {
-        const res = await fetchCriteriaList({ limit: 100 });
-        setCriteriaList(res.data);
+        const [criteriaRes, typesRes] = await Promise.all([
+          fetchCriteriaList({ limit: 100 }),
+          fetchScholarshipTypes({ activeOnly: true, limit: 100 }),
+        ]);
+        setCriteriaList(criteriaRes.data);
+        setScholarshipTypes(typesRes.data);
       } catch (err: unknown) {
-        console.warn('Failed to load criteria list for selection:', err);
+        console.warn('Failed to load selection data:', err);
       }
     };
-    void loadCriteria();
+    void loadInitialData();
   }, []);
+
+  const handleTypeChange = (selectedTypeId?: number) => {
+    setScholarshipTypeId(selectedTypeId);
+    if (!selectedTypeId) {
+      setAutoSelectedNotice(null);
+      return;
+    }
+    const selected = scholarshipTypes.find((t) => t.id === selectedTypeId);
+    if (selected?.defaultCriteriaId) {
+      setCriteriaId(selected.defaultCriteriaId);
+      setAutoSelectedNotice(`ระบบเลือกเกณฑ์เริ่มต้น "${selected.defaultCriteriaName}" สำหรับประเภททุนนี้ให้อัตโนมัติ (สามารถเปลี่ยนได้หากต้องการ)`);
+    } else {
+      setAutoSelectedNotice(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +82,7 @@ export default function CreateScholarshipRoundPage() {
         name: name.trim(),
         academicYear: Number(academicYear),
         semester: Number(semester),
+        scholarshipTypeId: scholarshipTypeId ? Number(scholarshipTypeId) : undefined,
         criteriaId: criteriaId ? Number(criteriaId) : undefined,
       };
 
@@ -175,17 +202,47 @@ export default function CreateScholarshipRoundPage() {
           </div>
         </div>
 
-        {/* Field 4: Criteria Selection */}
+        {/* Field 4: Scholarship Type Selection */}
+        <div className="space-y-1.5 pt-2 border-t border-border/60">
+          <label htmlFor="typeSelect" className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+            <Award className="h-4 w-4 text-primary" />
+            ประเภททุนการศึกษา (Scholarship Type)
+          </label>
+          <Select
+            id="typeSelect"
+            icon={Award}
+            value={scholarshipTypeId ?? ''}
+            onChange={(e) => handleTypeChange(e.target.value ? parseInt(e.target.value) : undefined)}
+          >
+            <option value="">-- ไม่ระบุประเภททุน (เลือกภายหลัง) --</option>
+            {scholarshipTypes.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name} {t.defaultCriteriaName ? `(เกณฑ์เริ่มต้น: ${t.defaultCriteriaName})` : ''}
+              </option>
+            ))}
+          </Select>
+          {autoSelectedNotice && (
+            <div className="flex items-center gap-2 p-2.5 bg-primary/10 border border-primary/20 rounded-xl text-xs text-primary animate-in fade-in">
+              <Sparkles className="h-4 w-4 shrink-0 text-primary" />
+              <span>{autoSelectedNotice}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Field 5: Criteria Selection */}
         <div className="space-y-1.5 pt-2 border-t border-border/60">
           <label htmlFor="criteriaSelect" className="text-sm font-semibold text-foreground flex items-center gap-1.5">
             <Layers className="h-4 w-4 text-primary" />
-            เชื่อมโยงชุดเกณฑ์การประเมิน (ผูกภายหลังได้)
+            ชุดเกณฑ์การประเมิน (Criteria)
           </label>
           <Select
             id="criteriaSelect"
             icon={Layers}
             value={criteriaId ?? ''}
-            onChange={(e) => setCriteriaId(e.target.value ? parseInt(e.target.value) : undefined)}
+            onChange={(e) => {
+              setCriteriaId(e.target.value ? parseInt(e.target.value) : undefined);
+              setAutoSelectedNotice(null);
+            }}
           >
             <option value="">-- ยังไม่ระบุเกณฑ์การประเมิน (เลือกภายหลัง) --</option>
             {criteriaList.map((c) => (

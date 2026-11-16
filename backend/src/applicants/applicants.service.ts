@@ -11,7 +11,14 @@ import { ConfirmImportDto } from './dto/import-applicant.dto';
 import { QueryApplicantDto } from './dto/query-applicant.dto';
 import { BusinessException } from '../common/http-exception.filter';
 import { encryptCitizenId } from '../common/crypto.util';
-import { RoundStatus, AuditAction, Prisma, UserRole } from '@prisma/client';
+import {
+  RoundStatus,
+  AuditAction,
+  Prisma,
+  UserRole,
+  EvaluationStatus,
+  AllocationStatus,
+} from '@prisma/client';
 import { randomUUID } from 'crypto';
 
 interface StoredPreviewData extends ParseExcelResult {
@@ -503,5 +510,167 @@ export class ApplicantsService implements OnModuleDestroy {
     });
 
     return batches;
+  }
+
+  async getApplicantCrossRoundHistory(
+    studentCode: string,
+    actorId?: number | null,
+  ) {
+    const trimmedCode = studentCode.trim();
+
+    const applicants = await this.prisma.applicant.findMany({
+      where: {
+        studentCode: trimmedCode,
+        anonymizedAt: null,
+      },
+      orderBy: [
+        { round: { academicYear: 'desc' } },
+        { round: { semester: 'desc' } },
+        { roundId: 'desc' },
+      ],
+      include: {
+        round: {
+          select: {
+            id: true,
+            name: true,
+            academicYear: true,
+            semester: true,
+            status: true,
+            scholarshipType: {
+              select: { id: true, name: true },
+            },
+            criteria: {
+              select: {
+                id: true,
+                name: true,
+                subCriteria: {
+                  orderBy: { sortOrder: 'asc' },
+                  select: { id: true, title: true, type: true, maxScore: true },
+                },
+              },
+            },
+            allocation: {
+              select: { status: true, totalBudget: true },
+            },
+          },
+        },
+        allocation: {
+          select: { isAwarded: true, amount: true },
+        },
+        evaluations: {
+          where: { status: EvaluationStatus.SUBMITTED },
+          include: {
+            evaluator: { select: { id: true, name: true } },
+            items: {
+              include: {
+                subCriteria: {
+                  select: { id: true, title: true, type: true, maxScore: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (applicants.length === 0) {
+      throw new NotFoundException(
+        `ไม่พบประวัติการสมัครของนักศึกษารหัส ${trimmedCode}`,
+      );
+    }
+
+    // Audit Log for Admin viewing history (Scope 1.3.4.10)
+    await this.prisma.auditLog.create({
+      data: {
+        actorId: actorId ?? null,
+        action: AuditAction.VIEW_APPLICANT_HISTORY,
+        entityType: 'ApplicantHistory',
+        entityId: trimmedCode,
+        detail: {
+          studentCode: trimmedCode,
+          roundCount: applicants.length,
+        },
+      },
+    });
+
+    const first = applicants[0];
+
+    const records = applicants.map((app) => {
+      const submittedEvals = app.evaluations;
+      let finalScore: number | null = null;
+      if (app.round.status === RoundStatus.CLOSED) {
+        if (submittedEvals.length > 0) {
+          const sum = submittedEvals.reduce(
+            (acc, ev) => acc + (ev.totalScore || 0),
+            0,
+          );
+          finalScore = Number((sum / submittedEvals.length).toFixed(2));
+        } else {
+          finalScore = 0;
+        }
+      }
+
+      const totalTargetScore =
+        app.round.criteria?.subCriteria?.reduce(
+          (acc, sub) => acc + (sub.type === 'SCORED' ? sub.maxScore || 0 : 0),
+          0,
+        ) ?? null;
+
+      const isFinalized =
+        app.round.allocation?.status === AllocationStatus.FINALIZED;
+
+      return {
+        applicantId: app.id,
+        roundId: app.round.id,
+        roundName: app.round.name,
+        scholarshipTypeName: app.round.scholarshipType?.name ?? null,
+        academicYear: app.round.academicYear,
+        semester: app.round.semester,
+        roundStatus: app.round.status,
+        studyYear: app.studyYear,
+        gpa: Number(app.gpa),
+        faculty: app.faculty,
+        major: app.major,
+        finalScore,
+        totalTargetScore,
+        submittedEvaluationsCount: submittedEvals.length,
+        allocation: {
+          status: app.round.allocation?.status ?? null,
+          isAwarded: isFinalized ? (app.allocation?.isAwarded ?? false) : null,
+          awardStatus: isFinalized
+            ? app.allocation?.isAwarded
+              ? 'AWARDED'
+              : 'NOT_AWARDED'
+            : 'PENDING',
+          amount:
+            isFinalized && app.allocation?.isAwarded
+              ? Number(app.allocation.amount)
+              : null,
+        },
+        evaluations: submittedEvals.map((ev) => ({
+          evaluatorId: ev.evaluator.id,
+          evaluatorName: ev.evaluator.name,
+          totalScore: ev.totalScore,
+          items: ev.items.map((it) => ({
+            subCriteriaId: it.subCriteriaId,
+            subCriteriaTitle: it.subCriteria.title,
+            type: it.subCriteria.type,
+            maxScore: it.subCriteria.maxScore,
+            score: it.score,
+            comment: it.comment,
+            textValue: it.textValue,
+          })),
+        })),
+      };
+    });
+
+    return {
+      studentCode: trimmedCode,
+      studentName: `${first.titlePrefix}${first.firstName} ${first.lastName}`,
+      faculty: first.faculty,
+      major: first.major,
+      totalRounds: applicants.length,
+      records,
+    };
   }
 }

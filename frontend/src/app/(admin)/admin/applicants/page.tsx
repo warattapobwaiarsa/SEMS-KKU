@@ -18,6 +18,7 @@ import { ScholarshipRoundListItem } from '@/types/rounds';
 import { ApplicantListItem } from '@/types/applicants';
 import { ImportApplicantModal } from '@/components/applicants/import-modal';
 import { ImportHistoryModal } from '@/components/applicants/import-history-modal';
+import { ApplicantHistoryModal } from '@/components/applicants/applicant-history-modal';
 import { useDebounce } from '@/lib/use-debounce';
 
 export default function ApplicantsPage() {
@@ -45,6 +46,8 @@ export default function ApplicantsPage() {
   // Modals
   const [showImportModal, setShowImportModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyStudentCode, setHistoryStudentCode] = useState<string | null>(null);
+  const [showStudentHistoryModal, setShowStudentHistoryModal] = useState(false);
 
   // Load rounds on mount
   useEffect(() => {
@@ -114,6 +117,11 @@ export default function ApplicantsPage() {
     e.preventDefault();
     setPage(1);
     void loadApplicants();
+  };
+
+  const handleOpenStudentHistory = (studentCode: string) => {
+    setHistoryStudentCode(studentCode);
+    setShowStudentHistoryModal(true);
   };
 
   const handleClearFilters = () => {
@@ -395,6 +403,17 @@ export default function ApplicantsPage() {
                       <span className="font-mono font-semibold text-foreground">ปี {app.studyYear}</span>
                     </div>
                   </div>
+
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenStudentHistory(app.studentCode)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-xl transition cursor-pointer"
+                    >
+                      <History className="h-3.5 w-3.5" />
+                      ดูประวัติข้ามรอบ
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -422,6 +441,9 @@ export default function ApplicantsPage() {
                     <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-center w-28">
                       GPA
                     </th>
+                    <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right w-32">
+                      ประวัติข้ามรอบ
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60">
@@ -445,6 +467,16 @@ export default function ApplicantsPage() {
                       </td>
                       <td className="px-6 py-4 text-center font-mono font-bold text-foreground text-sm">
                         {app.gpa.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenStudentHistory(app.studentCode)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-xl transition cursor-pointer"
+                        >
+                          <History className="h-3.5 w-3.5" />
+                          ดูประวัติ
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -481,6 +513,11 @@ export default function ApplicantsPage() {
             roundName={selectedRound.name}
             isOpen={showHistoryModal}
             onClose={() => setShowHistoryModal(false)}
+          />
+          <ApplicantHistoryModal
+            isOpen={showStudentHistoryModal}
+            onClose={() => setShowStudentHistoryModal(false)}
+            studentCode={historyStudentCode}
           />
         </>
       )}

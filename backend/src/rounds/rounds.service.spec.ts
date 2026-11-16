@@ -23,6 +23,9 @@ describe('RoundsService', () => {
     criteria: {
       findUnique: jest.fn(),
     },
+    scholarshipType: {
+      findUnique: jest.fn(),
+    },
     auditLog: {
       create: jest.fn(),
     },
@@ -228,6 +231,68 @@ describe('RoundsService', () => {
       expect(result.status).toBe(RoundStatus.DRAFT);
       expect(result.applicantCount).toBe(0);
     });
+
+    it('should throw SCHOLARSHIP_TYPE_INACTIVE when creating round with inactive type', async () => {
+      mockPrismaService.scholarshipType.findUnique.mockResolvedValueOnce({
+        id: 2,
+        name: 'ทุนปิด',
+        isActive: false,
+      });
+
+      try {
+        await service.create({
+          name: 'ทุนปิด 2569/1',
+          academicYear: 2569,
+          semester: 1,
+          scholarshipTypeId: 2,
+        });
+        fail('Should throw');
+      } catch (err: unknown) {
+        const error = err as BusinessException;
+        expect(error.errorCode).toBe('SCHOLARSHIP_TYPE_INACTIVE');
+      }
+    });
+
+    it('should auto-assign defaultCriteriaId from scholarshipType when criteriaId not provided', async () => {
+      mockPrismaService.scholarshipType.findUnique.mockResolvedValueOnce({
+        id: 1,
+        name: 'ทุนขาดแคลน',
+        isActive: true,
+        defaultCriteriaId: 10,
+      });
+      mockPrismaService.scholarshipRound.create.mockResolvedValueOnce({
+        id: 2,
+        name: 'ทุนขาดแคลน 2569/1',
+        academicYear: 2569,
+        semester: 1,
+        status: RoundStatus.DRAFT,
+        scholarshipTypeId: 1,
+        criteriaId: 10,
+        criteria: { id: 10, name: 'เกณฑ์ขาดแคลน' },
+        scholarshipType: { id: 1, name: 'ทุนขาดแคลน' },
+        createdAt: new Date(),
+        openedAt: null,
+        closedAt: null,
+        updatedAt: new Date(),
+      });
+
+      const result = await service.create({
+        name: 'ทุนขาดแคลน 2569/1',
+        academicYear: 2569,
+        semester: 1,
+        scholarshipTypeId: 1,
+      });
+
+      expect(mockPrismaService.scholarshipRound.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            criteriaId: 10,
+            scholarshipTypeId: 1,
+          }),
+        }),
+      );
+      expect(result.criteriaId).toBe(10);
+    });
   });
 
   describe('update', () => {
@@ -315,6 +380,79 @@ describe('RoundsService', () => {
       });
       expect(result.name).toBe('ชื่อใหม่ 2569');
       expect(result.semester).toBe(2);
+    });
+
+    it('should throw CRITERIA_RESET_CONFIRMATION_REQUIRED if changing scholarship type with default criteria without confirm', async () => {
+      mockPrismaService.scholarshipRound.findUnique.mockResolvedValueOnce({
+        id: 1,
+        status: RoundStatus.DRAFT,
+        scholarshipTypeId: 1,
+        criteriaId: 10,
+      });
+      mockPrismaService.scholarshipType.findUnique.mockResolvedValueOnce({
+        id: 2,
+        name: 'ประเภทใหม่',
+        isActive: true,
+        defaultCriteriaId: 20, // Different criteria
+      });
+
+      try {
+        await service.update(1, { scholarshipTypeId: 2 });
+        fail('Should throw');
+      } catch (err: unknown) {
+        const error = err as BusinessException;
+        expect(error.errorCode).toBe('CRITERIA_RESET_CONFIRMATION_REQUIRED');
+      }
+    });
+
+    it('should update criteriaId to defaultCriteriaId when confirmCriteriaReset is true', async () => {
+      mockPrismaService.scholarshipRound.findUnique
+        .mockResolvedValueOnce({
+          id: 1,
+          status: RoundStatus.DRAFT,
+          scholarshipTypeId: 1,
+          criteriaId: 10,
+        })
+        .mockResolvedValueOnce({
+          id: 1,
+          name: 'รอบ 1',
+          academicYear: 2569,
+          semester: 1,
+          status: RoundStatus.DRAFT,
+          scholarshipTypeId: 2,
+          criteriaId: 20,
+          criteria: { name: 'เกณฑ์ใหม่' },
+          scholarshipType: { name: 'ประเภทใหม่' },
+          _count: { applicants: 0 },
+          importBatches: [],
+          createdAt: new Date(),
+          openedAt: null,
+          closedAt: null,
+          updatedAt: new Date(),
+        });
+      mockPrismaService.scholarshipType.findUnique.mockResolvedValueOnce({
+        id: 2,
+        name: 'ประเภทใหม่',
+        isActive: true,
+        defaultCriteriaId: 20,
+      });
+      mockPrismaService.scholarshipRound.update.mockResolvedValueOnce({
+        id: 1,
+      });
+
+      await service.update(1, {
+        scholarshipTypeId: 2,
+        confirmCriteriaReset: true,
+      });
+
+      expect(mockPrismaService.scholarshipRound.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            scholarshipTypeId: 2,
+            criteriaId: 20,
+          }),
+        }),
+      );
     });
   });
 

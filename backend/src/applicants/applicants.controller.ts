@@ -164,4 +164,28 @@ export class ApplicantsController {
     const role = resolvedRole || roleHeader || roleQuery || 'ADMIN';
     return this.locationRoutingService.calculateTravelDistance(id, role);
   }
+
+  @Get('applicants/history/:studentCode')
+  @UseGuards(RoleDispatchGuard)
+  async getApplicantHistory(
+    @Param('studentCode') studentCode: string,
+    @Headers('x-user-role') roleHeader?: string,
+    @Query('userRole') roleQuery?: string,
+    @Req() request?: RequestWithResolvedRole,
+  ) {
+    const role = request?.resolvedRole || roleHeader || roleQuery;
+    if (role && role !== 'ADMIN') {
+      throw new BusinessException({
+        errorCode: 'FORBIDDEN',
+        statusCode: HttpStatus.FORBIDDEN,
+        message:
+          'เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถดูประวัติการสมัครเต็มรูปแบบได้',
+      });
+    }
+    const actorId = request?.user?.id ?? null;
+    return this.applicantsService.getApplicantCrossRoundHistory(
+      studentCode,
+      actorId,
+    );
+  }
 }

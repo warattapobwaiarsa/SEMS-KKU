@@ -58,6 +58,12 @@ export class RoundsService {
         take: limit,
         orderBy: { id: 'desc' },
         include: {
+          scholarshipType: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           criteria: {
             select: {
               id: true,
@@ -78,6 +84,8 @@ export class RoundsService {
       name: r.name,
       academicYear: r.academicYear,
       semester: r.semester,
+      scholarshipTypeId: r.scholarshipTypeId,
+      scholarshipTypeName: r.scholarshipType?.name ?? null,
       status: r.status,
       criteriaId: r.criteriaId,
       criteriaName: r.criteria?.name ?? null,
@@ -103,6 +111,13 @@ export class RoundsService {
     const round = await this.prisma.scholarshipRound.findUnique({
       where: { id },
       include: {
+        scholarshipType: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
         criteria: {
           include: {
             subCriteria: {
@@ -143,6 +158,9 @@ export class RoundsService {
       name: round.name,
       academicYear: round.academicYear,
       semester: round.semester,
+      scholarshipTypeId: round.scholarshipTypeId,
+      scholarshipTypeName: round.scholarshipType?.name ?? null,
+      scholarshipType: round.scholarshipType,
       status: round.status,
       criteriaId: round.criteriaId,
       criteria: round.criteria,
@@ -171,15 +189,43 @@ export class RoundsService {
       });
     }
 
+    let criteriaId = dto.criteriaId ?? null;
+
+    if (dto.scholarshipTypeId) {
+      const scholarshipType = await this.prisma.scholarshipType.findUnique({
+        where: { id: dto.scholarshipTypeId },
+      });
+      if (!scholarshipType) {
+        throw new NotFoundException(
+          `ไม่พบประเภททุนรหัส ${dto.scholarshipTypeId}`,
+        );
+      }
+      if (!scholarshipType.isActive) {
+        throw new BusinessException({
+          errorCode: 'SCHOLARSHIP_TYPE_INACTIVE',
+          statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+          message:
+            'ประเภททุนนี้ถูกปิดการใช้งาน ไม่สามารถนำมาสร้างรอบทุนใหม่ได้',
+        });
+      }
+      if (!criteriaId && scholarshipType.defaultCriteriaId) {
+        criteriaId = scholarshipType.defaultCriteriaId;
+      }
+    }
+
     const created = await this.prisma.scholarshipRound.create({
       data: {
         name: dto.name.trim(),
         academicYear: dto.academicYear,
         semester: dto.semester,
         status: RoundStatus.DRAFT,
-        criteriaId: dto.criteriaId ?? null,
+        scholarshipTypeId: dto.scholarshipTypeId ?? null,
+        criteriaId,
       },
       include: {
+        scholarshipType: {
+          select: { id: true, name: true },
+        },
         criteria: {
           select: { id: true, name: true },
         },
@@ -191,6 +237,8 @@ export class RoundsService {
       name: created.name,
       academicYear: created.academicYear,
       semester: created.semester,
+      scholarshipTypeId: created.scholarshipTypeId,
+      scholarshipTypeName: created.scholarshipType?.name ?? null,
       status: created.status,
       criteriaId: created.criteriaId,
       criteriaName: created.criteria?.name ?? null,
@@ -245,12 +293,62 @@ export class RoundsService {
       });
     }
 
+    let criteriaIdToUpdate: number | undefined = undefined;
+
+    if (
+      dto.scholarshipTypeId !== undefined &&
+      dto.scholarshipTypeId !== existing.scholarshipTypeId
+    ) {
+      if (dto.scholarshipTypeId !== null) {
+        const scholarshipType = await this.prisma.scholarshipType.findUnique({
+          where: { id: dto.scholarshipTypeId },
+        });
+        if (!scholarshipType) {
+          throw new NotFoundException(
+            `ไม่พบประเภททุนรหัส ${dto.scholarshipTypeId}`,
+          );
+        }
+        if (!scholarshipType.isActive) {
+          throw new BusinessException({
+            errorCode: 'SCHOLARSHIP_TYPE_INACTIVE',
+            statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+            message: 'ประเภททุนนี้ถูกปิดการใช้งาน ไม่สามารถนำมาใช้กับรอบทุนได้',
+          });
+        }
+
+        if (
+          scholarshipType.defaultCriteriaId &&
+          scholarshipType.defaultCriteriaId !== existing.criteriaId
+        ) {
+          if (dto.confirmCriteriaReset !== true) {
+            throw new BusinessException({
+              errorCode: 'CRITERIA_RESET_CONFIRMATION_REQUIRED',
+              statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+              message:
+                'การเปลี่ยนประเภททุนจะแทนที่เกณฑ์การประเมินด้วยเกณฑ์เริ่มต้นของประเภทใหม่ กรุณายืนยัน',
+              params: {
+                defaultCriteriaId: scholarshipType.defaultCriteriaId,
+              },
+            });
+          } else {
+            criteriaIdToUpdate = scholarshipType.defaultCriteriaId;
+          }
+        }
+      }
+    }
+
     const updated = await this.prisma.scholarshipRound.update({
       where: { id },
       data: {
         ...(dto.name ? { name: dto.name.trim() } : {}),
         ...(dto.academicYear ? { academicYear: dto.academicYear } : {}),
         ...(dto.semester ? { semester: dto.semester } : {}),
+        ...(dto.scholarshipTypeId !== undefined
+          ? { scholarshipTypeId: dto.scholarshipTypeId }
+          : {}),
+        ...(criteriaIdToUpdate !== undefined
+          ? { criteriaId: criteriaIdToUpdate }
+          : {}),
       },
     });
 

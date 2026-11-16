@@ -33,7 +33,8 @@ import {
   Lock,
   Pencil,
   FileSpreadsheet,
-  Users
+  Users,
+  Award
 } from 'lucide-react';
 import { ImportApplicantModal } from '@/components/applicants/import-modal';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Select } from '@/components/ui';
@@ -371,18 +372,24 @@ export default function RoundDetailPage() {
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
             {round.name}
           </h1>
-          <p className="mt-1.5 text-sm font-medium text-slate-500">
-            ปีการศึกษา {round.academicYear} | ภาคเรียนที่ {round.semester}
-          </p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm font-medium text-slate-500">
+            <span>ปีการศึกษา {round.academicYear} | ภาคเรียนที่ {round.semester}</span>
+            {round.scholarshipType?.name && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                <Award className="h-3 w-3" />
+                {round.scholarshipType.name}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-5 bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-2xs">
-          <div className="text-center min-w-[90px]">
+          <div className="text-center min-w-22.5">
             <div className="text-xs text-slate-500 font-medium">ผู้สมัครในรอบ</div>
             <div className="text-2xl font-extrabold font-mono text-slate-900">{round.applicantCount} <span className="text-sm font-normal text-slate-500">คน</span></div>
           </div>
           <div className="h-9 w-px bg-slate-200" />
-          <div className="text-center min-w-[90px]">
+          <div className="text-center min-w-22.5">
             <div className="text-xs text-slate-500 font-medium">แถวที่ไม่ผ่านล่าสุด</div>
             <div className={`text-2xl font-extrabold font-mono ${round.lastInvalidRowsCount > 0 ? 'text-amber-600' : 'text-slate-400'}`}>
               {round.lastInvalidRowsCount} <span className="text-sm font-normal text-slate-500">แถว</span>
@@ -831,7 +838,7 @@ export default function RoundDetailPage() {
                   </div>
 
                   {/* Unsubmitted List preview */}
-                  <div className="max-h-40 overflow-y-auto border border-border/80 rounded-xl divide-y border-border/60 text-xs bg-muted/30">
+                  <div className="max-h-40 overflow-y-auto border border-border/80 rounded-xl divide-y divide-border/60 text-xs bg-muted/30">
                     {closeCheck.applicants.map((a) => (
                       <div key={a.applicantId} className="p-2.5 flex items-center justify-between">
                         <span className="font-mono font-bold text-foreground">{a.studentCode}</span>

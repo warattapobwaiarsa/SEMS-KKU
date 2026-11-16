@@ -16,6 +16,12 @@ export const ADMIN_NAV_ITEMS: NavItemConfig[] = [
     description: "จัดการบัญชีผู้ใช้งานและกำหนดอายุบัญชีผู้ประเมิน",
   },
   {
+    title: "ประเภททุนการศึกษา",
+    href: "/admin/scholarship-types",
+    iconName: "Award",
+    description: "จัดการประเภททุนและกำหนดเกณฑ์การประเมินเริ่มต้น",
+  },
+  {
     title: "รอบทุนการศึกษา",
     href: "/admin/scholarship-rounds",
     iconName: "Calendar",
