@@ -12,6 +12,7 @@ import {
   BarChart3,
   ClipboardList,
   History,
+  Award,
   HelpCircle,
   type LucideIcon,
 } from "lucide-react";
@@ -27,6 +28,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   BarChart3,
   ClipboardList,
   History,
+  Award,
 };
 
 interface NavItemProps {
@@ -77,7 +79,7 @@ export function NavItem({ item, isCollapsed = false, onItemClick }: NavItemProps
     <Link
       href={item.href}
       onClick={onItemClick}
-      className={`group flex items-center justify-between gap-3 px-3 py-2.5 min-h-[44px] rounded-md transition-all duration-150 text-[14.5px] font-medium active:scale-[0.98] ${
+      className={`group flex items-center justify-between gap-3 px-3 py-2.5 min-h-11 rounded-md transition-all duration-150 text-[14.5px] font-medium active:scale-[0.98] ${
         isActive
           ? "bg-blue-50/90 text-blue-700 font-semibold border-l-4 border-blue-600 pl-2.5 shadow-xs"
           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent pl-3"

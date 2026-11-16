@@ -3,6 +3,7 @@ import {
   EvaluationStatus,
   RoundStatus,
   SubCriteriaType,
+  AllocationStatus,
   User,
 } from '@prisma/client';
 import { AppException } from '../common/exceptions/app.exception';
@@ -42,6 +43,17 @@ export interface ApplicantSupportingInfoView {
   accommodationMapUrl: string | null;
 }
 
+export interface EvaluatorPastScholarshipRecord {
+  roundId: number;
+  roundName: string;
+  scholarshipTypeName: string | null;
+  academicYear: number;
+  semester: number;
+  studyYear: number;
+  awardStatus: 'AWARDED' | 'NOT_AWARDED' | 'PENDING';
+  amount: number | null;
+}
+
 /**
  * รายละเอียดผู้สมัครที่ Evaluator เห็น (OpenAPI `ApplicantDetailDto`)
  * ไม่มีเลขบัตรประชาชน / โทรศัพท์ / อีเมล เด็ดขาด [FR-APP-03] [BR-APP-04] [BR-PDP-05]
@@ -61,6 +73,7 @@ export interface EvaluatorApplicantDetail {
   gpa: number;
   createdAt: Date;
   supportingInfo: ApplicantSupportingInfoView | null;
+  pastScholarships?: EvaluatorPastScholarshipRecord[];
 }
 
 /** โครงสร้างเกณฑ์ย่อยที่ฝังในแต่ละข้อของแบบประเมิน (ไม่มี rubric) [FR-EVL-04] [FR-CRT-13] */
@@ -184,6 +197,68 @@ export class EvaluationReadService {
       throw new AppException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
 
+    // ดึงประวัติการสมัครในรอบก่อนหน้าที่เป็น CLOSED ในระบบ SEMS
+    const pastRecords = await this.prismaService.applicant.findMany({
+      where: {
+        studentCode: applicant.studentCode,
+        roundId: { not: applicant.roundId },
+        round: { status: RoundStatus.CLOSED },
+        anonymizedAt: null,
+      },
+      select: {
+        id: true,
+        studyYear: true,
+        round: {
+          select: {
+            id: true,
+            name: true,
+            academicYear: true,
+            semester: true,
+            scholarshipType: { select: { name: true } },
+            allocation: {
+              select: {
+                status: true,
+              },
+            },
+          },
+        },
+        allocation: {
+          select: {
+            isAwarded: true,
+            amount: true,
+          },
+        },
+      },
+      orderBy: [
+        { round: { academicYear: 'desc' } },
+        { round: { semester: 'desc' } },
+      ],
+    });
+
+    const pastScholarships: EvaluatorPastScholarshipRecord[] = pastRecords.map(
+      (item) => {
+        const isFinalized =
+          item.round.allocation?.status === AllocationStatus.FINALIZED;
+        return {
+          roundId: item.round.id,
+          roundName: item.round.name,
+          scholarshipTypeName: item.round.scholarshipType?.name ?? null,
+          academicYear: item.round.academicYear,
+          semester: item.round.semester,
+          studyYear: item.studyYear,
+          awardStatus: isFinalized
+            ? item.allocation?.isAwarded
+              ? 'AWARDED'
+              : 'NOT_AWARDED'
+            : 'PENDING',
+          amount:
+            isFinalized && item.allocation?.isAwarded
+              ? Number(item.allocation.amount)
+              : null,
+        };
+      },
+    );
+
     // ระบุฟิลด์ทีละตัว (ไม่ใช้ ...spread) เพื่อไม่ส่ง round.status ออกไปโดยไม่ตั้งใจ
     return {
       id: applicant.id,
@@ -202,6 +277,7 @@ export class EvaluationReadService {
       createdAt: applicant.createdAt,
       // ไม่มีข้อมูลประกอบ = null (ไม่สร้างค่าปลอมขึ้นมา)
       supportingInfo: applicant.supportingInfo,
+      pastScholarships,
     };
   }
 
