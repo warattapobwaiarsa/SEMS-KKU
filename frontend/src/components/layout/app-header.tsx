@@ -59,7 +59,7 @@ export function AppHeader({ user, onMenuToggle }: AppHeaderProps) {
               {user.name}
             </span>
             {user.expiresAt && isEvaluator && (
-              <span className="text-[11px] text-slate-500">
+              <span className="text-xs text-slate-500">
                 หมดอายุ: {user.expiresAt}
               </span>
             )}

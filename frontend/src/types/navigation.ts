@@ -6,6 +6,7 @@ export interface NavItemConfig {
   iconName: string;
   badge?: string;
   description?: string;
+  group?: string;
 }
 
 export interface UserProfile {

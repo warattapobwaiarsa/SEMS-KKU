@@ -11,12 +11,14 @@ interface RoleLayoutShellProps {
   items: NavItemConfig[];
   user: UserProfile;
   children: ReactNode;
+  mainClassName?: string;
 }
 
 export function RoleLayoutShell({
   items,
   user,
   children,
+  mainClassName,
 }: RoleLayoutShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -49,7 +51,11 @@ export function RoleLayoutShell({
         />
 
         {/* Dynamic Route Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50/50">
+        <main
+          className={`flex-1 min-h-0 overflow-y-auto bg-slate-50/50 flex flex-col ${
+            mainClassName ?? "p-3 sm:p-4 lg:p-6"
+          }`}
+        >
           {children}
         </main>
       </div>

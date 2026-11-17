@@ -191,7 +191,7 @@ export function CustomSelect<T extends string | number>({
                   <div className="truncate">
                     <span className="truncate block">{option.label}</span>
                     {option.sublabel && (
-                      <span className="text-[11px] text-muted-foreground block truncate">{option.sublabel}</span>
+                      <span className="text-xs text-muted-foreground block truncate">{option.sublabel}</span>
                     )}
                   </div>
                   {option.badge}
