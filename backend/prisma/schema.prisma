@@ -89,10 +89,11 @@ model UserSession {
 }
 
 model Criteria {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  targetScore Int      @default(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   subCriteria      SubCriteria[]
   rounds           ScholarshipRound[]
   scholarshipTypes ScholarshipType[]

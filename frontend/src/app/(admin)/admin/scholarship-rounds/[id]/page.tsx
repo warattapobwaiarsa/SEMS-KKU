@@ -28,16 +28,25 @@ import {
   Archive, 
   Play, 
   PowerOff, 
-  ShieldAlert,
-  X,
-  Lock,
-  Pencil,
-  FileSpreadsheet,
-  Users,
-  Award
+  ShieldAlert, 
+  X, 
+  Lock, 
+  Pencil, 
+  FileSpreadsheet, 
+  Users, 
+  Award,
+  Trophy,
+  Banknote,
+  Sliders
 } from 'lucide-react';
 import { ImportApplicantModal } from '@/components/applicants/import-modal';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Select } from '@/components/ui';
+import { RoundLifecycleStepper } from '@/components/rounds/round-lifecycle-stepper';
+import { RoundEvaluationTab } from '@/components/rounds/round-evaluation-tab';
+import { RoundAllocationTab } from '@/components/rounds/round-allocation-tab';
+import { RoundReportsTab } from '@/components/rounds/round-reports-tab';
+
+type TabKey = 'setup' | 'evaluation' | 'allocation' | 'reports';
 
 export default function RoundDetailPage() {
   const params = useParams();
@@ -46,6 +55,7 @@ export default function RoundDetailPage() {
   const [round, setRound] = useState<ScholarshipRoundDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabKey>('setup');
 
   // Criteria Linking
   const [criteriaList, setCriteriaList] = useState<CriteriaDetail[]>([]);
@@ -272,8 +282,9 @@ export default function RoundDetailPage() {
     (sum, item) => sum + (Number(item.maxScore) || 0),
     0
   ) ?? 0;
-  const isCriteria100 = Boolean(round.criteria) && criteriaTotalScore === 100;
-  const isDraftRoundReady = hasBasicInfo && hasApplicants && isCriteria100;
+  const targetScore = round.criteria?.targetScore || 100;
+  const isCriteriaScoreValid = Boolean(round.criteria) && criteriaTotalScore === targetScore;
+  const isDraftRoundReady = hasBasicInfo && hasApplicants && isCriteriaScoreValid;
 
   return (
     <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-16">
@@ -398,9 +409,85 @@ export default function RoundDetailPage() {
         </div>
       </div>
 
+      {/* Round Lifecycle Stepper */}
+      <RoundLifecycleStepper
+        roundId={round.id}
+        status={round.status}
+        onStepClick={(step) => {
+          if (step === 1) setActiveTab('setup');
+          else if (step === 2 || step === 3) setActiveTab('evaluation');
+          else if (step === 4) setActiveTab('allocation');
+        }}
+      />
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* Unified Command Center Tabs */}
+      <div className="flex border-b border-border gap-2 overflow-x-auto pb-px">
+        <button
+          type="button"
+          onClick={() => setActiveTab('setup')}
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
+            activeTab === 'setup'
+              ? 'border-primary text-primary bg-primary/5 rounded-t-xl'
+              : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-t-xl'
+          }`}
+        >
+          <Sliders className="w-4 h-4" />
+          <span>1. การตั้งค่า & ความพร้อม</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('evaluation')}
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
+            activeTab === 'evaluation'
+              ? 'border-primary text-primary bg-primary/5 rounded-t-xl'
+              : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-t-xl'
+          }`}
+        >
+          <Trophy className="w-4 h-4" />
+          <span>2. ผลการประเมิน & อันดับ</span>
+          {round.status !== 'DRAFT' && (
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/20 text-primary font-bold">
+              {round.status}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('allocation')}
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
+            activeTab === 'allocation'
+              ? 'border-primary text-primary bg-primary/5 rounded-t-xl'
+              : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-t-xl'
+          }`}
+        >
+          <Banknote className="w-4 h-4" />
+          <span>3. การจัดสรรทุน & งบประมาณ</span>
+          {round.status === 'CLOSED' && (
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold">
+              พร้อมจัดสรร
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('reports')}
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
+            activeTab === 'reports'
+              ? 'border-primary text-primary bg-primary/5 rounded-t-xl'
+              : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-t-xl'
+          }`}
+        >
+          <FileSpreadsheet className="w-4 h-4" />
+          <span>4. รายงาน & ดาวน์โหลด (PDPA)</span>
+        </button>
+      </div>
+
+      {/* Tab 1: Setup & Readiness Grid */}
+      {activeTab === 'setup' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Criteria Linking & Info (7 Cols) */}
         <div className="lg:col-span-7 flex flex-col gap-6">
           <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-5">
@@ -513,7 +600,7 @@ export default function RoundDetailPage() {
                   <CheckCircle2 className={`h-5 w-5 ${isDraftRoundReady ? 'text-emerald-600' : 'text-amber-500'}`} />
                   เงื่อนไขความพร้อมในการเปิดรอบ
                 </h3>
-                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
                   isDraftRoundReady 
                     ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
                     : 'bg-amber-100 text-amber-800 border border-amber-300'
@@ -546,15 +633,15 @@ export default function RoundDetailPage() {
                   )}
                 </div>
 
-                {/* Condition 3: Criteria & 100 points */}
+                {/* Condition 3: Criteria & target score */}
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
                   <div>
-                    <span className="font-medium text-slate-800">3. ผูกชุดเกณฑ์ผลรวม 100 คะแนน</span>
+                    <span className="font-medium text-slate-800">3. ผูกชุดเกณฑ์ผลรวม {targetScore} คะแนน</span>
                     <span className="text-slate-500 ml-1.5 font-mono">
-                      ({round.criteria ? `${round.criteria.name} : ${criteriaTotalScore}/100` : 'ยังไม่มีเกณฑ์'})
+                      ({round.criteria ? `${round.criteria.name} : ${criteriaTotalScore}/${targetScore}` : 'ยังไม่มีเกณฑ์'})
                     </span>
                   </div>
-                  {isCriteria100 ? (
+                  {isCriteriaScoreValid ? (
                     <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                   ) : (
                     <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
@@ -569,7 +656,7 @@ export default function RoundDetailPage() {
               )}
 
               {!isDraftRoundReady && (
-                <p className="text-[11px] text-slate-500 leading-relaxed italic">
+                <p className="text-xs text-slate-500 leading-relaxed italic">
                   * ต้องผ่านเงื่อนไขทั้ง 3 ข้อข้างต้น จึงจะสามารถกดยืนยันเปิดรอบการประเมินได้
                 </p>
               )}
@@ -585,17 +672,17 @@ export default function RoundDetailPage() {
               <div className={`p-3.5 rounded-xl border transition ${round.status === 'DRAFT' ? 'bg-amber-50/80 border-amber-300 ring-1 ring-amber-400/40 shadow-xs' : 'bg-slate-50/60 border-slate-200'}`}>
                 <div className="font-bold text-slate-900 flex items-center justify-between">
                   <span>1. ขั้นตอนแบบร่าง (DRAFT)</span>
-                  {round.status === 'DRAFT' && <span className="text-[10px] bg-amber-200 text-amber-900 px-2.5 py-0.5 rounded-full font-extrabold shadow-2xs">ปัจจุบัน</span>}
+                  {round.status === 'DRAFT' && <span className="text-xs bg-amber-200 text-amber-900 px-2.5 py-0.5 rounded-full font-extrabold shadow-2xs">ปัจจุบัน</span>}
                 </div>
                 <p className="mt-1 text-slate-600 leading-relaxed">
-                  แก้ไขข้อมูลรอบ, ผูกชุดเกณฑ์ที่มีผลรวม 100 คะแนน และนำเข้าข้อมูลผู้สมัคร
+                  แก้ไขข้อมูลรอบ, ผูกชุดเกณฑ์ที่มีผลรวมคะแนนครบเป้าหมาย และนำเข้าข้อมูลผู้สมัคร
                 </p>
               </div>
 
               <div className={`p-3.5 rounded-xl border transition ${round.status === 'OPEN' ? 'bg-emerald-50/80 border-emerald-300 ring-1 ring-emerald-400/40 shadow-xs' : 'bg-slate-50/60 border-slate-200'}`}>
                 <div className="font-bold text-slate-900 flex items-center justify-between">
                   <span>2. เปิดรับประเมิน (OPEN)</span>
-                  {round.status === 'OPEN' && <span className="text-[10px] bg-emerald-200 text-emerald-900 px-2.5 py-0.5 rounded-full font-extrabold shadow-2xs">ปัจจุบัน</span>}
+                  {round.status === 'OPEN' && <span className="text-xs bg-emerald-200 text-emerald-900 px-2.5 py-0.5 rounded-full font-extrabold shadow-2xs">ปัจจุบัน</span>}
                 </div>
                 <p className="mt-1 text-slate-600 leading-relaxed">
                   ล็อกข้อมูลรอบทุนและเกณฑ์ ผู้ประเมินสามารถเริ่มให้คะแนนผู้สมัครได้
@@ -605,7 +692,7 @@ export default function RoundDetailPage() {
               <div className={`p-3.5 rounded-xl border transition ${round.status === 'CLOSED' ? 'bg-slate-100 border-slate-300 ring-1 ring-slate-400/40 shadow-xs' : 'bg-slate-50/60 border-slate-200'}`}>
                 <div className="font-bold text-slate-900 flex items-center justify-between">
                   <span>3. ปิดรอบการประเมิน (CLOSED)</span>
-                  {round.status === 'CLOSED' && <span className="text-[10px] bg-slate-300 text-slate-900 px-2.5 py-0.5 rounded-full font-extrabold shadow-2xs">ปัจจุบัน</span>}
+                  {round.status === 'CLOSED' && <span className="text-xs bg-slate-300 text-slate-900 px-2.5 py-0.5 rounded-full font-extrabold shadow-2xs">ปัจจุบัน</span>}
                 </div>
                 <p className="mt-1 text-slate-600 leading-relaxed">
                   สิ้นสุดการให้คะแนน นำผลคะแนนไปใช้จัดสรรทุนการศึกษาต่อไป
@@ -615,6 +702,32 @@ export default function RoundDetailPage() {
           </div>
         </div>
       </div>
+      )}
+
+      {/* Tab 2: Evaluation Results & Rankings */}
+      {activeTab === 'evaluation' && (
+        <RoundEvaluationTab
+          roundId={round.id}
+          roundStatus={round.status}
+          targetScore={round.criteria?.targetScore || 100}
+        />
+      )}
+
+      {/* Tab 3: Scholarship Allocation & Budgeting */}
+      {activeTab === 'allocation' && (
+        <RoundAllocationTab
+          roundId={round.id}
+          roundStatus={round.status}
+        />
+      )}
+
+      {/* Tab 4: Reports & Export Hub */}
+      {activeTab === 'reports' && (
+        <RoundReportsTab
+          roundId={round.id}
+          roundStatus={round.status}
+        />
+      )}
 
       {/* Modal: Edit Round Info */}
       <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
@@ -753,7 +866,9 @@ export default function RoundDetailPage() {
                 </div>
 
                 <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/80">
-                  <span className="font-medium text-foreground">ผูกชุดเกณฑ์ผลรวมคะแนน 100 คะแนน ({readiness.criteriaName ?? 'ยังไม่มี'})</span>
+                  <span className="font-medium text-foreground">
+                    ผูกชุดเกณฑ์ผลรวมคะแนนครบ {readiness.targetScore || 100} คะแนน ({readiness.criteriaName ?? 'ยังไม่มี'})
+                  </span>
                   {readiness.criteriaName ? (
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                   ) : (

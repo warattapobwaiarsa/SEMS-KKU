@@ -127,7 +127,13 @@ export function createSeedData(): SeedData {
       makeApplicant(5, 1, 'ST-005', 'ทดสอบ', 'ผู้สมัคร005', now),
     ],
     criteria: [
-      { id: 1, name: 'เกณฑ์ชุดทดสอบ', createdAt: now, updatedAt: now },
+      {
+        id: 1,
+        name: 'เกณฑ์ชุดทดสอบ',
+        targetScore: 100,
+        createdAt: now,
+        updatedAt: now,
+      },
     ],
     subCriteria,
     evaluations: [],

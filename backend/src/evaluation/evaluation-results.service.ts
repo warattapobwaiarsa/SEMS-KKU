@@ -34,6 +34,11 @@ export interface RoundEvaluationResultsData {
     academicYear: number;
     semester: number;
     status: string;
+    criteria?: {
+      id: number;
+      name: string;
+      targetScore: number;
+    } | null;
   };
   summary: RoundEvaluationSummary;
   items: ApplicantResultItem[];
@@ -115,6 +120,13 @@ export class EvaluationResultsService {
         academicYear: true,
         semester: true,
         status: true,
+        criteria: {
+          select: {
+            id: true,
+            name: true,
+            targetScore: true,
+          },
+        },
       },
     });
 

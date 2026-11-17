@@ -26,6 +26,7 @@ export interface ScholarshipRoundDetail extends ScholarshipRoundListItem {
   criteria?: {
     id: number;
     name: string;
+    targetScore?: number;
     subCriteria: {
       id: number;
       title: string;
@@ -58,6 +59,7 @@ export interface OpenReadinessCheck {
   reasons: string[];
   applicantCount: number;
   criteriaName?: string | null;
+  targetScore?: number;
   lastInvalidRowsCount: number;
 }
 

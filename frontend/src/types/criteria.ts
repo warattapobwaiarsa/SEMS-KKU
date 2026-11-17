@@ -20,6 +20,7 @@ export interface RoundUsageItem {
 export interface CriteriaDetail {
   id: number;
   name: string;
+  targetScore: number;
   isLocked: boolean;
   totalScore: number;
   usedByRounds: RoundUsageItem[];
@@ -30,6 +31,7 @@ export interface CriteriaDetail {
 
 export interface CreateCriteriaPayload {
   name: string;
+  targetScore?: number;
   subCriteria: {
     sortOrder: number;
     title: string;
@@ -41,6 +43,7 @@ export interface CreateCriteriaPayload {
 
 export interface UpdateCriteriaPayload {
   name: string;
+  targetScore?: number;
   subCriteria: {
     id?: number;
     sortOrder: number;

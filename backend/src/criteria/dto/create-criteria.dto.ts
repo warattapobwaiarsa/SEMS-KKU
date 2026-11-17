@@ -28,7 +28,7 @@ export class CreateSubCriteriaDto {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @Max(100)
+  @Max(1000)
   maxScore?: number;
 
   @IsOptional()
@@ -40,6 +40,12 @@ export class CreateCriteriaDto {
   @IsString()
   @IsNotEmpty()
   name: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(1000)
+  targetScore?: number = 100;
 
   @ValidateNested({ each: true })
   @Type(() => CreateSubCriteriaDto)

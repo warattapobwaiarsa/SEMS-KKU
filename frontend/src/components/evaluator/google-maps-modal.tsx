@@ -117,12 +117,12 @@ export function GoogleMapsModal({
                   <span className="font-bold text-sm text-foreground font-mono">
                     {travelInfo.distanceKm} กม.
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium text-[11px]">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium text-xs">
                     <Clock className="w-3 h-3" />
                     <span>เดินทางประมาณ {travelInfo.durationMinutes} นาที</span>
                   </span>
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   จาก <span className="font-medium text-foreground">{travelInfo.origin?.name || KKU_ENGINEERING_ORIGIN}</span> ถึง{' '}
                   <span className="font-medium text-foreground">{travelInfo.destination?.title || accommodationTitle || 'ที่พักอาศัย'}</span>
                 </p>
@@ -132,7 +132,7 @@ export function GoogleMapsModal({
         ) : travelInfo?.message ? (
           <div className="px-5 py-2.5 bg-muted/20 border-b border-border/60 text-xs text-muted-foreground flex items-center justify-between">
             <span>ℹ️ {travelInfo.message}</span>
-            <span className="text-[11px] text-muted-foreground/80">จุดอ้างอิง: {KKU_ENGINEERING_ORIGIN}</span>
+            <span className="text-xs text-muted-foreground/80">จุดอ้างอิง: {KKU_ENGINEERING_ORIGIN}</span>
           </div>
         ) : null}
 

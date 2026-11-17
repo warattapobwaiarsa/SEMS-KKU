@@ -113,7 +113,7 @@ export function ApplicantHistoryModal({
               <span className="text-muted-foreground">
                 จำนวนรอบทุนทั้งหมดที่พบในระบบ: <strong className="text-foreground">{history.totalRounds} รอบ</strong>
               </span>
-              <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
                 PDPA: ไม่แสดงเลขบัตรประชาชน/เบอร์/อีเมล
               </span>
@@ -135,12 +135,12 @@ export function ApplicantHistoryModal({
                       <div className="flex flex-wrap items-center gap-2">
                         <h4 className="font-bold text-foreground text-sm">{rec.roundName}</h4>
                         {rec.scholarshipTypeName && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary/10 text-primary border border-primary/20">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
                             <Award className="h-3 w-3" />
                             {rec.scholarshipTypeName}
                           </span>
                         )}
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground border border-border">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border">
                           {rec.roundStatus}
                         </span>
                       </div>
@@ -185,7 +185,7 @@ export function ApplicantHistoryModal({
                       {/* Score Overview */}
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-3">
                         <div className="p-2.5 bg-background border border-border/70 rounded-xl">
-                          <span className="text-[11px] text-muted-foreground block">คะแนนสุดท้าย (เฉลี่ย)</span>
+                          <span className="text-xs text-muted-foreground block">คะแนนสุดท้าย (เฉลี่ย)</span>
                           <span className="text-base font-bold text-foreground font-mono">
                             {rec.finalScore !== null ? rec.finalScore.toFixed(2) : '-'}
                             {rec.totalTargetScore ? (
@@ -195,14 +195,14 @@ export function ApplicantHistoryModal({
                         </div>
 
                         <div className="p-2.5 bg-background border border-border/70 rounded-xl">
-                          <span className="text-[11px] text-muted-foreground block">กรรมการที่ประเมินแล้ว</span>
+                          <span className="text-xs text-muted-foreground block">กรรมการที่ประเมินแล้ว</span>
                           <span className="text-base font-bold text-foreground font-mono">
                             {rec.submittedEvaluationsCount} คน
                           </span>
                         </div>
 
                         <div className="p-2.5 bg-background border border-border/70 rounded-xl col-span-2 sm:col-span-1">
-                          <span className="text-[11px] text-muted-foreground block">สถานะผลการจัดสรร</span>
+                          <span className="text-xs text-muted-foreground block">สถานะผลการจัดสรร</span>
                           <span className="text-xs font-semibold text-foreground">
                             {rec.allocation.status || 'ยังไม่กำหนดงบประมาณ'}
                           </span>
@@ -233,7 +233,7 @@ export function ApplicantHistoryModal({
 
                                 <div className="space-y-1.5 pl-1">
                                   {ev.items.map((it) => (
-                                    <div key={it.subCriteriaId} className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] gap-1">
+                                    <div key={it.subCriteriaId} className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1">
                                       <span className="text-muted-foreground">
                                         • {it.subCriteriaTitle}
                                       </span>
@@ -248,7 +248,7 @@ export function ApplicantHistoryModal({
                                           </span>
                                         )}
                                         {it.comment && (
-                                          <span className="text-muted-foreground/80 bg-muted/60 px-1.5 py-0.5 rounded text-[10px]">
+                                          <span className="text-muted-foreground/80 bg-muted/60 px-1.5 py-0.5 rounded text-xs">
                                             &ldquo;{it.comment}&rdquo;
                                           </span>
                                         )}

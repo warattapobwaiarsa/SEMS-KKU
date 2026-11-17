@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th" className={`h-full antialiased ${ibmPlexSansThai.variable}`}>
-      <body className="min-h-full flex flex-col font-sans bg-[#FFFFFF] text-[#374151]">
+      <body className={`min-h-full flex flex-col ${ibmPlexSansThai.className} font-sans bg-background text-foreground`}>
         {children}
       </body>
     </html>

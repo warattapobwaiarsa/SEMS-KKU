@@ -172,7 +172,7 @@ export function ImportApplicantModal({
               ? 'bg-muted text-foreground' 
               : 'text-muted-foreground'
           }`}>
-            <span className="w-4 h-4 rounded-full bg-background/30 text-center text-[10px] leading-4 font-bold inline-block">1</span>
+            <span className="w-4 h-4 rounded-full bg-background/30 text-center text-xs leading-4 font-bold inline-block">1</span>
             <span>อัปโหลดไฟล์</span>
           </div>
 
@@ -185,7 +185,7 @@ export function ImportApplicantModal({
               ? 'bg-muted text-foreground' 
               : 'text-muted-foreground'
           }`}>
-            <span className="w-4 h-4 rounded-full bg-background/30 text-center text-[10px] leading-4 font-bold inline-block">2</span>
+            <span className="w-4 h-4 rounded-full bg-background/30 text-center text-xs leading-4 font-bold inline-block">2</span>
             <span>ตรวจสอบและพรีวิว</span>
           </div>
 
@@ -196,7 +196,7 @@ export function ImportApplicantModal({
               ? 'bg-emerald-600 text-white font-bold shadow-2xs' 
               : 'text-muted-foreground'
           }`}>
-            <span className="w-4 h-4 rounded-full bg-background/30 text-center text-[10px] leading-4 font-bold inline-block">3</span>
+            <span className="w-4 h-4 rounded-full bg-background/30 text-center text-xs leading-4 font-bold inline-block">3</span>
             <span>นำเข้าสำเร็จ</span>
           </div>
         </div>
@@ -273,7 +273,7 @@ export function ImportApplicantModal({
             <div className="p-4 bg-muted/30 border border-border/70 rounded-2xl space-y-2.5 text-xs text-muted-foreground">
               <div className="flex items-center gap-2 font-bold text-foreground">
                 <Info className="h-4 w-4 text-primary shrink-0" />
-                <span>ข้อกำหนดและโครงสร้างของไฟล์นำเข้า</span>
+                <span>คำแนะนำและโครงสร้างของไฟล์นำเข้า</span>
               </div>
               <ul className="list-disc list-inside space-y-1 pl-1 text-muted-foreground leading-relaxed">
                 <li>ระบบจะอ่านเฉพาะชีตชื่อ <strong className="text-foreground">&quot;Data&quot;</strong> โดยเริ่มอ่านข้อมูลตั้งแต่แถวที่ 3</li>
@@ -398,7 +398,7 @@ export function ImportApplicantModal({
                           <td className="py-2 px-3 text-center font-mono font-bold text-foreground">
                             {row.gpa.toFixed(2)}
                           </td>
-                          <td className="py-2 px-3 font-mono text-muted-foreground text-[11px]">
+                          <td className="py-2 px-3 font-mono text-muted-foreground text-xs">
                             {row.maskedCitizenId}
                           </td>
                         </tr>

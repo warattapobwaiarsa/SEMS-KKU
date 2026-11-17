@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { SYSTEM_CONFIG } from "@/config/navigation";
@@ -86,14 +87,33 @@ export function AppSidebar({
           }`}
           aria-label="รายการเมนู"
         >
-          {items.map((item) => (
-            <NavItem
-              key={item.href}
-              item={item}
-              isCollapsed={isCollapsed}
-              onItemClick={onItemClick}
-            />
-          ))}
+          {items.map((item, index) => {
+            const prevItem = items[index - 1];
+            const isNewGroup = item.group && (!prevItem || prevItem.group !== item.group);
+
+            return (
+              <React.Fragment key={item.href}>
+                {isNewGroup && (
+                  <div
+                    className={`${
+                      index > 0 ? "pt-3.5 mt-2 border-t border-slate-100" : "pt-1"
+                    } ${isCollapsed ? "px-1 text-center" : "px-3 mb-1.5"}`}
+                  >
+                    {!isCollapsed && (
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                        {item.group}
+                      </span>
+                    )}
+                  </div>
+                )}
+                <NavItem
+                  item={item}
+                  isCollapsed={isCollapsed}
+                  onItemClick={onItemClick}
+                />
+              </React.Fragment>
+            );
+          })}
         </nav>
       </div>
 
@@ -105,7 +125,7 @@ export function AppSidebar({
       >
         {isCollapsed ? (
           <span
-            className="text-[11px] font-bold text-slate-400 font-mono"
+            className="text-xs font-bold text-slate-400 font-mono"
             title={`${SYSTEM_CONFIG.faculty} ${SYSTEM_CONFIG.university}`}
           >
             EN

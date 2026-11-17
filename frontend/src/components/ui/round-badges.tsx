@@ -163,9 +163,9 @@ export function RoundBadges({ rounds = [], maxVisible = 2, compact = false }: Ro
                 <div key={r.id} className="flex items-center justify-between text-xs py-1.5 px-2 rounded-lg bg-background border border-border/40">
                   <div className="truncate pr-2">
                     <span className="font-semibold text-foreground block truncate">{r.name}</span>
-                    <span className="text-[10px] text-muted-foreground font-mono">รอบ #{r.id}</span>
+                    <span className="text-xs text-muted-foreground font-mono">รอบ #{r.id}</span>
                   </div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full border shrink-0 font-medium ${style.border} ${style.bg}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full border shrink-0 font-medium ${style.border} ${style.bg}`}>
                     {style.label}
                   </span>
                 </div>
@@ -179,7 +179,7 @@ export function RoundBadges({ rounds = [], maxVisible = 2, compact = false }: Ro
               return (
                 <span
                   key={r.id}
-                  className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border border-border bg-background text-foreground shadow-2xs font-medium"
+                  className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border border-border bg-background text-foreground shadow-2xs font-medium"
                 >
                   <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${style.dot}`} />
                   <span className="truncate max-w-[150px]">{r.name}</span>
@@ -187,7 +187,7 @@ export function RoundBadges({ rounds = [], maxVisible = 2, compact = false }: Ro
               );
             })}
             {remainingCount > 0 && (
-              <span className="inline-flex items-center text-[10px] px-2 py-1 rounded-full bg-muted text-muted-foreground font-mono font-bold border border-border/60">
+              <span className="inline-flex items-center text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground font-mono font-bold border border-border/60">
                 +{remainingCount}
               </span>
             )}
@@ -259,7 +259,7 @@ export function RoundBadges({ rounds = [], maxVisible = 2, compact = false }: Ro
                     <h4 className="text-xs font-bold text-foreground leading-tight">
                       รอบทุนที่ใช้เกณฑ์นี้
                     </h4>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       ผูกอยู่ทั้งหมด <span className="font-semibold text-foreground">{rounds.length}</span> รอบทุน
                     </p>
                   </div>
@@ -287,12 +287,12 @@ export function RoundBadges({ rounds = [], maxVisible = 2, compact = false }: Ro
                         <div className="font-semibold text-foreground truncate" title={r.name}>
                           {r.name}
                         </div>
-                        <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                        <div className="text-xs text-muted-foreground font-mono mt-0.5">
                           รหัสรอบ #{r.id}
                         </div>
                       </div>
                       <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full border shrink-0 font-medium ${style.border} ${style.bg}`}
+                        className={`text-xs px-2 py-0.5 rounded-full border shrink-0 font-medium ${style.border} ${style.bg}`}
                       >
                         {style.label}
                       </span>
@@ -302,7 +302,7 @@ export function RoundBadges({ rounds = [], maxVisible = 2, compact = false }: Ro
               </div>
 
               {/* Footer hint */}
-              <div className="mt-2.5 pt-2 border-t border-border/40 text-[10px] text-muted-foreground/80 text-center flex items-center justify-center gap-1">
+              <div className="mt-2.5 pt-2 border-t border-border/40 text-xs text-muted-foreground/80 text-center flex items-center justify-center gap-1">
                 <span>กด Esc หรือคลิกข้างนอกเพื่อปิด</span>
               </div>
             </div>,

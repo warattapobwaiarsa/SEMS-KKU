@@ -335,15 +335,6 @@ export default function ScholarshipTypesPage() {
         )}
       </div>
 
-      {/* Info Notice about Rules */}
-      <div className="flex items-start gap-2.5 p-3.5 bg-muted/40 border border-border rounded-xl text-xs text-muted-foreground">
-        <HelpCircle className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
-        <div>
-          <span className="font-semibold text-foreground">ข้อกำหนดระบบประเภททุน (Scope 1.3): </span>
-          ระบบไม่รองรับการลบประเภททุน (สามารถปิดการใช้งานได้เท่านั้น) และการเปลี่ยนเกณฑ์เริ่มต้นของประเภททุนจะมีผลกับรอบทุนที่สร้างใหม่หลังจากนั้นเท่านั้น โดยไม่กระทบรอบทุนที่สร้างไว้แล้ว
-        </div>
-      </div>
-
       {/* Create / Edit Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} size="md">
         <form onSubmit={handleFormSubmit}>
@@ -406,7 +397,7 @@ export default function ScholarshipTypesPage() {
                   </option>
                 ))}
               </select>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 เมื่อสร้างรอบทุนใหม่ในประเภทนี้ ระบบจะเลือกเกณฑ์นี้ให้อัตโนมัติ
               </p>
             </div>

@@ -16,6 +16,9 @@ describe('formatErrorMessage utility', () => {
     const formatted1 = formatErrorMessage('CRITERIA_SUM_NOT_100', { sum: 85 });
     expect(formatted1).toBe('ผลรวมคะแนนสูงสุดปัจจุบันคือ 85 ต้องเท่ากับ 100');
 
+    const formattedCustomTarget = formatErrorMessage('CRITERIA_SUM_NOT_100', { sum: 180, target: 200 });
+    expect(formattedCustomTarget).toBe('ผลรวมคะแนนสูงสุดปัจจุบันคือ 180 ต้องเท่ากับ 200');
+
     const formatted2 = formatErrorMessage('INVALID_EXCEL_ROW', { row: 5, reason: 'เกรดเฉลี่ยไม่ถูกต้อง' });
     expect(formatted2).toBe('แถว 5: เกรดเฉลี่ยไม่ถูกต้อง');
   });
