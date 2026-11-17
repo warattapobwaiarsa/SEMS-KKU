@@ -189,7 +189,7 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
                         type="button"
                         onClick={handleRetry}
                         title="ลองคำนวณระยะทางใหม่อีกครั้ง"
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold text-primary hover:bg-primary/10 transition cursor-pointer"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold text-primary hover:bg-primary/10 transition cursor-pointer"
                       >
                         <RotateCw className="w-3 h-3" />
                         <span>ลองใหม่</span>
@@ -283,7 +283,7 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
             <History className="w-4 h-4 text-primary" />
             <h4 className="text-sm font-bold text-foreground">ประวัติการขอและได้รับทุนในระบบ SEMS</h4>
           </div>
-          <span className="text-[11px] font-medium text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+          <span className="text-xs font-medium text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
             รอบที่ปิดแล้ว
           </span>
         </div>
@@ -299,12 +299,12 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
                   <div className="font-semibold text-foreground truncate flex items-center gap-1.5">
                     <span>{record.roundName}</span>
                     {record.scholarshipTypeName && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0">
+                      <span className="text-xs px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0">
                         {record.scholarshipTypeName}
                       </span>
                     )}
                   </div>
-                  <div className="text-muted-foreground text-[11px]">
+                  <div className="text-muted-foreground text-xs">
                     ปีการศึกษา {record.academicYear}/{record.semester} (ชั้นปีที่ {record.studyYear})
                   </div>
                 </div>

@@ -86,7 +86,11 @@ export function ScoreInputRow({
               step={1}
               value={value.score}
               disabled={readOnly}
-              onWheel={(e) => (e.target as HTMLInputElement).blur()}
+              onWheel={(e) => {
+                if (document.activeElement === e.currentTarget) {
+                  e.currentTarget.blur();
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                   e.preventDefault();
