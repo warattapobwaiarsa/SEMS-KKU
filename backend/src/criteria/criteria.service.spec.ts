@@ -148,8 +148,110 @@ describe('CriteriaService', () => {
       } catch (err: unknown) {
         const error = err as BusinessException;
         expect(error.errorCode).toBe('CRITERIA_SUM_NOT_100');
-        expect(error.params).toEqual({ sum: 90 });
+        expect(error.params).toEqual({
+          sum: 90,
+          targetScore: 100,
+          target: 100,
+        });
       }
+    });
+
+    it('should throw TARGET_SCORE_OUT_OF_RANGE if targetScore is not between 1 and 1000 (Scope 1.3.2.4)', async () => {
+      const dto = {
+        name: 'เกณฑ์ทดสอบ',
+        targetScore: 1200,
+        subCriteria: [
+          {
+            sortOrder: 1,
+            title: 'ผลการเรียน',
+            type: SubCriteriaType.SCORED,
+            maxScore: 1200,
+          },
+        ],
+      };
+
+      try {
+        await service.create(dto);
+      } catch (err: unknown) {
+        const error = err as BusinessException;
+        expect(error.errorCode).toBe('TARGET_SCORE_OUT_OF_RANGE');
+      }
+    });
+
+    it('should throw MAX_SCORE_OUT_OF_RANGE if subCriteria maxScore exceeds targetScore (Scope 1.3.2.4)', async () => {
+      const dto = {
+        name: 'เกณฑ์ทดสอบ',
+        targetScore: 50,
+        subCriteria: [
+          {
+            sortOrder: 1,
+            title: 'ผลการเรียน',
+            type: SubCriteriaType.SCORED,
+            maxScore: 60,
+          },
+        ],
+      };
+
+      try {
+        await service.create(dto);
+      } catch (err: unknown) {
+        const error = err as BusinessException;
+        expect(error.errorCode).toBe('MAX_SCORE_OUT_OF_RANGE');
+      }
+    });
+
+    it('should successfully create criteria with custom targetScore (e.g. 200) (Scope 1.3.2.4)', async () => {
+      mockPrismaService.criteria.findUnique.mockResolvedValueOnce(null);
+      mockPrismaService.criteria.create.mockResolvedValueOnce({
+        id: 20,
+        name: 'เกณฑ์ 200 คะแนน',
+        targetScore: 200,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        subCriteria: [
+          {
+            id: 201,
+            criteriaId: 20,
+            sortOrder: 1,
+            title: 'วิชาการ',
+            type: SubCriteriaType.SCORED,
+            maxScore: 120,
+            allowComment: false,
+          },
+          {
+            id: 202,
+            criteriaId: 20,
+            sortOrder: 2,
+            title: 'สัมภาษณ์',
+            type: SubCriteriaType.SCORED,
+            maxScore: 80,
+            allowComment: true,
+          },
+        ],
+      });
+
+      const result = await service.create({
+        name: 'เกณฑ์ 200 คะแนน',
+        targetScore: 200,
+        subCriteria: [
+          {
+            sortOrder: 1,
+            title: 'วิชาการ',
+            type: SubCriteriaType.SCORED,
+            maxScore: 120,
+          },
+          {
+            sortOrder: 2,
+            title: 'สัมภาษณ์',
+            type: SubCriteriaType.SCORED,
+            maxScore: 80,
+          },
+        ],
+      });
+
+      expect(result.id).toBe(20);
+      expect(result.targetScore).toBe(200);
+      expect(result.totalScore).toBe(200);
     });
 
     it('should throw CRITERIA_NAME_DUPLICATE if name already exists (BR-CRT-01)', async () => {

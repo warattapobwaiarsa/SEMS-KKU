@@ -444,13 +444,14 @@ export class RoundsService {
       if (scoredItems.length === 0) {
         reasons.push('เกณฑ์ที่เชื่อมโยงต้องมีหัวข้อแบบมีคะแนนอย่างน้อย 1 ข้อ');
       } else {
+        const targetScore = round.criteria.targetScore ?? 100;
         const sum = scoredItems.reduce(
           (acc, curr) => acc + (curr.maxScore || 0),
           0,
         );
-        if (sum !== 100) {
+        if (sum !== targetScore) {
           reasons.push(
-            `ผลรวมคะแนนเกณฑ์ย่อยแบบมีคะแนนไม่เท่ากับ 100 (ปัจจุบัน: ${sum})`,
+            `ผลรวมคะแนนเกณฑ์ย่อยแบบมีคะแนนไม่เท่ากับ ${targetScore} (ปัจจุบัน: ${sum})`,
           );
         }
       }
@@ -464,6 +465,7 @@ export class RoundsService {
       reasons,
       applicantCount: round._count.applicants,
       criteriaName: round.criteria?.name ?? null,
+      targetScore: round.criteria?.targetScore ?? 100,
       lastInvalidRowsCount: latestBatch ? latestBatch.invalidRows : 0,
     };
   }

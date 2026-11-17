@@ -13,8 +13,9 @@ export const ERROR_MESSAGES: Record<string, string> = {
   CANNOT_DEACTIVATE_EVALUATOR_WITH_DRAFT: 'ไม่สามารถปิดบัญชีได้ ผู้ประเมินยังมีผลการประเมินสถานะ Draft ในรอบทุนที่เปิดอยู่',
   CANNOT_DEACTIVATE_SELF_OR_LAST_ADMIN: 'ไม่สามารถปิดบัญชีของตนเองหรือบัญชี Admin คนสุดท้ายได้',
   EXPIRY_DAYS_REQUIRED: 'กรุณากำหนดวันหมดอายุใหม่ก่อนเปิดใช้งานบัญชีนี้',
-  CRITERIA_SUM_NOT_100: 'ผลรวมคะแนนสูงสุดปัจจุบันคือ {sum} ต้องเท่ากับ 100',
-  MAX_SCORE_OUT_OF_RANGE: 'คะแนนสูงสุดต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง 100',
+  CRITERIA_SUM_NOT_100: 'ผลรวมคะแนนสูงสุดปัจจุบันคือ {sum} ต้องเท่ากับ {target}',
+  TARGET_SCORE_OUT_OF_RANGE: 'คะแนนรวมเป้าหมายต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง 1,000',
+  MAX_SCORE_OUT_OF_RANGE: 'คะแนนสูงสุดต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง {targetScore}',
   SCORED_CRITERIA_REQUIRED: 'เกณฑ์ต้องมีเกณฑ์ย่อยแบบมีคะแนนอย่างน้อย 1 ข้อ',
   CRITERIA_LOCKED: 'เกณฑ์นี้ถูกใช้ในรอบทุนที่เปิดแล้ว หรือรอบทุนไม่อยู่ในสถานะ Draft จึงแก้ไขไม่ได้',
   ROUND_OPEN_PRECHECK_FAILED: 'ไม่สามารถเปิดรอบได้ เนื่องจาก: {reasons}',
@@ -81,12 +82,16 @@ export function formatErrorMessage(
   }
 
   // แทนที่ตัวแปรใน template เช่น {sum}, {row}, {reason}
-  if (params && typeof params === 'object') {
-    Object.entries(params).forEach(([key, val]) => {
-      const displayVal = Array.isArray(val) ? val.join(', ') : String(val ?? '');
-      template = template.replace(new RegExp(`\\{${key}\\}`, 'g'), displayVal);
-    });
-  }
+  const mergedParams = {
+    target: 100,
+    targetScore: 100,
+    ...(params && typeof params === 'object' ? params : {}),
+  };
+
+  Object.entries(mergedParams).forEach(([key, val]) => {
+    const displayVal = Array.isArray(val) ? val.join(', ') : String(val ?? '');
+    template = template.replace(new RegExp(`\\{${key}\\}`, 'g'), displayVal);
+  });
 
   return template;
 }
