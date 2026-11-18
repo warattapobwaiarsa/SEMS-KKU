@@ -21,6 +21,9 @@ import {
   ShieldCheck,
   Car,
   RotateCw,
+  History,
+  CheckCircle2,
+  Clock,
 } from 'lucide-react';
 
 interface ApplicantProfilePanelProps {
@@ -40,7 +43,7 @@ function InfoField({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <span className="text-sm font-semibold text-foreground break-words">{value}</span>
+      <span className="text-sm font-semibold text-foreground wrap-break-word">{value}</span>
     </div>
   );
 }
@@ -186,7 +189,7 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
                         type="button"
                         onClick={handleRetry}
                         title="ลองคำนวณระยะทางใหม่อีกครั้ง"
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold text-primary hover:bg-primary/10 transition cursor-pointer"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold text-primary hover:bg-primary/10 transition cursor-pointer"
                       >
                         <RotateCw className="w-3 h-3" />
                         <span>ลองใหม่</span>
@@ -269,8 +272,68 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
 
         <div className="grid grid-cols-2 gap-3.5">
           <InfoField label="เงินกู้ยืมเพื่อการศึกษา (กยศ.)" value={displayValue(info?.studentLoan)} />
-          <InfoField label="ประวัติทุนการศึกษาที่เคยได้รับ" value={displayValue(info?.previousScholarships)} />
+          <InfoField label="ประวัติทุนที่เคยได้รับ (จากระบบเดิม)" value={displayValue(info?.previousScholarships)} />
         </div>
+      </div>
+
+      {/* 5. Card: ประวัติการสมัครและการได้รับทุนในระบบ SEMS [Scope 1.3.3.3] */}
+      <div className="p-4 sm:p-5 bg-card border border-border/80 rounded-2xl shadow-2xs space-y-3.5">
+        <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
+          <div className="flex items-center gap-2">
+            <History className="w-4 h-4 text-primary" />
+            <h4 className="text-sm font-bold text-foreground">ประวัติการขอและได้รับทุนในระบบ SEMS</h4>
+          </div>
+          <span className="text-xs font-medium text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+            รอบที่ปิดแล้ว
+          </span>
+        </div>
+
+        {detail.pastScholarships && detail.pastScholarships.length > 0 ? (
+          <div className="space-y-2">
+            {detail.pastScholarships.map((record) => (
+              <div
+                key={record.roundId}
+                className="p-3 bg-muted/20 border border-border/70 rounded-xl flex items-center justify-between gap-3 text-xs"
+              >
+                <div className="space-y-0.5 min-w-0">
+                  <div className="font-semibold text-foreground truncate flex items-center gap-1.5">
+                    <span>{record.roundName}</span>
+                    {record.scholarshipTypeName && (
+                      <span className="text-xs px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0">
+                        {record.scholarshipTypeName}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-muted-foreground text-xs">
+                    ปีการศึกษา {record.academicYear}/{record.semester} (ชั้นปีที่ {record.studyYear})
+                  </div>
+                </div>
+
+                <div className="shrink-0 text-right">
+                  {record.awardStatus === 'AWARDED' ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/80">
+                      <CheckCircle2 className="w-3 h-3" />
+                      ได้รับทุน {record.amount ? `(${record.amount.toLocaleString()} บ.)` : ''}
+                    </span>
+                  ) : record.awardStatus === 'NOT_AWARDED' ? (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border">
+                      ไม่ได้รับทุน
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200/80">
+                      <Clock className="w-3 h-3" />
+                      ยังไม่สรุปผล
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground italic py-1">
+            ไม่มีประวัติการสมัครในรอบก่อนหน้าในระบบ SEMS
+          </p>
+        )}
       </div>
 
       {/* PDPA Privacy Note */}

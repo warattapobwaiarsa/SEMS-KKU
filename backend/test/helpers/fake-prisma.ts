@@ -25,6 +25,7 @@ type Row = Record<string, unknown>;
 interface LooseArgs {
   where?: Row;
   select?: Row;
+  include?: Row;
   data?: Row;
   create?: Row;
   update?: Row;
@@ -126,7 +127,13 @@ export function createSeedData(): SeedData {
       makeApplicant(5, 1, 'ST-005', 'ทดสอบ', 'ผู้สมัคร005', now),
     ],
     criteria: [
-      { id: 1, name: 'เกณฑ์ชุดทดสอบ', createdAt: now, updatedAt: now },
+      {
+        id: 1,
+        name: 'เกณฑ์ชุดทดสอบ',
+        targetScore: 100,
+        createdAt: now,
+        updatedAt: now,
+      },
     ],
     subCriteria,
     evaluations: [],
@@ -437,9 +444,10 @@ export class FakePrisma {
     }
     const withCriteria: Row = { ...round, criteria: this.buildCriteria() };
     // Handle _count.applicants if requested in select or include
-    const select = (args.select ?? args.include ?? {}) as Row;
+    const select = args.select ?? args.include ?? {};
     if (
-      (select._count as Row | undefined)?.select?.applicants ||
+      ((select._count as Row | undefined)?.select as Row | undefined)
+        ?.applicants ||
       (select._count as Row | undefined)?.applicants === true
     ) {
       const applicantCount = this.data.applicants.filter(
@@ -469,7 +477,7 @@ export class FakePrisma {
       supportingInfo: applicant.supportingInfo ?? null,
     };
     // Handle both select and include (service uses include)
-    const select = (args.select ?? args.include ?? {}) as Row;
+    const select = args.select ?? args.include ?? {};
     return project(withRelations, select) as Row;
   }
 

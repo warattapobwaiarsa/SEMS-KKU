@@ -32,7 +32,7 @@ export class UpdateSubCriteriaDto {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @Max(100)
+  @Max(1000)
   maxScore?: number;
 
   @IsOptional()
@@ -44,6 +44,12 @@ export class UpdateCriteriaDto {
   @IsString()
   @IsNotEmpty()
   name: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(1000)
+  targetScore?: number;
 
   @ValidateNested({ each: true })
   @Type(() => UpdateSubCriteriaDto)

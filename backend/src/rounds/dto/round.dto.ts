@@ -26,6 +26,10 @@ export class CreateScholarshipRoundDto {
   @IsOptional()
   @IsInt()
   criteriaId?: number;
+
+  @IsOptional()
+  @IsInt()
+  scholarshipTypeId?: number;
 }
 
 export class UpdateScholarshipRoundDto {
@@ -45,6 +49,14 @@ export class UpdateScholarshipRoundDto {
   @Min(1)
   @Max(2)
   semester?: number;
+
+  @IsOptional()
+  @IsInt()
+  scholarshipTypeId?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  confirmCriteriaReset?: boolean;
 }
 
 export class LinkCriteriaDto {

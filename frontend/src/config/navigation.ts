@@ -9,47 +9,64 @@ export const SYSTEM_CONFIG = {
 } as const;
 
 export const ADMIN_NAV_ITEMS: NavItemConfig[] = [
-  {
-    title: "ผู้ใช้งาน",
-    href: "/admin/users",
-    iconName: "Users",
-    description: "จัดการบัญชีผู้ใช้งานและกำหนดอายุบัญชีผู้ประเมิน",
-  },
+  // ศูนย์ปฏิบัติการรอบทุน (Operations)
   {
     title: "รอบทุนการศึกษา",
     href: "/admin/scholarship-rounds",
     iconName: "Calendar",
     description: "สร้างและควบคุมวงจรรอบทุน (Draft / Open / Closed)",
-  },
-  {
-    title: "เกณฑ์การประเมิน",
-    href: "/admin/evaluation-criteria",
-    iconName: "CheckSquare",
-    description: "กำหนดชุดเกณฑ์และเกณฑ์ย่อยรวม 100 คะแนน",
+    group: "การดำเนินงาน (Operations)",
   },
   {
     title: "ผู้สมัคร",
     href: "/admin/applicants",
     iconName: "UserCheck",
     description: "นำเข้าข้อมูลผู้สมัครผ่านไฟล์ Excel และดูรายชื่อ",
+    group: "การดำเนินงาน (Operations)",
   },
   {
     title: "ผลการประเมินและอันดับ",
     href: "/admin/evaluation-results",
     iconName: "ListOrdered",
     description: "ตรวจสอบคะแนนเฉลี่ยและการจัดอันดับผู้สมัคร",
+    group: "การดำเนินงาน (Operations)",
   },
   {
     title: "การจัดสรรทุน",
     href: "/admin/scholarship-allocation",
     iconName: "Banknote",
     description: "กำหนดงบประมาณและบันทึกผลการจัดสรรทุน",
+    group: "การดำเนินงาน (Operations)",
   },
+  // การตั้งค่าระบบและเกณฑ์ (Settings)
+  {
+    title: "เกณฑ์การประเมิน",
+    href: "/admin/evaluation-criteria",
+    iconName: "CheckSquare",
+    description: "กำหนดชุดเกณฑ์และเกณฑ์ย่อยรวม 100 คะแนน",
+    group: "การตั้งค่าระบบ (Settings)",
+  },
+  {
+    title: "ประเภททุนการศึกษา",
+    href: "/admin/scholarship-types",
+    iconName: "Award",
+    description: "จัดการประเภททุนและกำหนดเกณฑ์การประเมินเริ่มต้น",
+    group: "การตั้งค่าระบบ (Settings)",
+  },
+  {
+    title: "ผู้ใช้งาน",
+    href: "/admin/users",
+    iconName: "Users",
+    description: "จัดการบัญชีผู้ใช้งานและกำหนดอายุบัญชีผู้ประเมิน",
+    group: "การตั้งค่าระบบ (Settings)",
+  },
+  // รายงาน (Reports)
   {
     title: "รายงาน",
     href: "/admin/reports",
     iconName: "BarChart3",
     description: "ส่งออกรายงานสรุปผลและรายงานการจัดสรรทุนพร้อมรหัสผ่าน",
+    group: "รายงานและการส่งออก (Reports)",
   },
 ];
 

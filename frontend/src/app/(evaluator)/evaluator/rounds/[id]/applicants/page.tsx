@@ -146,7 +146,7 @@ export default function EvaluatorApplicantsPage({
 
   // เรียก fetch เมื่อ debouncedSearch, page, limit เปลี่ยน
   useEffect(() => {
-    void fetchApplicants();
+    void Promise.resolve().then(() => fetchApplicants());
   }, [fetchApplicants]);
 
   // กรองตาม status tab
@@ -226,7 +226,7 @@ export default function EvaluatorApplicantsPage({
           >
             เริ่มประเมิน
           </button>
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block w-52 p-2 bg-slate-900 text-white text-[11px] rounded-lg shadow-lg z-20 text-center leading-relaxed">
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block w-52 p-2 bg-slate-900 text-white text-xs rounded-lg shadow-lg z-20 text-center leading-relaxed">
             บัญชีหมดอายุ ไม่สามารถเริ่มประเมินรายใหม่ได้
           </div>
         </div>
@@ -270,7 +270,7 @@ export default function EvaluatorApplicantsPage({
           <div className="text-2xl font-bold font-mono text-foreground">
             {pagination.total} <span className="text-xs font-normal text-muted-foreground">คน</span>
           </div>
-          <span className="text-[11px] text-muted-foreground mt-1">ทั้งหมดที่เปิดให้ประเมิน</span>
+          <span className="text-xs text-muted-foreground mt-1">ทั้งหมดที่เปิดให้ประเมิน</span>
         </div>
 
         <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
@@ -297,7 +297,7 @@ export default function EvaluatorApplicantsPage({
           <div className="text-2xl font-bold font-mono text-amber-700">
             {stats.draft} <span className="text-xs font-normal text-muted-foreground">คน</span>
           </div>
-          <span className="text-[11px] text-muted-foreground mt-1">กำลังดำเนินการอยู่</span>
+          <span className="text-xs text-muted-foreground mt-1">กำลังดำเนินการอยู่</span>
         </div>
 
         <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
@@ -308,7 +308,7 @@ export default function EvaluatorApplicantsPage({
           <div className="text-2xl font-bold font-mono text-foreground">
             {stats.notStarted} <span className="text-xs font-normal text-muted-foreground">คน</span>
           </div>
-          <span className="text-[11px] text-muted-foreground mt-1">รอการตรวจและให้คะแนน</span>
+          <span className="text-xs text-muted-foreground mt-1">รอการตรวจและให้คะแนน</span>
         </div>
       </div>
 
@@ -433,7 +433,7 @@ export default function EvaluatorApplicantsPage({
                   <div key={row.id} className="p-4 space-y-3 hover:bg-muted/10 transition">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <span className="text-[11px] font-mono font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+                        <span className="text-xs font-mono font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
                           #{String((pagination.page - 1) * pagination.limit + idx + 1).padStart(2, '0')} • {row.studentCode}
                         </span>
                         <h4 className="mt-1 font-semibold text-foreground text-sm">
@@ -445,11 +445,11 @@ export default function EvaluatorApplicantsPage({
 
                     <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground bg-muted/30 p-2.5 rounded-xl border border-border/40">
                       <div>
-                        <span className="block text-[10px] text-muted-foreground/80">สาขาวิชา</span>
+                        <span className="block text-xs text-muted-foreground/80">สาขาวิชา</span>
                         <span className="font-medium text-foreground truncate block">{row.major || '-'}</span>
                       </div>
                       <div>
-                        <span className="block text-[10px] text-muted-foreground/80">ส่งผลแล้ว</span>
+                        <span className="block text-xs text-muted-foreground/80">ส่งผลแล้ว</span>
                         <span className="font-mono font-semibold text-foreground">
                           {row.submittedCount > 0 ? `${row.submittedCount} คน` : '0 คน'}
                         </span>

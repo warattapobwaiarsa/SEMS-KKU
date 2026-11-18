@@ -19,6 +19,7 @@ import { EvaluationReadService } from './evaluation-read.service';
 // mock PrismaService: มีทั้งฟังก์ชันอ่าน และฟังก์ชันเขียน (ไว้ตรวจว่า "ไม่ถูกเรียก")
 // ---------------------------------------------------------------------------
 const applicantFindUniqueMock = jest.fn();
+const applicantFindManyMock = jest.fn();
 const evaluationFindUniqueMock = jest.fn();
 const roundFindUniqueMock = jest.fn();
 
@@ -37,6 +38,7 @@ const writeMocks = {
 const mockPrismaService = {
   applicant: {
     findUnique: applicantFindUniqueMock,
+    findMany: applicantFindManyMock,
     update: writeMocks.applicantUpdate,
   },
   evaluation: {
@@ -65,6 +67,7 @@ const ALLOWED_APPLICANT_KEYS = [
   'lastName',
   'legacySeq',
   'major',
+  'pastScholarships',
   'roundId',
   'studentCode',
   'studyYear',
@@ -277,6 +280,7 @@ describe('EvaluationReadService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    applicantFindManyMock.mockResolvedValue([]);
     service = new EvaluationReadService(mockPrismaService);
   });
 
@@ -377,6 +381,78 @@ describe('EvaluationReadService', () => {
       await service.getApplicantDetailForEvaluator(1);
 
       expectNoWrites();
+    });
+
+    it('ดึงประวัติการสมัครรอบ Closed ในอดีตและ map สถานะตาม Scope 1.3.3.3', async () => {
+      applicantFindUniqueMock.mockResolvedValue(
+        createApplicantDetailRow(RoundStatus.OPEN),
+      );
+
+      applicantFindManyMock.mockResolvedValueOnce([
+        {
+          id: 101,
+          studyYear: 2,
+          round: {
+            id: 88,
+            name: 'ทุนพัฒนา 2568/1',
+            academicYear: 2568,
+            semester: 1,
+            scholarshipType: { name: 'ทุนขาดแคลน' },
+            allocation: { status: 'FINALIZED' },
+          },
+          allocation: { isAwarded: true, amount: 15000 },
+        },
+        {
+          id: 102,
+          studyYear: 1,
+          round: {
+            id: 77,
+            name: 'ทุนพัฒนา 2567/2',
+            academicYear: 2567,
+            semester: 2,
+            scholarshipType: null,
+            allocation: { status: 'EDITING' }, // ยังไม่ Finalized
+          },
+          allocation: { isAwarded: false, amount: 0 },
+        },
+      ]);
+
+      const result = await service.getApplicantDetailForEvaluator(1);
+
+      expect(applicantFindManyMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            studentCode: 'FAKE-OPEN-01',
+            roundId: { not: 2 },
+            round: { status: RoundStatus.CLOSED },
+            anonymizedAt: null,
+          },
+        }),
+      );
+
+      expect(result.pastScholarships).toHaveLength(2);
+      // Finalized + Awarded
+      expect(result.pastScholarships![0]).toEqual({
+        roundId: 88,
+        roundName: 'ทุนพัฒนา 2568/1',
+        scholarshipTypeName: 'ทุนขาดแคลน',
+        academicYear: 2568,
+        semester: 1,
+        studyYear: 2,
+        awardStatus: 'AWARDED',
+        amount: 15000,
+      });
+      // Not Finalized -> PENDING (ยังไม่สรุปผล)
+      expect(result.pastScholarships![1]).toEqual({
+        roundId: 77,
+        roundName: 'ทุนพัฒนา 2567/2',
+        scholarshipTypeName: null,
+        academicYear: 2567,
+        semester: 2,
+        studyYear: 1,
+        awardStatus: 'PENDING',
+        amount: null,
+      });
     });
   });
 

@@ -34,12 +34,14 @@ export function ImportHistoryModal({
   useEffect(() => {
     if (!isOpen) return;
     let isMounted = true;
-    setLoading(true);
-    setError(null);
-
-    fetchImportHistory(roundId)
+    Promise.resolve().then(() => {
+      if (!isMounted) return;
+      setLoading(true);
+      setError(null);
+      return fetchImportHistory(roundId);
+    })
       .then((data) => {
-        if (isMounted) setHistory(data);
+        if (isMounted && data) setHistory(data);
       })
       .catch((err: unknown) => {
         if (isMounted) {

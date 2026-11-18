@@ -30,6 +30,7 @@ interface SubCriteriaRow {
 export default function CreateCriteriaPage() {
   const router = useRouter();
   const [name, setName] = useState('');
+  const [targetScore, setTargetScore] = useState<number>(100);
   const [subCriteria, setSubCriteria] = useState<SubCriteriaRow[]>([]);
 
   const [saving, setSaving] = useState(false);
@@ -42,13 +43,14 @@ export default function CreateCriteriaPage() {
     .filter((row) => row.type === 'SCORED')
     .reduce((sum, row) => sum + (Number(row.maxScore) || 0), 0);
 
-  const isScoreValid = totalScore === 100;
+  const isTargetScoreValid = Number.isInteger(targetScore) && targetScore >= 1 && targetScore <= 1000;
+  const isScoreValid = isTargetScoreValid && totalScore === targetScore;
   const scoredCount = subCriteria.filter((r) => r.type === 'SCORED').length;
   const hasAtLeastOneScored = scoredCount > 0;
   const hasAllTitles = subCriteria.length > 0 && subCriteria.every((r) => r.title.trim().length > 0);
   const hasValidMaxScores = subCriteria
     .filter((r) => r.type === 'SCORED')
-    .every((r) => r.maxScore >= 1 && r.maxScore <= 100);
+    .every((r) => r.maxScore >= 1 && r.maxScore <= targetScore);
 
   const isFormValid =
     name.trim().length > 0 &&
@@ -160,12 +162,16 @@ export default function CreateCriteriaPage() {
       setErrorMessage('ชุดเกณฑ์ต้องมีเกณฑ์แบบคำนวณคะแนนอย่างน้อย 1 ข้อ');
       return;
     }
+    if (!isTargetScoreValid) {
+      setErrorMessage('คะแนนรวมเป้าหมายต้องเป็นจำนวนเต็มระหว่าง 1–1,000 คะแนน');
+      return;
+    }
     if (!hasValidMaxScores) {
-      setErrorMessage('คะแนนเต็มของแต่ละข้อต้องเป็นจำนวนเต็มระหว่าง 1–100 คะแนน');
+      setErrorMessage(`คะแนนเต็มของแต่ละข้อต้องเป็นจำนวนเต็มระหว่าง 1–${targetScore} คะแนน`);
       return;
     }
     if (!isScoreValid) {
-      setErrorMessage(`ผลรวมคะแนนต้องเท่ากับ 100 คะแนนพอดี (ปัจจุบัน: ${totalScore} คะแนน)`);
+      setErrorMessage(`ผลรวมคะแนนต้องเท่ากับ ${targetScore} คะแนนพอดี (ปัจจุบัน: ${totalScore} คะแนน)`);
       return;
     }
     if (saving) return;
@@ -176,6 +182,7 @@ export default function CreateCriteriaPage() {
 
       const payload = {
         name: name.trim(),
+        targetScore: Number(targetScore),
         subCriteria: subCriteria.map((row) => ({
           sortOrder: row.sortOrder,
           title: row.title.trim(),
@@ -210,14 +217,14 @@ export default function CreateCriteriaPage() {
           {isScoreValid ? (
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs">
               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-              ผลรวมคะแนนครบ 100 คะแนน (พร้อมบันทึก)
+              ผลรวมคะแนนครบ {targetScore} คะแนน (พร้อมบันทึก)
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs">
               <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
-              {totalScore > 100
-                ? `คะแนนเกินกำหนดไป ${totalScore - 100} คะแนน`
-                : `ยังขาดอีก ${100 - totalScore} คะแนน`}
+              {totalScore > targetScore
+                ? `คะแนนเกินกำหนดไป ${totalScore - targetScore} คะแนน`
+                : `ยังขาดอีก ${targetScore - totalScore} คะแนน`}
             </span>
           )}
         </div>
@@ -248,22 +255,49 @@ export default function CreateCriteriaPage() {
         {/* Left Column (8 cols on lg) */}
         <div className="lg:col-span-8 flex flex-col gap-6">
           {/* Card 1: General Info */}
-          <div className="bg-card border border-border/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-3">
-            <label htmlFor="criteriaName" className="block text-sm font-semibold text-foreground">
-              ชื่อชุดเกณฑ์การประเมิน <span className="text-destructive">*</span>
-            </label>
-            <input
-              id="criteriaName"
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="เช่น เกณฑ์การพิจารณาทุนเรียนดีและขาดแคลนทุนทรัพย์ ประจำปี 2569"
-              className="w-full px-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
-            />
+          <div className="bg-card border border-border/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+              <div className="sm:col-span-8 space-y-2">
+                <label htmlFor="criteriaName" className="block text-sm font-semibold text-foreground">
+                  ชื่อชุดเกณฑ์การประเมิน <span className="text-destructive">*</span>
+                </label>
+                <input
+                  id="criteriaName"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="เช่น เกณฑ์การพิจารณาทุนเรียนดีและขาดแคลนทุนทรัพย์ ประจำปี 2569"
+                  className="w-full px-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
+                />
+              </div>
+
+              <div className="sm:col-span-4 space-y-2">
+                <label htmlFor="targetScoreInput" className="block text-sm font-semibold text-foreground">
+                  คะแนนรวมเป้าหมาย <span className="text-destructive">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    id="targetScoreInput"
+                    type="number"
+                    min="1"
+                    max="1000"
+                    required
+                    value={targetScore || ''}
+                    onChange={(e) => setTargetScore(parseInt(e.target.value) || 0)}
+                    placeholder="100"
+                    className="w-full px-4 py-2.5 text-sm font-mono font-bold bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition pr-14"
+                  />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium pointer-events-none">
+                    คะแนน
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-              ชื่อชุดเกณฑ์ต้องไม่ซ้ำกับชุดเกณฑ์ที่มีอยู่ในระบบ
+              กำหนดคะแนนรวมเป้าหมายได้ตั้งแต่ 1 ถึง 1,000 คะแนน (ผลรวมเกณฑ์ย่อยแบบมีคะแนนต้องเท่ากับเป้าหมายนี้)
             </p>
           </div>
 
@@ -361,7 +395,7 @@ export default function CreateCriteriaPage() {
                               ข้อที่ {row.sortOrder}
                             </span>
                             <span
-                              className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border shadow-2xs ${
+                              className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border shadow-2xs ${
                                 row.type === 'SCORED'
                                   ? 'bg-blue-50 text-blue-700 border-blue-200'
                                   : 'bg-zinc-100 text-zinc-700 border-zinc-200'
@@ -401,7 +435,7 @@ export default function CreateCriteriaPage() {
                               <input
                                 type="number"
                                 min="1"
-                                max="100"
+                                max={targetScore}
                                 required
                                 value={row.maxScore || ''}
                                 onChange={(e) =>
@@ -471,7 +505,7 @@ export default function CreateCriteriaPage() {
                 </div>
 
                 <span className="text-xs text-muted-foreground font-medium">
-                  ทั้งหมด {subCriteria.length} ข้อ (คะแนนรวม {totalScore}/100)
+                  ทั้งหมด {subCriteria.length} ข้อ (คะแนนรวม {totalScore}/{targetScore})
                 </span>
               </div>
             )}
@@ -486,7 +520,7 @@ export default function CreateCriteriaPage() {
                 <Calculator className="h-4 w-4 text-primary" />
                 คะแนนรวมทั้งหมด
               </h3>
-              <span className="text-xs font-mono text-muted-foreground">เป้าหมาย 100</span>
+              <span className="text-xs font-mono text-muted-foreground">เป้าหมาย {targetScore}</span>
             </div>
 
             {/* Score Highlight Box */}
@@ -494,7 +528,7 @@ export default function CreateCriteriaPage() {
               className={`rounded-2xl p-6 text-center border transition-all duration-300 ${
                 isScoreValid
                   ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-800 shadow-sm ring-4 ring-emerald-500/10'
-                  : totalScore > 100
+                  : totalScore > targetScore
                   ? 'bg-rose-500/10 border-rose-500/40 text-rose-800'
                   : 'bg-amber-500/10 border-amber-500/40 text-amber-800'
               }`}
@@ -504,20 +538,20 @@ export default function CreateCriteriaPage() {
               </div>
               <div className="text-5xl font-black font-mono tracking-tight transition-transform duration-200">
                 {totalScore}
-                <span className="text-base font-normal text-muted-foreground ml-1.5">/ 100</span>
+                <span className="text-base font-normal text-muted-foreground ml-1.5">/ {targetScore}</span>
               </div>
               <div className="mt-3.5 text-xs font-semibold">
                 {isScoreValid ? (
                   <span className="inline-flex items-center gap-1.5 text-emerald-700">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" /> ผลรวมครบ 100 คะแนนพอดี
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" /> ผลรวมครบ {targetScore} คะแนนพอดี
                   </span>
-                ) : totalScore > 100 ? (
+                ) : totalScore > targetScore ? (
                   <span className="inline-flex items-center gap-1.5 text-rose-700">
-                    <AlertCircle className="h-4 w-4 text-rose-600" /> คะแนนเกิน 100 ไป {totalScore - 100} คะแนน
+                    <AlertCircle className="h-4 w-4 text-rose-600" /> คะแนนเกิน {targetScore} ไป {totalScore - targetScore} คะแนน
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 text-amber-700">
-                    <AlertCircle className="h-4 w-4 text-amber-600" /> ยังขาดอีก {100 - totalScore} คะแนน
+                    <AlertCircle className="h-4 w-4 text-amber-600" /> ยังขาดอีก {targetScore - totalScore} คะแนน
                   </span>
                 )}
               </div>
@@ -532,6 +566,10 @@ export default function CreateCriteriaPage() {
                   ระบุชื่อชุดเกณฑ์การประเมิน
                 </li>
                 <li className="flex items-center gap-2">
+                  <span className={isTargetScoreValid ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
+                  กำหนดคะแนนรวมเป้าหมาย (1–1,000)
+                </li>
+                <li className="flex items-center gap-2">
                   <span className={hasAllTitles ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
                   ระบุชื่อหัวข้อเกณฑ์ย่อยครบทุกข้อ
                 </li>
@@ -541,11 +579,11 @@ export default function CreateCriteriaPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <span className={hasValidMaxScores ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
-                  คะแนนเต็มแต่ละข้ออยู่ในช่วง 1–100
+                  คะแนนเต็มแต่ละข้ออยู่ในช่วง 1–{targetScore}
                 </li>
                 <li className="flex items-center gap-2">
                   <span className={isScoreValid ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
-                  ผลรวมคะแนนเท่ากับ 100 คะแนนพอดี
+                  ผลรวมคะแนนเท่ากับ {targetScore} คะแนนพอดี
                 </li>
               </ul>
             </div>

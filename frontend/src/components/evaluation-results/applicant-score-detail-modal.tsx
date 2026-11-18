@@ -23,19 +23,17 @@ export function ApplicantScoreDetailModal({
   const [activeTab, setActiveTab] = useState<number>(0);
 
   useEffect(() => {
-    if (!isOpen || !applicantId) {
-      setData(null);
-      setError(null);
-      return;
-    }
+    if (!isOpen || !applicantId) return;
 
     let isMounted = true;
-    setLoading(true);
-    setError(null);
-
-    fetchApplicantEvaluationResults(applicantId)
+    Promise.resolve().then(() => {
+      if (!isMounted) return;
+      setLoading(true);
+      setError(null);
+      return fetchApplicantEvaluationResults(applicantId);
+    })
       .then((res) => {
-        if (isMounted) {
+        if (isMounted && res) {
           setData(res);
           setActiveTab(0);
         }
@@ -97,7 +95,7 @@ export function ApplicantScoreDetailModal({
                   {data.finalScore.display}{' '}
                   <span className="text-xs font-normal text-muted-foreground font-sans">คะแนน</span>
                 </span>
-                <span className="text-[11px] text-muted-foreground mt-1">
+                <span className="text-xs text-muted-foreground mt-1">
                   คำนวณแบบน้ำหนักเท่ากัน (Equal Weight)
                 </span>
               </div>
@@ -109,8 +107,8 @@ export function ApplicantScoreDetailModal({
                   {data.evaluations.length}{' '}
                   <span className="text-xs font-normal text-muted-foreground font-sans">ท่าน</span>
                 </span>
-                <span className="text-[11px] text-muted-foreground mt-1">
-                  นับเฉพาะสถานะ SUBMITTED [BR-SCR-01]
+                <span className="text-xs text-muted-foreground mt-1">
+                  นับเฉพาะการประเมินที่ส่งผลแล้ว (Submitted)
                 </span>
               </div>
               <div className="flex flex-col">
@@ -120,7 +118,7 @@ export function ApplicantScoreDetailModal({
                 <span className="text-2xl font-bold font-mono text-foreground mt-0.5">
                   {data.applicant.gpa.toFixed(2)}
                 </span>
-                <span className="text-[11px] text-muted-foreground mt-1">
+                <span className="text-xs text-muted-foreground mt-1">
                   ใช้พิจารณา Tie-break ลำดับถัดไป
                 </span>
               </div>
@@ -131,7 +129,7 @@ export function ApplicantScoreDetailModal({
               <div className="text-center py-12 border border-dashed border-border/80 rounded-2xl bg-muted/10">
                 <p className="text-foreground font-semibold text-sm">ยังไม่มีผู้ประเมินยืนยันส่งผลคะแนนสำหรับผู้สมัครรายนี้</p>
                 <p className="text-muted-foreground text-xs mt-1">
-                  (คะแนนในสถานะ Draft จะไม่ถูกนำมาแสดงในส่วนนี้ตามกฎ BR-SCR-01)
+                  (คะแนนในสถานะแบบร่างจะไม่ถูกนำมาคำนวณในส่วนนี้)
                 </p>
               </div>
             ) : (
@@ -157,7 +155,7 @@ export function ApplicantScoreDetailModal({
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>{ev.evaluatorName}</span>
                       <span
-                        className={`px-1.5 py-0.2 rounded text-[10px] font-mono font-bold ${
+                        className={`px-1.5 py-0.2 rounded text-xs font-mono font-bold ${
                           activeTab === idx
                             ? 'bg-primary-foreground/20 text-primary-foreground'
                             : 'bg-background text-foreground border border-border/70'
@@ -203,7 +201,7 @@ export function ApplicantScoreDetailModal({
                               <td className="py-2.5 px-3 font-semibold text-foreground">
                                 {item.title}
                                 {item.type === 'TEXT' && (
-                                  <span className="ml-2 px-1.5 py-0.5 rounded bg-muted text-muted-foreground text-[10px] font-normal">
+                                  <span className="ml-2 px-1.5 py-0.5 rounded bg-muted text-muted-foreground text-xs font-normal">
                                     ไม่มีคะแนน
                                   </span>
                                 )}
@@ -223,13 +221,13 @@ export function ApplicantScoreDetailModal({
                               <td className="py-2.5 px-3 text-foreground">
                                 {item.comment && (
                                   <div className="text-xs text-foreground/90">
-                                    <span className="text-[11px] font-semibold text-muted-foreground">ความเห็น: </span>
+                                    <span className="text-xs font-semibold text-muted-foreground">ความเห็น: </span>
                                     {item.comment}
                                   </div>
                                 )}
                                 {item.textValue && (
                                   <div className="text-xs text-foreground/90 mt-0.5">
-                                    <span className="text-[11px] font-semibold text-muted-foreground">ข้อความ: </span>
+                                    <span className="text-xs font-semibold text-muted-foreground">ข้อความ: </span>
                                     {item.textValue}
                                   </div>
                                 )}

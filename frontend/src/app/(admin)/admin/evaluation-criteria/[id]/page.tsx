@@ -16,6 +16,7 @@ import {
   Lock, 
   MessageSquare,
   Layers,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface SubCriteriaRow {
@@ -35,6 +36,7 @@ export default function EditOrViewCriteriaPage() {
 
   const [criteria, setCriteria] = useState<CriteriaDetail | null>(null);
   const [name, setName] = useState('');
+  const [targetScore, setTargetScore] = useState<number>(100);
   const [subCriteria, setSubCriteria] = useState<SubCriteriaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -49,6 +51,7 @@ export default function EditOrViewCriteriaPage() {
       const res = await fetchCriteriaById(criteriaId);
       setCriteria(res.data);
       setName(res.data.name);
+      setTargetScore(res.data.targetScore || 100);
       setSubCriteria(
         res.data.subCriteria.map((sub, idx) => ({
           id: sub.id,
@@ -69,7 +72,7 @@ export default function EditOrViewCriteriaPage() {
   }, [criteriaId]);
 
   useEffect(() => {
-    void loadCriteria();
+    void Promise.resolve().then(() => loadCriteria());
   }, [loadCriteria]);
 
   const totalScore = subCriteria
@@ -77,13 +80,14 @@ export default function EditOrViewCriteriaPage() {
     .reduce((sum, row) => sum + (Number(row.maxScore) || 0), 0);
 
   const isLocked = criteria?.isLocked || false;
-  const isScoreValid = totalScore === 100;
+  const isTargetScoreValid = Number.isInteger(targetScore) && targetScore >= 1 && targetScore <= 1000;
+  const isScoreValid = isTargetScoreValid && totalScore === targetScore;
   const scoredCount = subCriteria.filter((r) => r.type === 'SCORED').length;
   const hasAtLeastOneScored = scoredCount > 0;
   const hasAllTitles = subCriteria.length > 0 && subCriteria.every((r) => r.title.trim().length > 0);
   const hasValidMaxScores = subCriteria
     .filter((r) => r.type === 'SCORED')
-    .every((r) => r.maxScore >= 1 && r.maxScore <= 100);
+    .every((r) => r.maxScore >= 1 && r.maxScore <= targetScore);
 
   const isFormValid =
     name.trim().length > 0 &&
@@ -207,12 +211,16 @@ export default function EditOrViewCriteriaPage() {
       setErrorMessage('ชุดเกณฑ์ต้องมีเกณฑ์แบบคำนวณคะแนนอย่างน้อย 1 ข้อ');
       return;
     }
+    if (!isTargetScoreValid) {
+      setErrorMessage('คะแนนรวมเป้าหมายต้องเป็นจำนวนเต็มระหว่าง 1–1,000 คะแนน');
+      return;
+    }
     if (!hasValidMaxScores) {
-      setErrorMessage('คะแนนเต็มของแต่ละข้อต้องเป็นจำนวนเต็มระหว่าง 1–100 คะแนน');
+      setErrorMessage(`คะแนนเต็มของแต่ละข้อต้องเป็นจำนวนเต็มระหว่าง 1–${targetScore} คะแนน`);
       return;
     }
     if (!isScoreValid) {
-      setErrorMessage(`ผลรวมคะแนนต้องเท่ากับ 100 คะแนนพอดี (ปัจจุบัน: ${totalScore} คะแนน)`);
+      setErrorMessage(`ผลรวมคะแนนต้องเท่ากับ ${targetScore} คะแนนพอดี (ปัจจุบัน: ${totalScore} คะแนน)`);
       return;
     }
     if (saving) return;
@@ -223,6 +231,7 @@ export default function EditOrViewCriteriaPage() {
 
       const payload = {
         name: name.trim(),
+        targetScore: Number(targetScore),
         subCriteria: subCriteria.map((row) => ({
           id: row.id,
           sortOrder: row.sortOrder,
@@ -239,7 +248,7 @@ export default function EditOrViewCriteriaPage() {
       const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการอัปเดตเกณฑ์';
       setErrorMessage(msg);
       if (msg.includes('LOCKED') || msg.includes('ห้ามแก้ไข') || msg.includes('Open/Closed')) {
-        void loadCriteria();
+        void Promise.resolve().then(() => loadCriteria());
       }
     } finally {
       setSaving(false);
@@ -275,12 +284,12 @@ export default function EditOrViewCriteriaPage() {
           ) : isScoreValid ? (
             <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-2xs">
               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-              สถานะ: พร้อมบันทึก (100 คะแนน)
+              สถานะ: พร้อมบันทึก ({targetScore} คะแนน)
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs">
               <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
-              สถานะ: ขาด/เกิน {Math.abs(100 - totalScore)} คะแนน
+              สถานะ: {totalScore > targetScore ? `เกิน ${totalScore - targetScore}` : `ขาด ${targetScore - totalScore}`} คะแนน
             </span>
           )}
         </div>
@@ -334,20 +343,50 @@ export default function EditOrViewCriteriaPage() {
         <div className="lg:col-span-8 flex flex-col gap-6">
           {/* Card 1: Criteria General Info */}
           <div className="bg-card border border-border rounded-xl p-5 shadow-xs space-y-4">
-            <div>
-              <label htmlFor="criteriaName" className="block text-sm font-semibold text-foreground mb-1">
-                ชื่อเกณฑ์การประเมิน <span className="text-destructive">*</span>
-              </label>
-              <input
-                id="criteriaName"
-                type="text"
-                disabled={isLocked}
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:bg-muted disabled:text-muted-foreground transition"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+              <div className="sm:col-span-8">
+                <label htmlFor="criteriaName" className="block text-sm font-semibold text-foreground mb-1">
+                  ชื่อเกณฑ์การประเมิน <span className="text-destructive">*</span>
+                </label>
+                <input
+                  id="criteriaName"
+                  type="text"
+                  disabled={isLocked}
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3.5 py-2 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:bg-muted disabled:text-muted-foreground transition"
+                />
+              </div>
+
+              <div className="sm:col-span-4">
+                <label htmlFor="targetScoreInput" className="block text-sm font-semibold text-foreground mb-1">
+                  คะแนนรวมเป้าหมาย <span className="text-destructive">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    id="targetScoreInput"
+                    type="number"
+                    min="1"
+                    max="1000"
+                    disabled={isLocked}
+                    required
+                    value={targetScore || ''}
+                    onChange={(e) => setTargetScore(parseInt(e.target.value) || 0)}
+                    placeholder="100"
+                    className="w-full px-3.5 py-2 text-sm font-mono font-bold bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:bg-muted disabled:text-muted-foreground transition pr-14"
+                  />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium pointer-events-none">
+                    คะแนน
+                  </span>
+                </div>
+              </div>
             </div>
+
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+              คะแนนรวมเป้าหมายต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง 1,000 คะแนน
+            </p>
           </div>
 
           {/* Card 2: Sub-Criteria List */}
@@ -415,7 +454,7 @@ export default function EditOrViewCriteriaPage() {
                           #{row.sortOrder}
                         </span>
                         <span
-                          className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
+                          className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
                             row.type === 'SCORED'
                               ? 'bg-blue-50 text-blue-700 border-blue-200'
                               : 'bg-zinc-100 text-zinc-700 border-zinc-300'
@@ -443,7 +482,7 @@ export default function EditOrViewCriteriaPage() {
                             <input
                               type="number"
                               min="1"
-                              max="100"
+                              max={targetScore}
                               disabled={isLocked}
                               required
                               value={row.maxScore || ''}
@@ -524,7 +563,7 @@ export default function EditOrViewCriteriaPage() {
                 </div>
 
                 <span className="text-xs text-muted-foreground font-medium">
-                  ทั้งหมด {subCriteria.length} ข้อ (คะแนนรวม {totalScore}/100)
+                  ทั้งหมด {subCriteria.length} ข้อ (คะแนนรวม {totalScore}/{targetScore})
                 </span>
               </div>
             )}
@@ -534,9 +573,12 @@ export default function EditOrViewCriteriaPage() {
         {/* Right Column */}
         <div className="lg:col-span-4 sticky top-20 flex flex-col gap-4">
           <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-5">
-            <h3 className="text-base font-bold text-slate-900 border-b border-slate-200 pb-3">
-              ผลรวมคะแนนเกณฑ์
-            </h3>
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="text-base font-bold text-slate-900">
+                ผลรวมคะแนนเกณฑ์
+              </h3>
+              <span className="text-xs font-mono text-muted-foreground">เป้าหมาย {targetScore}</span>
+            </div>
 
             <div
               className={`rounded-2xl p-6 text-center border transition shadow-xs ${
@@ -548,7 +590,7 @@ export default function EditOrViewCriteriaPage() {
               <div className="text-xs font-bold uppercase tracking-wider mb-1.5 opacity-80">คะแนนรวมทั้งหมด</div>
               <div className="text-5xl font-extrabold font-mono tracking-tight">
                 {totalScore}
-                <span className="text-lg font-normal ml-1.5 opacity-70">/ 100</span>
+                <span className="text-lg font-normal ml-1.5 opacity-70">/ {targetScore}</span>
               </div>
             </div>
 
@@ -560,7 +602,7 @@ export default function EditOrViewCriteriaPage() {
                     <Layers className="h-4 w-4 text-primary" />
                     รอบทุนที่นำเกณฑ์นี้ไปใช้
                   </span>
-                  <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
                     {criteria.usedByRounds.length} รอบ
                   </span>
                 </div>
@@ -584,7 +626,7 @@ export default function EditOrViewCriteriaPage() {
                           </span>
                         </div>
                         <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full border shrink-0 font-medium ${statusConfig.border} ${statusConfig.bg} ${statusConfig.text}`}
+                          className={`text-xs px-2 py-0.5 rounded-full border shrink-0 font-medium ${statusConfig.border} ${statusConfig.bg} ${statusConfig.text}`}
                         >
                           {statusConfig.label}
                         </span>

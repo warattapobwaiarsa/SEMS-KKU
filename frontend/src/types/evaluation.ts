@@ -106,6 +106,17 @@ export interface ApplicantSupportingInfo {
 
 // รายละเอียดผู้สมัครที่ evaluator เห็น (GET /applicants/:id)
 // ไม่มีเลขบัตรประชาชน / โทรศัพท์ / อีเมล [FR-APP-03] [BR-APP-04]
+export interface EvaluatorPastScholarshipRecord {
+  roundId: number;
+  roundName: string;
+  scholarshipTypeName: string | null;
+  academicYear: number;
+  semester: number;
+  studyYear: number;
+  awardStatus: 'AWARDED' | 'NOT_AWARDED' | 'PENDING';
+  amount: number | null;
+}
+
 export interface EvaluatorApplicantDetail {
   id: number;
   roundId: number;
@@ -121,6 +132,57 @@ export interface EvaluatorApplicantDetail {
   gpa: number;
   createdAt: string;
   supportingInfo: ApplicantSupportingInfo | null;
+  pastScholarships?: EvaluatorPastScholarshipRecord[];
+}
+
+export interface AdminApplicantHistoryEvaluationItem {
+  subCriteriaId: number;
+  subCriteriaTitle: string;
+  type: string;
+  maxScore: number | null;
+  score: number | null;
+  comment: string | null;
+  textValue: string | null;
+}
+
+export interface AdminApplicantHistoryEvaluation {
+  evaluatorId: number;
+  evaluatorName: string;
+  totalScore: number | null;
+  items: AdminApplicantHistoryEvaluationItem[];
+}
+
+export interface AdminApplicantHistoryRecord {
+  applicantId: number;
+  roundId: number;
+  roundName: string;
+  scholarshipTypeName: string | null;
+  academicYear: number;
+  semester: number;
+  roundStatus: string;
+  studyYear: number;
+  gpa: number;
+  faculty: string;
+  major: string;
+  finalScore: number | null;
+  totalTargetScore: number | null;
+  submittedEvaluationsCount: number;
+  allocation: {
+    status: string | null;
+    isAwarded: boolean | null;
+    awardStatus: 'AWARDED' | 'NOT_AWARDED' | 'PENDING';
+    amount: number | null;
+  };
+  evaluations: AdminApplicantHistoryEvaluation[];
+}
+
+export interface AdminApplicantHistoryResponse {
+  studentCode: string;
+  studentName: string;
+  faculty: string;
+  major: string;
+  totalRounds: number;
+  records: AdminApplicantHistoryRecord[];
 }
 
 // เกณฑ์ย่อยที่ฝังมาในแต่ละข้อของแบบประเมิน [FR-EVL-04]

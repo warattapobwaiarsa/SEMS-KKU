@@ -20,7 +20,22 @@ export class CriteriaService {
       type: SubCriteriaType;
       maxScore?: number;
     }[],
+    targetScore: number = 100,
   ) {
+    if (
+      !targetScore ||
+      typeof targetScore !== 'number' ||
+      !Number.isInteger(targetScore) ||
+      targetScore < 1 ||
+      targetScore > 1000
+    ) {
+      throw new BusinessException({
+        errorCode: 'TARGET_SCORE_OUT_OF_RANGE',
+        statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        message: 'คะแนนรวมเป้าหมายต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง 1,000',
+      });
+    }
+
     if (!subCriteria || subCriteria.length === 0) {
       throw new BusinessException({
         errorCode: 'SUB_CRITERIA_REQUIRED',
@@ -53,33 +68,34 @@ export class CriteriaService {
       });
     }
 
-    // BR-CRT-05 (FR-CRT-04): Max score must be 1-100
+    // BR-CRT-05 (FR-CRT-04 & Scope 1.3.2.4): Max score must be 1 to targetScore
     for (const item of scoredItems) {
       if (
         item.maxScore === undefined ||
         item.maxScore === null ||
         item.maxScore < 1 ||
-        item.maxScore > 100
+        item.maxScore > targetScore
       ) {
         throw new BusinessException({
           errorCode: 'MAX_SCORE_OUT_OF_RANGE',
           statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-          message: 'คะแนนเต็มเกณฑ์ย่อยต้องเป็น 1–100',
+          message: `คะแนนเต็มเกณฑ์ย่อยต้องเป็น 1–${targetScore}`,
+          params: { targetScore, maxScore: item.maxScore },
         });
       }
     }
 
-    // BR-CRT-06 (FR-CRT-05): Sum of SCORED items must equal exactly 100
+    // BR-CRT-06 (FR-CRT-05 & Scope 1.3.2.4): Sum of SCORED items must equal exactly targetScore
     const sum = scoredItems.reduce(
       (acc, curr) => acc + (curr.maxScore || 0),
       0,
     );
-    if (sum !== 100) {
+    if (sum !== targetScore) {
       throw new BusinessException({
         errorCode: 'CRITERIA_SUM_NOT_100',
         statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-        message: `ผลรวมคะแนน Scored ไม่เท่ากับ 100 (ปัจจุบัน: ${sum})`,
-        params: { sum },
+        message: `ผลรวมคะแนน Scored ไม่เท่ากับ ${targetScore} (ปัจจุบัน: ${sum})`,
+        params: { sum, targetScore, target: targetScore },
       });
     }
   }
@@ -134,6 +150,7 @@ export class CriteriaService {
       return {
         id: criteria.id,
         name: criteria.name,
+        targetScore: criteria.targetScore ?? 100,
         isLocked,
         totalScore,
         usedByRounds: criteria.rounds,
@@ -199,6 +216,7 @@ export class CriteriaService {
     return {
       id: criteria.id,
       name: criteria.name,
+      targetScore: criteria.targetScore ?? 100,
       isLocked,
       totalScore,
       usedByRounds: criteria.rounds,
@@ -209,8 +227,9 @@ export class CriteriaService {
   }
 
   async create(dto: CreateCriteriaDto) {
-    // 1. Validate rules (BR-CRT-04, 05, 06)
-    this.validateCriteriaRules(dto.subCriteria);
+    const targetScore = dto.targetScore ?? 100;
+    // 1. Validate rules (BR-CRT-04, 05, 06, Scope 1.3.2.4)
+    this.validateCriteriaRules(dto.subCriteria, targetScore);
 
     // 2. Check duplicate name (BR-CRT-01)
     const existing = await this.prisma.criteria.findUnique({
@@ -229,6 +248,7 @@ export class CriteriaService {
       const item = await tx.criteria.create({
         data: {
           name: dto.name.trim(),
+          targetScore,
           subCriteria: {
             create: dto.subCriteria.map((sub, idx) => ({
               sortOrder: idx + 1,
@@ -280,6 +300,7 @@ export class CriteriaService {
     return {
       id: created.id,
       name: created.name,
+      targetScore: created.targetScore ?? targetScore,
       isLocked: false,
       totalScore,
       usedByRounds: [],
@@ -319,8 +340,9 @@ export class CriteriaService {
       });
     }
 
+    const targetScore = dto.targetScore ?? existing.targetScore ?? 100;
     // 2. Validate rules
-    this.validateCriteriaRules(dto.subCriteria);
+    this.validateCriteriaRules(dto.subCriteria, targetScore);
 
     // 3. Check duplicate name if changed
     if (dto.name.trim() !== existing.name) {
@@ -383,10 +405,13 @@ export class CriteriaService {
         }
       }
 
-      // Update parent criteria name
+      // Update parent criteria name and targetScore
       await tx.criteria.update({
         where: { id },
-        data: { name: dto.name.trim() },
+        data: {
+          name: dto.name.trim(),
+          ...(dto.targetScore ? { targetScore: dto.targetScore } : {}),
+        },
       });
 
       await tx.auditLog.create({

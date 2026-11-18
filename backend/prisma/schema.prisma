@@ -52,6 +52,11 @@ enum AuditAction {
   BUDGET_SET               
   BUDGET_UPDATE            
   ALLOCATION_UPDATE        
+  SCHOLARSHIP_TYPE_CREATE
+  SCHOLARSHIP_TYPE_UPDATE
+  SCHOLARSHIP_TYPE_ACTIVATE
+  SCHOLARSHIP_TYPE_DEACTIVATE
+  VIEW_APPLICANT_HISTORY
 }
 
 model User {
@@ -84,13 +89,30 @@ model UserSession {
 }
 
 model Criteria {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  subCriteria SubCriteria[]
-  rounds      ScholarshipRound[]
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  targetScore Int      @default(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  subCriteria      SubCriteria[]
+  rounds           ScholarshipRound[]
+  scholarshipTypes ScholarshipType[]
   @@map("criteria")
+}
+
+model ScholarshipType {
+  id                Int      @id @default(autoincrement())
+  name              String   @unique
+  description       String?  @db.Text
+  defaultCriteriaId Int?
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  defaultCriteria   Criteria?          @relation(fields: [defaultCriteriaId], references: [id], onDelete: SetNull)
+  rounds            ScholarshipRound[]
+
+  @@map("scholarship_types")
 }
 
 model SubCriteria {
@@ -108,24 +130,27 @@ model SubCriteria {
 }
 
 model ScholarshipRound {
-  id           Int         @id @default(autoincrement())
-  name         String
-  academicYear Int
-  semester     Int
-  criteriaId   Int?
-  status       RoundStatus @default(DRAFT)
-  createdAt    DateTime    @default(now())
-  openedAt     DateTime?
-  closedAt     DateTime?
-  updatedAt    DateTime    @updatedAt
-  criteria      Criteria?          @relation(fields: [criteriaId], references: [id])
-  applicants    Applicant[]
-  importBatches ImportBatch[]
-  allocation    AllocationSummary?
+  id                Int         @id @default(autoincrement())
+  name              String
+  academicYear      Int
+  semester          Int
+  scholarshipTypeId Int?
+  criteriaId        Int?
+  status            RoundStatus @default(DRAFT)
+  createdAt         DateTime    @default(now())
+  openedAt          DateTime?
+  closedAt          DateTime?
+  updatedAt         DateTime    @updatedAt
+  scholarshipType   ScholarshipType?   @relation(fields: [scholarshipTypeId], references: [id])
+  criteria          Criteria?          @relation(fields: [criteriaId], references: [id])
+  applicants        Applicant[]
+  importBatches     ImportBatch[]
+  allocation        AllocationSummary?
   @@index([status])
   @@index([academicYear, semester])
   @@index([name])
   @@index([criteriaId])
+  @@index([scholarshipTypeId])
   @@map("scholarship_rounds")
 }
 

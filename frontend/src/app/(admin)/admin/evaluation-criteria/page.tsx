@@ -9,7 +9,7 @@ import {
   FileCheck2, 
   Plus, 
   Search, 
-  Calendar, 
+
   Edit3, 
   Eye, 
   CheckCircle2, 
@@ -57,13 +57,13 @@ export default function EvaluationCriteriaPage() {
   }, [page, debouncedSearch]);
 
   useEffect(() => {
-    void loadCriteria();
+    void Promise.resolve().then(() => loadCriteria());
   }, [loadCriteria]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    void loadCriteria();
+    void Promise.resolve().then(() => loadCriteria());
   };
 
   return (
@@ -73,7 +73,7 @@ export default function EvaluationCriteriaPage() {
         moduleBadge="การจัดการข้อมูลหลัก"
         moduleBadgeIcon={Sparkles}
         title="เกณฑ์การประเมินทุน"
-        description="กำหนดชุดเกณฑ์และสัดส่วนคะแนนสำหรับการประเมินทุนการศึกษา (ผลรวมทุกชุดเกณฑ์ต้องเท่ากับ 100 คะแนน)"
+        description="กำหนดชุดเกณฑ์และสัดส่วนคะแนนสำหรับการประเมินทุนการศึกษา (กำหนดคะแนนรวมเป้าหมายได้ 1–1,000 คะแนน)"
         action={
           <Link
             href="/admin/evaluation-criteria/create"
@@ -159,7 +159,7 @@ export default function EvaluationCriteriaPage() {
                 <div key={criteria.id} className="p-4 space-y-3 hover:bg-muted/10 transition">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <span className="text-[11px] font-mono font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+                      <span className="text-xs font-mono font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
                         #{criteria.id}
                       </span>
                       <h4 className="mt-1 font-semibold text-foreground text-sm leading-snug">
@@ -175,20 +175,20 @@ export default function EvaluationCriteriaPage() {
 
                   <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground bg-muted/30 p-2.5 rounded-xl border border-border/40">
                     <div>
-                      <span className="block text-[10px] text-muted-foreground/80">คะแนนเต็ม</span>
+                      <span className="block text-xs text-muted-foreground/80">คะแนนเต็ม</span>
                       <span className="inline-flex items-center gap-1 font-mono font-bold text-emerald-700">
                         <CheckCircle2 className="h-3 w-3" />
                         {criteria.totalScore} คะแนน
                       </span>
                     </div>
                     <div>
-                      <span className="block text-[10px] text-muted-foreground/80">เกณฑ์ย่อย</span>
+                      <span className="block text-xs text-muted-foreground/80">เกณฑ์ย่อย</span>
                       <span className="font-mono font-semibold text-foreground">
                         {criteria.subCriteria.length} ข้อ
                       </span>
                     </div>
                     <div className="col-span-2 border-t border-border/40 pt-2 mt-0.5">
-                      <span className="block text-[10px] text-muted-foreground/80 mb-1">รอบทุนที่นำไปใช้</span>
+                      <span className="block text-xs text-muted-foreground/80 mb-1">รอบทุนที่นำไปใช้</span>
                       <RoundBadges rounds={criteria.usedByRounds} compact={true} maxVisible={2} />
                     </div>
                   </div>

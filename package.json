@@ -30,10 +30,10 @@
   },
   "lint-staged": {
     "backend/**/*.ts": [
-      "npm run --workspace=backend lint --"
+      "node -e \"const{execFileSync}=require('child_process'),path=require('path');execFileSync('npx',['eslint',...process.argv.slice(1).map(p=>path.relative('backend',p))],{cwd:'backend',stdio:'inherit',shell:true})\""
     ],
     "frontend/**/*.{ts,tsx}": [
-      "npm run --workspace=frontend lint --"
+      "node -e \"const{execFileSync}=require('child_process'),path=require('path');execFileSync('npx',['eslint',...process.argv.slice(1).map(p=>path.relative('frontend',p))],{cwd:'frontend',stdio:'inherit',shell:true})\""
     ]
   },
   "devDependencies": {
