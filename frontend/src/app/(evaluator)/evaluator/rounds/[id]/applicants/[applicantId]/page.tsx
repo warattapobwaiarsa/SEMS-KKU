@@ -456,14 +456,24 @@ export default function EvaluatorScoringPage({
         <div className="bg-card/95 backdrop-blur-md border border-border/80 rounded-2xl p-2.5 sm:p-3 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-3">
           {/* ซ้าย: ปุ่มย้อนกลับ + ข้อมูลผู้สมัคร */}
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <Link
-              href={`/evaluator/rounds/${roundId}/applicants`}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground transition shrink-0 shadow-2xs btn-interactive"
+            <button
+              type="button"
+              onClick={async () => {
+                if (dirtyRef.current) {
+                  const saved = await doSave();
+                  if (!saved) {
+                    const leave = window.confirm('การบันทึกร่างยังไม่สำเร็จ ต้องการกลับหน้ารายชื่อหรือไม่?');
+                    if (!leave) return;
+                  }
+                }
+                router.push(`/evaluator/rounds/${roundId}/applicants`);
+              }}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground transition shrink-0 shadow-2xs btn-interactive cursor-pointer"
               title="กลับหน้ารายชื่อผู้สมัคร"
             >
               <ArrowLeft className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="hidden sm:inline">รายชื่อ</span>
-            </Link>
+            </button>
 
             <div className="h-5 w-px bg-border/80 hidden sm:block" />
 

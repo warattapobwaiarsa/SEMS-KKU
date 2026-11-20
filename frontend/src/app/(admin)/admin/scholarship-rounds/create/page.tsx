@@ -21,15 +21,12 @@ import {
   AlertCircle,
   Layers,
   Award,
-  Sparkles,
   CheckCircle2,
   Upload,
   FileSpreadsheet,
   Loader2,
   TableProperties,
-  ChevronRight,
   ShieldCheck,
-  FileCheck2,
 } from 'lucide-react';
 import { Select } from '@/components/ui';
 
@@ -47,7 +44,6 @@ export default function CreateScholarshipRoundPage() {
   const [semester, setSemester] = useState<number>(1);
   const [scholarshipTypeId, setScholarshipTypeId] = useState<number | undefined>(undefined);
   const [scholarshipTypes, setScholarshipTypes] = useState<ScholarshipTypeListItem[]>([]);
-  const [autoSelectedNotice, setAutoSelectedNotice] = useState<string | null>(null);
 
   // Step 2: Criteria
   const [criteriaId, setCriteriaId] = useState<number | undefined>(undefined);
@@ -61,8 +57,6 @@ export default function CreateScholarshipRoundPage() {
   const [previewTab, setPreviewTab] = useState<'valid' | 'invalid'>('valid');
   const [acknowledged, setAcknowledged] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [importSuccess, setImportSuccess] = useState(false);
-  const [importedCount, setImportedCount] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -86,21 +80,10 @@ export default function CreateScholarshipRoundPage() {
     void loadInitialData();
   }, []);
 
-  // เมื่อเลือกประเภททุน ให้ดึงเกณฑ์เริ่มต้นมาใส่ให้อัตโนมัติ
   const handleTypeChange = (selectedTypeId?: number) => {
     setScholarshipTypeId(selectedTypeId);
-    if (!selectedTypeId) {
-      setAutoSelectedNotice(null);
-      return;
-    }
-    const selected = scholarshipTypes.find((t) => t.id === selectedTypeId);
-    if (selected?.defaultCriteriaId) {
-      setCriteriaId(selected.defaultCriteriaId);
-      setAutoSelectedNotice(
-        `ระบบเลือกเกณฑ์เริ่มต้น "${selected.defaultCriteriaName}" สำหรับประเภททุนนี้ให้อัตโนมัติ (สามารถเปลี่ยนได้ในขั้นตอนถัดไป)`,
-      );
-    } else {
-      setAutoSelectedNotice(null);
+    if (selectedTypeId) {
+      setErrorMessage(null);
     }
   };
 
@@ -121,20 +104,28 @@ export default function CreateScholarshipRoundPage() {
       setErrorMessage('ปีการศึกษาต้องอยู่ในช่วง พ.ศ. 2550–2700');
       return;
     }
+    if (!scholarshipTypeId) {
+      setErrorMessage('กรุณาเลือกประเภททุนการศึกษาก่อนดำเนินการต่อไป');
+      return;
+    }
     setCurrentStep(2);
   };
 
   // Submit สร้างรอบทุน (Transition from Step 2 to Step 3)
   const handleCreateRound = async () => {
     setErrorMessage(null);
+    if (!criteriaId) {
+      setErrorMessage('กรุณาเลือกชุดเกณฑ์การประเมินก่อนดำเนินการต่อไป');
+      return;
+    }
     try {
       setSaving(true);
       const payload = {
         name: name.trim(),
         academicYear: Number(academicYear),
         semester: Number(semester),
-        scholarshipTypeId: scholarshipTypeId ? Number(scholarshipTypeId) : undefined,
-        criteriaId: criteriaId ? Number(criteriaId) : undefined,
+        scholarshipTypeId: Number(scholarshipTypeId),
+        criteriaId: Number(criteriaId),
       };
 
       const res = await createRound(payload);
@@ -179,15 +170,13 @@ export default function CreateScholarshipRoundPage() {
     try {
       setImporting(true);
       setErrorMessage(null);
-      const res = await confirmImportApplicants(createdRoundId, {
+      await confirmImportApplicants(createdRoundId, {
         previewToken: previewData.previewToken,
         acknowledgedInvalidRows: previewData.invalidRows > 0 ? acknowledged : false,
       });
-      setImportSuccess(true);
-      setImportedCount(res.importedCount);
+      router.push(`/admin/scholarship-rounds/${createdRoundId}`);
     } catch (err: unknown) {
       setErrorMessage(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการนำเข้าผู้สมัคร');
-    } finally {
       setImporting(false);
     }
   };
@@ -202,7 +191,7 @@ export default function CreateScholarshipRoundPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto pb-16">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-16">
       {/* Top Breadcrumb */}
       <div className="flex items-center justify-between border-b border-border/70 pb-4">
         <Link
@@ -249,7 +238,6 @@ export default function CreateScholarshipRoundPage() {
           </div>
           <div className="min-w-0">
             <div className="text-xs font-bold text-foreground truncate">1. ข้อมูลรอบทุน</div>
-            <div className="text-xs text-muted-foreground truncate">ปีการศึกษา & ประเภททุน</div>
           </div>
         </div>
 
@@ -276,7 +264,6 @@ export default function CreateScholarshipRoundPage() {
           </div>
           <div className="min-w-0">
             <div className="text-xs font-bold text-foreground truncate">2. เกณฑ์การประเมิน</div>
-            <div className="text-xs text-muted-foreground truncate">ตรวจสอบคะแนนเป้าหมาย</div>
           </div>
         </div>
 
@@ -290,18 +277,15 @@ export default function CreateScholarshipRoundPage() {
         >
           <div
             className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-              importSuccess
-                ? 'bg-emerald-600 text-white'
-                : currentStep === 3
+              currentStep === 3
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground'
             }`}
           >
-            {importSuccess ? '✓' : '3'}
+            3
           </div>
           <div className="min-w-0">
             <div className="text-xs font-bold text-foreground truncate">3. นำเข้าผู้สมัคร & เปิดตัว</div>
-            <div className="text-xs text-muted-foreground truncate">Excel & Command Center</div>
           </div>
         </div>
       </div>
@@ -370,7 +354,8 @@ export default function CreateScholarshipRoundPage() {
           <div className="space-y-1.5 pt-2 border-t border-border/60">
             <label htmlFor="typeSelect" className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <Award className="h-4 w-4 text-primary" />
-              ประเภททุนการศึกษา (Scholarship Type)
+              <span>ประเภททุนการศึกษา (Scholarship Type)</span>
+              <span className="text-destructive">*</span>
             </label>
             <Select
               id="typeSelect"
@@ -378,19 +363,13 @@ export default function CreateScholarshipRoundPage() {
               value={scholarshipTypeId ?? ''}
               onChange={(e) => handleTypeChange(e.target.value ? parseInt(e.target.value) : undefined)}
             >
-              <option value="">-- ไม่ระบุประเภททุน (เลือกภายหลัง) --</option>
+              <option value="">-- กรุณาเลือกประเภททุนการศึกษา --</option>
               {scholarshipTypes.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.name} {t.defaultCriteriaName ? `(เกณฑ์เริ่มต้น: ${t.defaultCriteriaName})` : ''}
+                  {t.name}
                 </option>
               ))}
             </Select>
-            {autoSelectedNotice && (
-              <div className="flex items-center gap-2 p-3 bg-primary/10 border border-primary/20 rounded-xl text-xs text-primary animate-in fade-in">
-                <Sparkles className="h-4 w-4 shrink-0 text-primary" />
-                <span>{autoSelectedNotice}</span>
-              </div>
-            )}
           </div>
 
           <div className="pt-4 flex items-center justify-between border-t border-border/60">
@@ -404,7 +383,7 @@ export default function CreateScholarshipRoundPage() {
               type="submit"
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-all cursor-pointer"
             >
-              <span>ต่อไป: ตรวจสอบเกณฑ์ประเมิน</span>
+              <span>ต่อไป</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -425,15 +404,19 @@ export default function CreateScholarshipRoundPage() {
           <div className="space-y-1.5">
             <label htmlFor="criteriaSelect" className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <Layers className="h-4 w-4 text-primary" />
-              ชุดเกณฑ์การประเมินที่ต้องการใช้
+              <span>ชุดเกณฑ์การประเมินที่ต้องการใช้</span>
+              <span className="text-destructive">*</span>
             </label>
             <Select
               id="criteriaSelect"
               icon={Layers}
               value={criteriaId ?? ''}
-              onChange={(e) => setCriteriaId(e.target.value ? parseInt(e.target.value) : undefined)}
+              onChange={(e) => {
+                setCriteriaId(e.target.value ? parseInt(e.target.value) : undefined);
+                setErrorMessage(null);
+              }}
             >
-              <option value="">-- ยังไม่ระบุเกณฑ์การประเมิน (ผูกภายหลัง) --</option>
+              <option value="">-- กรุณาเลือกชุดเกณฑ์การประเมิน --</option>
               {criteriaList.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name} (เป้าหมาย {c.targetScore || c.totalScore} คะแนน, {c.subCriteria.length} เกณฑ์ย่อย)
@@ -443,7 +426,7 @@ export default function CreateScholarshipRoundPage() {
           </div>
 
           {/* Criteria Live Preview Card */}
-          {selectedCriteria ? (
+          {selectedCriteria && (
             <div className="p-5 rounded-2xl bg-muted/30 border border-border space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/80 pb-3">
                 <div>
@@ -485,23 +468,6 @@ export default function CreateScholarshipRoundPage() {
                   ))}
                 </div>
               </div>
-
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>
-                  เกณฑ์การประเมินนี้พร้อมใช้งาน ผลรวมคะแนนเต็ม {selectedCriteria.targetScore || selectedCriteria.totalScore} คะแนน
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-400 text-xs space-y-1">
-              <div className="font-bold flex items-center gap-1.5">
-                <AlertCircle className="w-4 h-4" />
-                <span>ยังไม่ได้เลือกชุดเกณฑ์การประเมิน</span>
-              </div>
-              <p>
-                คุณสามารถสร้างรอบทุนไว้ก่อนได้ แต่ระบบจะยังไม่สามารถเปิดรอบการประเมินได้จนกว่าจะผูกชุดเกณฑ์ที่มีผลรวมคะแนนครบถ้วน
-              </p>
             </div>
           )}
 
@@ -509,7 +475,10 @@ export default function CreateScholarshipRoundPage() {
           <div className="pt-4 flex items-center justify-between border-t border-border/60">
             <button
               type="button"
-              onClick={() => setCurrentStep(1)}
+              onClick={() => {
+                setCurrentStep(1);
+                setErrorMessage(null);
+              }}
               className="px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -528,7 +497,7 @@ export default function CreateScholarshipRoundPage() {
                 </>
               ) : (
                 <>
-                  <span>ยืนยันสร้างรอบ & ไปขั้นตอนนำเข้า</span>
+                  <span>ต่อไป</span>
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
@@ -540,70 +509,16 @@ export default function CreateScholarshipRoundPage() {
       {/* Step 3 Content: Excel Import & Launch */}
       {currentStep === 3 && createdRoundId && (
         <div className="bg-card border border-border/80 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
-          {/* Round Created Banner */}
-          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-6 h-6 shrink-0 text-emerald-600" />
+          {/* Upload & Preview Section */}
+          <div className="space-y-4">
               <div>
-                <h4 className="font-bold text-sm">สร้างรอบทุนการศึกษา #{createdRoundId} สำเร็จแล้ว!</h4>
+                <h4 className="font-bold text-foreground text-sm flex items-center gap-2">
+                  <Upload className="w-4 h-4 text-primary" />
+                  นำเข้ารายชื่อผู้สมัครจาก Excel (.xlsx)
+                </h4>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  รอบทุนอยู่ในสถานะร่าง (DRAFT) — ตอนนี้คุณสามารถนำเข้ารายชื่อผู้สมัครผ่านไฟล์ Excel ได้ทันที
+                  นำเข้าข้อมูลนักศึกษาเพื่อเตรียมสำหรับการประเมิน
                 </p>
-              </div>
-            </div>
-            <Link
-              href={`/admin/scholarship-rounds/${createdRoundId}`}
-              className="text-xs px-3.5 py-2 rounded-xl bg-background border border-border text-foreground hover:border-primary font-semibold transition shrink-0"
-            >
-              ไปยังศูนย์ควบคุมรอบทุน
-            </Link>
-          </div>
-
-          {/* Import Complete State */}
-          {importSuccess ? (
-            <div className="p-8 text-center space-y-4 border border-border rounded-2xl bg-muted/20">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-600 flex items-center justify-center mx-auto">
-                <FileCheck2 className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-foreground">
-                  นำเข้ารายชื่อผู้สมัครสำเร็จ {importedCount} คน!
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
-                  ระบบได้บันทึกข้อมูลผู้สมัครเรียบร้อยแล้ว คุณสามารถตรวจสอบความพร้อมและเปิดรับประเมินได้ที่ศูนย์ควบคุม
-                </p>
-              </div>
-              <div className="pt-2">
-                <Link
-                  href={`/admin/scholarship-rounds/${createdRoundId}`}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm shadow-sm hover:bg-primary/90 transition-all"
-                >
-                  <span>เข้าสู่ศูนย์ควบคุมรอบทุน (Unified Command Center)</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-          ) : (
-            /* Upload & Preview Section */
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-foreground text-sm flex items-center gap-2">
-                    <Upload className="w-4 h-4 text-primary" />
-                    นำเข้ารายชื่อผู้สมัครจาก Excel (.xlsx)
-                  </h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    นำเข้าข้อมูลนักศึกษาเพื่อเตรียมสำหรับการประเมิน
-                  </p>
-                </div>
-                <a
-                  href="/templates/applicant_import_template.xlsx"
-                  download
-                  className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
-                >
-                  <FileSpreadsheet className="w-3.5 h-3.5" />
-                  <span>ดาวน์โหลดไฟล์ต้นแบบ</span>
-                </a>
               </div>
 
               {/* Upload Dropzone */}
@@ -720,22 +635,7 @@ export default function CreateScholarshipRoundPage() {
                   </div>
                 </div>
               )}
-
-              {/* Skip Option */}
-              <div className="pt-4 flex items-center justify-between border-t border-border/60">
-                <span className="text-xs text-muted-foreground">
-                  หรือต้องการนำเข้ารายชื่อภายหลัง?
-                </span>
-                <Link
-                  href={`/admin/scholarship-rounds/${createdRoundId}`}
-                  className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
-                >
-                  <span>ข้ามขั้นตอนนี้และไปที่ศูนย์ควบคุม</span>
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
             </div>
-          )}
         </div>
       )}
     </div>

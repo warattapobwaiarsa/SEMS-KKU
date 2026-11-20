@@ -11,9 +11,11 @@ import {
   RoundStatus,
   SubCriteriaType,
   EvaluationStatus,
+  AllocationStatus,
   AuditAction,
   Prisma,
 } from '@prisma/client';
+import { SetBudgetDto, SaveAllocationsDto } from './dto/allocation.dto';
 
 @Injectable()
 export class RoundsService {
@@ -661,5 +663,497 @@ export class RoundsService {
     });
 
     return this.findOne(id);
+  }
+
+  async getAllocationSummary(roundId: number) {
+    const round = await this.prisma.scholarshipRound.findUnique({
+      where: { id: roundId },
+      include: {
+        applicants: {
+          include: {
+            contact: true,
+            evaluations: {
+              where: { status: EvaluationStatus.SUBMITTED },
+              select: { totalScore: true },
+            },
+            allocation: true,
+          },
+        },
+        allocation: {
+          include: {
+            allocations: true,
+          },
+        },
+      },
+    });
+
+    if (!round) {
+      throw new NotFoundException({
+        errorCode: 'NOT_FOUND',
+        message: `ไม่พบรอบทุนการศึกษารหัส ${roundId}`,
+      });
+    }
+
+    // Ensure summary exists
+    let summary = round.allocation;
+    if (!summary) {
+      summary = await this.prisma.allocationSummary.create({
+        data: {
+          roundId,
+          totalBudget: new Prisma.Decimal(0),
+          status: AllocationStatus.EDITING,
+        },
+        include: {
+          allocations: true,
+        },
+      });
+    }
+
+    // Calculate score and rank for each applicant
+    const applicantsWithScore = round.applicants.map((app) => {
+      const validScores = app.evaluations
+        .map((e) => (e.totalScore !== null ? Number(e.totalScore) : null))
+        .filter((s): s is number => s !== null);
+
+      const finalScore =
+        validScores.length > 0
+          ? parseFloat(
+              (
+                validScores.reduce((sum, s) => sum + s, 0) / validScores.length
+              ).toFixed(2),
+            )
+          : 0;
+
+      return {
+        applicant: app,
+        finalScore,
+      };
+    });
+
+    // Sort descending by finalScore, then gpa
+    applicantsWithScore.sort((a, b) => {
+      if (b.finalScore !== a.finalScore) {
+        return b.finalScore - a.finalScore;
+      }
+      return Number(b.applicant.gpa) - Number(a.applicant.gpa);
+    });
+
+    const existingAllocationsMap = new Map<
+      number,
+      { isAwarded: boolean; amount: number }
+    >();
+    if (summary.allocations) {
+      for (const al of summary.allocations) {
+        existingAllocationsMap.set(al.applicantId, {
+          isAwarded: al.isAwarded,
+          amount: Number(al.amount),
+        });
+      }
+    }
+
+    let allocatedAmount = 0;
+    let recipientsCount = 0;
+
+    const applicantItems = applicantsWithScore.map((item, index) => {
+      const app = item.applicant;
+      const alloc = existingAllocationsMap.get(app.id);
+      const isAwarded = alloc?.isAwarded ?? false;
+      const amount = alloc?.amount ?? 0;
+
+      if (isAwarded) {
+        allocatedAmount += amount;
+        recipientsCount++;
+      }
+
+      return {
+        id: app.id,
+        applicantId: app.id,
+        studentCode: app.studentCode,
+        titlePrefix: app.titlePrefix,
+        firstName: app.firstName,
+        lastName: app.lastName,
+        faculty: app.faculty,
+        major: app.major,
+        studyYear: app.studyYear,
+        gpa: Number(app.gpa),
+        finalScore: item.finalScore,
+        rank: index + 1,
+        isAwarded,
+        amount,
+        maskedCitizenId: app.contact?.citizenIdMasked ?? '1-xxxx-xxxxx-xx-x',
+        phone: app.contact?.phone ?? '',
+        email: app.contact?.email ?? '',
+      };
+    });
+
+    const totalBudget = Number(summary.totalBudget);
+    const remainingBudget = totalBudget - allocatedAmount;
+
+    return {
+      success: true,
+      data: {
+        roundId: round.id,
+        roundName: round.name,
+        roundStatus: round.status,
+        totalBudget,
+        allocatedAmount,
+        remainingBudget,
+        recipientsCount,
+        status: summary.status,
+        statusChangedAt: summary.statusChangedAt?.toISOString() ?? null,
+        allocations: applicantItems,
+      },
+    };
+  }
+
+  async setRoundBudget(roundId: number, dto: SetBudgetDto, actorId?: number) {
+    if (dto.totalBudget < 0) {
+      throw new BusinessException({
+        errorCode: 'INVALID_BUDGET',
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'งบประมาณต้องไม่ต่ำกว่า 0',
+      });
+    }
+
+    const round = await this.prisma.scholarshipRound.findUnique({
+      where: { id: roundId },
+      include: { allocation: true },
+    });
+
+    if (!round) {
+      throw new NotFoundException({
+        errorCode: 'NOT_FOUND',
+        message: `ไม่พบรอบทุนการศึกษารหัส ${roundId}`,
+      });
+    }
+
+    if (round.allocation?.status === AllocationStatus.FINALIZED) {
+      throw new BusinessException({
+        errorCode: 'ALLOCATION_FINALIZED',
+        statusCode: HttpStatus.CONFLICT,
+        message: 'ไม่สามารถแก้ไขงบประมาณของรอบที่ยืนยันผลขั้นสุดท้ายแล้ว',
+      });
+    }
+
+    const isNew = !round.allocation;
+    const oldBudget = round.allocation
+      ? Number(round.allocation.totalBudget)
+      : 0;
+
+    await this.prisma.allocationSummary.upsert({
+      where: { roundId },
+      create: {
+        roundId,
+        totalBudget: new Prisma.Decimal(dto.totalBudget),
+        status: AllocationStatus.EDITING,
+        statusChangedById: actorId ?? null,
+      },
+      update: {
+        totalBudget: new Prisma.Decimal(dto.totalBudget),
+        statusChangedById: actorId ?? null,
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorId: actorId ?? null,
+        action: isNew ? AuditAction.BUDGET_SET : AuditAction.BUDGET_UPDATE,
+        entityType: 'AllocationSummary',
+        entityId: String(roundId),
+        roundId,
+        oldValue: { totalBudget: oldBudget },
+        newValue: { totalBudget: dto.totalBudget },
+      },
+    });
+
+    return this.getAllocationSummary(roundId);
+  }
+
+  async saveAllocations(
+    roundId: number,
+    dto: SaveAllocationsDto,
+    actorId?: number,
+  ) {
+    const round = await this.prisma.scholarshipRound.findUnique({
+      where: { id: roundId },
+      include: { allocation: true },
+    });
+
+    if (!round) {
+      throw new NotFoundException({
+        errorCode: 'NOT_FOUND',
+        message: `ไม่พบรอบทุนการศึกษารหัส ${roundId}`,
+      });
+    }
+
+    let summary = round.allocation;
+    if (!summary) {
+      summary = await this.prisma.allocationSummary.create({
+        data: {
+          roundId,
+          totalBudget: new Prisma.Decimal(0),
+          status: AllocationStatus.EDITING,
+        },
+      });
+    }
+
+    if (summary.status === AllocationStatus.FINALIZED) {
+      throw new BusinessException({
+        errorCode: 'ALLOCATION_FINALIZED',
+        statusCode: HttpStatus.CONFLICT,
+        message: 'ไม่สามารถแก้ไขผลการจัดสรรของรอบที่ยืนยันผลขั้นสุดท้ายแล้ว',
+      });
+    }
+
+    // Validate amounts
+    for (const item of dto.allocations) {
+      if (item.amount < 0) {
+        throw new BusinessException({
+          errorCode: 'INVALID_AMOUNT',
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'จำนวนเงินจัดสรรต้องไม่ติดลบ',
+        });
+      }
+    }
+
+    const currentTotalBudget = Number(summary.totalBudget);
+    const totalAllocated = dto.allocations
+      .filter((it) => it.isAwarded)
+      .reduce((sum, it) => sum + it.amount, 0);
+
+    if (currentTotalBudget > 0 && totalAllocated > currentTotalBudget) {
+      throw new BusinessException({
+        errorCode: 'BUDGET_EXCEEDED',
+        statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        message: `ยอดเงินที่จัดสรร (${totalAllocated.toLocaleString()} บาท) เกินเพดานงบประมาณ (${currentTotalBudget.toLocaleString()} บาท)`,
+      });
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      for (const item of dto.allocations) {
+        await tx.allocation.upsert({
+          where: { applicantId: item.applicantId },
+          create: {
+            summaryId: summary.id,
+            applicantId: item.applicantId,
+            isAwarded: item.isAwarded,
+            amount: new Prisma.Decimal(item.amount),
+          },
+          update: {
+            isAwarded: item.isAwarded,
+            amount: new Prisma.Decimal(item.amount),
+          },
+        });
+      }
+
+      await tx.auditLog.create({
+        data: {
+          actorId: actorId ?? null,
+          action: AuditAction.ALLOCATION_UPDATE,
+          entityType: 'AllocationSummary',
+          entityId: String(roundId),
+          roundId,
+          detail: {
+            itemsCount: dto.allocations.length,
+            awardedCount: dto.allocations.filter((it) => it.isAwarded).length,
+            totalAllocated,
+          },
+        },
+      });
+    });
+
+    return this.getAllocationSummary(roundId);
+  }
+
+  async finalizeAllocation(roundId: number, actorId?: number) {
+    const summary = await this.prisma.allocationSummary.findUnique({
+      where: { roundId },
+    });
+
+    if (!summary) {
+      throw new NotFoundException({
+        errorCode: 'NOT_FOUND',
+        message: 'ไม่พบข้อมูลการจัดสรรของรอบทุนนี้',
+      });
+    }
+
+    const now = new Date();
+    await this.prisma.allocationSummary.update({
+      where: { roundId },
+      data: {
+        status: AllocationStatus.FINALIZED,
+        statusChangedById: actorId ?? null,
+        statusChangedAt: now,
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorId: actorId ?? null,
+        action: AuditAction.ALLOCATION_STATUS_CHANGE,
+        entityType: 'AllocationSummary',
+        entityId: String(roundId),
+        roundId,
+        oldValue: { status: summary.status },
+        newValue: { status: AllocationStatus.FINALIZED, statusChangedAt: now },
+      },
+    });
+
+    return this.getAllocationSummary(roundId);
+  }
+
+  async reopenAllocation(roundId: number, actorId?: number) {
+    const summary = await this.prisma.allocationSummary.findUnique({
+      where: { roundId },
+    });
+
+    if (!summary) {
+      throw new NotFoundException({
+        errorCode: 'NOT_FOUND',
+        message: 'ไม่พบข้อมูลการจัดสรรของรอบทุนนี้',
+      });
+    }
+
+    const now = new Date();
+    await this.prisma.allocationSummary.update({
+      where: { roundId },
+      data: {
+        status: AllocationStatus.EDITING,
+        statusChangedById: actorId ?? null,
+        statusChangedAt: now,
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorId: actorId ?? null,
+        action: AuditAction.ALLOCATION_STATUS_CHANGE,
+        entityType: 'AllocationSummary',
+        entityId: String(roundId),
+        roundId,
+        oldValue: { status: summary.status },
+        newValue: { status: AllocationStatus.EDITING, statusChangedAt: now },
+      },
+    });
+
+    return this.getAllocationSummary(roundId);
+  }
+
+  async deleteDraftRound(id: number, actorId?: number) {
+    const round = await this.prisma.scholarshipRound.findUnique({
+      where: { id },
+      include: {
+        _count: { select: { applicants: true } },
+      },
+    });
+
+    if (!round) {
+      throw new NotFoundException({
+        errorCode: 'NOT_FOUND',
+        message: `ไม่พบรอบทุนการศึกษารหัส ${id}`,
+      });
+    }
+
+    if (round.status !== RoundStatus.DRAFT) {
+      throw new BusinessException({
+        errorCode: 'CANNOT_DELETE_ACTIVE_ROUND',
+        statusCode: HttpStatus.CONFLICT,
+        message:
+          'สามารถลบได้เฉพาะรอบทุนในสถานะแบบร่าง (Draft) เท่านั้น ไม่สามารถลบรอบที่เปิดหรือปิดไปแล้ว (BR-RND-06)',
+        params: { status: round.status },
+      });
+    }
+
+    const applicantCount = round._count.applicants;
+
+    let validActorId: number | null = null;
+    if (actorId) {
+      const actorExists = await this.prisma.user.findUnique({
+        where: { id: actorId },
+        select: { id: true },
+      });
+      if (actorExists) {
+        validActorId = actorExists.id;
+      }
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      // 1. Delete evaluations and evaluation items linked to applicants in this round
+      await tx.evaluationItem.deleteMany({
+        where: {
+          evaluation: {
+            applicant: { roundId: id },
+          },
+        },
+      });
+      await tx.evaluation.deleteMany({
+        where: {
+          applicant: { roundId: id },
+        },
+      });
+
+      // 2. Delete allocations and allocation summary
+      await tx.allocation.deleteMany({
+        where: {
+          OR: [{ summary: { roundId: id } }, { applicant: { roundId: id } }],
+        },
+      });
+      await tx.allocationSummary.deleteMany({
+        where: { roundId: id },
+      });
+
+      // 3. Delete contacts and supporting info explicitly
+      await tx.applicantContact.deleteMany({
+        where: {
+          applicant: { roundId: id },
+        },
+      });
+      await tx.applicantSupportingInfo.deleteMany({
+        where: {
+          applicant: { roundId: id },
+        },
+      });
+
+      // 4. Delete applicants
+      await tx.applicant.deleteMany({
+        where: { roundId: id },
+      });
+
+      // 5. Delete import batches
+      await tx.importBatch.deleteMany({
+        where: { roundId: id },
+      });
+
+      // 6. Delete the round itself
+      await tx.scholarshipRound.delete({
+        where: { id },
+      });
+
+      // 7. Log audit trail
+      await tx.auditLog.create({
+        data: {
+          actorId: validActorId,
+          action: AuditAction.ROUND_STATUS_CHANGE,
+          entityType: 'ScholarshipRound',
+          entityId: String(id),
+          roundId: id,
+          oldValue: {
+            name: round.name,
+            academicYear: round.academicYear,
+            semester: round.semester,
+            status: round.status,
+          },
+          detail: {
+            action: 'DELETE_DRAFT_ROUND',
+            applicantCount,
+          },
+        },
+      });
+    });
+
+    return {
+      success: true,
+      message: 'ลบรอบทุนการศึกษาแบบร่างสำเร็จเรียบร้อย',
+    };
   }
 }

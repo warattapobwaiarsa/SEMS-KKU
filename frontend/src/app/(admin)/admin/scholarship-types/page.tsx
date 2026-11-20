@@ -165,10 +165,7 @@ export default function ScholarshipTypesPage() {
     <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-12">
       {/* Standard Page Header */}
       <PageHeader
-        moduleBadge="การจัดการประเภททุนการศึกษา"
-        moduleBadgeIcon={Award}
         title="ประเภททุนการศึกษา"
-        description="จำแนกประเภททุนและกำหนดเกณฑ์การประเมินเริ่มต้นให้ตรงตามวัตถุประสงค์ของแต่ละทุน (เช่น ทุนขาดแคลน, ทุนเรียนดี, ทุนกิจกรรม)"
         action={
           <button
             onClick={openCreateModal}

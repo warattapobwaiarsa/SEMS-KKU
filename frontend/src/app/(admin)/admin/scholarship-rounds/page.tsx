@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ScholarshipRoundListItem } from '@/types/rounds';
 import { fetchRoundsList } from '@/services/rounds.service';
-import { PageHeader, StatusBadge, Pagination, Select, Button, Input, Alert, EmptyState } from '@/components/ui';
+import { PageHeader, Pagination, Button, Input, Alert, EmptyState } from '@/components/ui';
 import { 
   Calendar, 
   Plus, 
@@ -12,12 +12,96 @@ import {
   Users, 
   ArrowRight,
   Eye,
-  Filter,
   CheckCircle2,
-  AlertCircle,
+  Check,
   RefreshCw,
+  Trash2,
+  X,
+  Sliders,
+  Banknote,
+  Layers,
 } from 'lucide-react';
 import { useDebounce } from '@/lib/use-debounce';
+import { DeleteRoundModal } from '@/components/rounds/delete-round-modal';
+import { RoundStatusFilterTabs } from '@/components/rounds/round-status-filter-tabs';
+
+function RoundStageIndicator({ status }: { status: string }) {
+  const isDraft = status === 'DRAFT';
+  const isOpen = status === 'OPEN';
+  const isClosed = status === 'CLOSED';
+
+  return (
+    <div className="flex flex-col items-center gap-1.5 min-w-[120px]">
+      {/* 3-Step Dots Track (Stage 1-2-3) */}
+      <div className="flex items-center justify-center gap-1" aria-label={`ขั้นตอน: ${isDraft ? '1/3' : isOpen ? '2/3' : '3/3'}`}>
+        {/* Step 1: Draft */}
+        <span
+          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-colors ${
+            isDraft
+              ? 'bg-amber-100 text-amber-800 border-2 border-amber-500 shadow-2xs'
+              : 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+          }`}
+          title="สเตป 1: ร่างรอบทุน"
+        >
+          {isDraft ? '1' : <Check className="w-3 h-3 stroke-[2.5]" />}
+        </span>
+
+        {/* Connector Line 1-2 */}
+        <span
+          className={`w-3.5 h-0.5 rounded-full ${
+            !isDraft ? 'bg-emerald-400' : 'bg-slate-200'
+          }`}
+        />
+
+        {/* Step 2: Open */}
+        <span
+          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-colors ${
+            isOpen
+              ? 'bg-emerald-100 text-emerald-800 border-2 border-emerald-500 ring-2 ring-emerald-500/20 shadow-2xs'
+              : isClosed
+              ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+              : 'bg-slate-100 text-slate-400 border border-slate-200'
+          }`}
+          title="สเตป 2: เปิดรับประเมิน"
+        >
+          {isClosed ? <Check className="w-3 h-3 stroke-[2.5]" /> : '2'}
+        </span>
+
+        {/* Connector Line 2-3 */}
+        <span
+          className={`w-3.5 h-0.5 rounded-full ${
+            isClosed ? 'bg-slate-500' : 'bg-slate-200'
+          }`}
+        />
+
+        {/* Step 3: Closed */}
+        <span
+          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-colors ${
+            isClosed
+              ? 'bg-slate-700 text-white border-2 border-slate-800 shadow-2xs'
+              : 'bg-slate-100 text-slate-400 border border-slate-200'
+          }`}
+          title="สเตป 3: ปิดรอบการประเมิน"
+        >
+          3
+        </span>
+      </div>
+
+      {/* Single Clear Status Label (อธิบายชัดเจนที่เดียว ไม่ซ้ำ) */}
+      <span
+        className={`text-xs font-semibold px-2.5 py-0.5 rounded-md min-w-[96px] text-center ${
+          isOpen
+            ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+            : isClosed
+            ? 'text-slate-700 bg-slate-100 border border-slate-200'
+            : 'text-amber-800 bg-amber-50 border border-amber-200'
+        }`}
+      >
+        {isOpen ? 'เปิดรับประเมิน' : isClosed ? 'ปิดรอบแล้ว' : 'แบบร่าง'}
+      </span>
+    </div>
+  );
+}
 
 export default function ScholarshipRoundsPage() {
   const [rounds, setRounds] = useState<ScholarshipRoundListItem[]>([]);
@@ -26,12 +110,21 @@ export default function ScholarshipRoundsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 400);
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [deletingRound, setDeletingRound] = useState<ScholarshipRoundListItem | null>(null);
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({
     page: 1,
     limit: 10,
     total: 0,
     totalPages: 1,
+  });
+
+  // Track status breakdown counts
+  const [statusCounts, setStatusCounts] = useState({
+    total: 0,
+    draft: 0,
+    open: 0,
+    closed: 0,
   });
 
   const loadRounds = useCallback(async () => {
@@ -47,6 +140,16 @@ export default function ScholarshipRoundsPage() {
       setRounds(res.data);
       if (res.meta) {
         setMeta(res.meta);
+      }
+
+      // Update counts when no filter is applied
+      if (!statusFilter && !debouncedSearch.trim()) {
+        setStatusCounts({
+          total: res.meta?.total ?? res.data.length,
+          draft: res.data.filter((r) => r.status === 'DRAFT').length,
+          open: res.data.filter((r) => r.status === 'OPEN').length,
+          closed: res.data.filter((r) => r.status === 'CLOSED').length,
+        });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการโหลดรอบทุน';
@@ -68,14 +171,17 @@ export default function ScholarshipRoundsPage() {
     void Promise.resolve().then(() => loadRounds());
   };
 
+  const handleClearFilter = () => {
+    setSearchTerm('');
+    setStatusFilter('');
+    setPage(1);
+  };
+
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-12">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
       {/* Standard Page Header */}
       <PageHeader
-        moduleBadge="การจัดการรอบการให้ทุน"
-        moduleBadgeIcon={Calendar}
         title="รอบทุนการศึกษา"
-        description="จัดการและควบคุมสถานะรอบทุนการศึกษา (ร่าง ➔ เปิดรับสมัคร ➔ ปิดรอบการประเมิน)"
         action={
           <Link href="/admin/scholarship-rounds/create">
             <Button leftIcon={<Plus className="h-4 w-4" />}>
@@ -85,41 +191,37 @@ export default function ScholarshipRoundsPage() {
         }
       />
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card border border-border/80 rounded-2xl p-3 shadow-xs">
-        <form onSubmit={handleSearchSubmit} className="relative flex-1 w-full">
+      {/* Filter and Search Bar with Segmented Tabs */}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-card border border-border/80 rounded-2xl p-3 shadow-xs">
+        {/* Segmented Status Tabs */}
+        <RoundStatusFilterTabs
+          currentStatus={statusFilter}
+          onSelectStatus={(status) => {
+            setStatusFilter(status);
+            setPage(1);
+          }}
+          counts={statusCounts}
+        />
+
+        {/* Search Input */}
+        <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md w-full">
           <Input
             leftIcon={<Search className="h-4 w-4" />}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="ค้นหาชื่อรอบทุนการศึกษา..."
+            placeholder="ค้นหาชื่อรอบทุน หรือรหัสรอบ..."
           />
-        </form>
-
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="w-full sm:w-48">
-            <Select
-              icon={Filter}
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() => { setSearchTerm(''); setPage(1); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground rounded-md"
+              title="ล้างข้อความค้นหา"
             >
-              <option value="">ทุกสถานะ</option>
-              <option value="DRAFT">ร่าง (Draft)</option>
-              <option value="OPEN">เปิดรับสมัคร (Open)</option>
-              <option value="CLOSED">ปิดรอบแล้ว (Closed)</option>
-            </Select>
-          </div>
-
-          <Button
-            variant="secondary"
-            onClick={() => { setPage(1); void loadRounds(); }}
-          >
-            ค้นหา
-          </Button>
-        </div>
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </form>
       </div>
 
       {/* Error Alert with Retry */}
@@ -143,64 +245,79 @@ export default function ScholarshipRoundsPage() {
         </Alert>
       )}
 
-      {/* Main Table */}
-      <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs">
-        {loading ? (
-          <div className="p-16 text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em]" />
-            <p className="mt-4 text-sm text-muted-foreground animate-pulse">กำลังโหลดรายการรอบทุน...</p>
-          </div>
-        ) : error ? null : rounds.length === 0 ? (
-          <div className="p-8 sm:p-12">
-            <EmptyState
-              icon={Calendar}
-              title="ยังไม่มีรอบทุนการศึกษา"
-              description="เริ่มต้นสร้างรอบทุนการศึกษาชุดแรกเพื่อเปิดรับสมัครและเชื่อมโยงเกณฑ์"
-            >
-              <Link href="/admin/scholarship-rounds/create">
-                <Button leftIcon={<Plus className="h-4 w-4" />}>
-                  สร้างรอบทุนชุดแรก
-                </Button>
-              </Link>
-            </EmptyState>
-          </div>
-        ) : (
-          <>
-            {/* Mobile View: Responsive Cards (< md) */}
-            <div className="block md:hidden divide-y divide-border/60">
+      {/* Main Table / Data View */}
+      <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs w-full min-h-[460px] flex flex-col justify-between">
+        {/* Mobile View: Responsive Cards (< md) */}
+        <div className="block md:hidden">
+          {loading ? (
+            <div className="p-16 text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em]" />
+              <p className="mt-4 text-sm text-muted-foreground animate-pulse">กำลังโหลดรายการรอบทุน...</p>
+            </div>
+          ) : rounds.length === 0 ? (
+            <div className="p-8 text-center">
+              <EmptyState
+                icon={statusFilter ? Layers : Calendar}
+                title={
+                  statusFilter === 'OPEN'
+                    ? 'ยังไม่มีรอบทุนที่เปิดรับประเมิน'
+                    : statusFilter === 'DRAFT'
+                    ? 'ไม่มีรอบทุนแบบร่าง'
+                    : statusFilter === 'CLOSED'
+                    ? 'ยังไม่มีรอบทุนที่ปิดการประเมิน'
+                    : 'ไม่พบรอบทุนตามเงื่อนไข'
+                }
+                description={
+                  statusFilter === 'OPEN'
+                    ? 'เมื่อรอบทุนแบบร่างได้รับการตั้งค่าครบถ้วนและกด "เปิดรับประเมิน" รอบทุนจะปรากฏที่นี่'
+                    : statusFilter === 'DRAFT'
+                    ? 'รอบทุนแบบร่างที่รอตั้งค่าจะแสดงที่นี่'
+                    : statusFilter === 'CLOSED'
+                    ? 'รอบทุนที่สิ้นสุดการประเมินจะถูกจัดเก็บไว้ที่นี่'
+                    : 'ไม่พบข้อมูลที่ตรงกับตัวกรองปัจจุบัน กรุณาลองค้นหาด้วยคำอื่น หรือกดล้างตัวกรอง'
+                }
+              >
+                {statusFilter || searchTerm ? (
+                  <Button variant="secondary" onClick={handleClearFilter}>
+                    ล้างตัวกรองทั้งหมด
+                  </Button>
+                ) : (
+                  <Link href="/admin/scholarship-rounds/create">
+                    <Button leftIcon={<Plus className="h-4 w-4" />}>
+                      สร้างรอบทุนชุดแรก
+                    </Button>
+                  </Link>
+                )}
+              </EmptyState>
+            </div>
+          ) : (
+            <div className="divide-y divide-border/60">
               {rounds.map((round) => (
                 <div key={round.id} className="p-4 space-y-3 hover:bg-muted/10 transition">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <span className="text-xs font-mono font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
-                        #{round.id}
-                      </span>
-                      <h4 className="mt-1 font-semibold text-foreground text-sm leading-snug">
+                      <h4 className="font-bold text-foreground text-sm leading-snug">
                         {round.name}
                       </h4>
                     </div>
-                    {round.status === 'OPEN' ? (
-                      <StatusBadge label="เปิดรับสมัคร" variant="open" />
-                    ) : round.status === 'CLOSED' ? (
-                      <StatusBadge label="ปิดรอบแล้ว" variant="closed" />
-                    ) : (
-                      <StatusBadge label="ร่าง" variant="draft" />
-                    )}
+                    <div className="shrink-0">
+                      <RoundStageIndicator status={round.status} />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground bg-muted/30 p-2.5 rounded-xl border border-border/40">
                     <div>
-                      <span className="block text-xs text-muted-foreground/80">ปี/ภาคเรียน</span>
+                      <span className="block text-[11px] text-muted-foreground/80">ปี/ภาคเรียน</span>
                       <span className="font-mono font-medium text-foreground">{round.academicYear}/{round.semester}</span>
                     </div>
                     <div>
-                      <span className="block text-xs text-muted-foreground/80">ผู้สมัคร</span>
-                      <span className="font-mono font-semibold text-foreground flex items-center gap-1">
-                        <Users className="h-3 w-3" /> {round.applicantCount} คน
+                      <span className="block text-[11px] text-muted-foreground/80">ผู้สมัคร</span>
+                      <span className="font-mono font-bold text-foreground flex items-center gap-1">
+                        <Users className="h-3 w-3 text-blue-600" /> {round.applicantCount} คน
                       </span>
                     </div>
                     <div className="col-span-2 border-t border-border/40 pt-1.5 mt-0.5">
-                      <span className="block text-xs text-muted-foreground/80 mb-0.5">ชุดเกณฑ์ที่ผูก</span>
+                      <span className="block text-[11px] text-muted-foreground/80 mb-0.5">ชุดเกณฑ์ที่ผูก</span>
                       {round.criteriaName ? (
                         <span className="font-medium text-foreground flex items-center gap-1 truncate">
                           <CheckCircle2 className="h-3 w-3 text-emerald-600 shrink-0" />
@@ -212,98 +329,190 @@ export default function ScholarshipRoundsPage() {
                     </div>
                   </div>
 
-                  <div className="pt-1 flex justify-end">
+                  <div className="pt-1 flex items-center gap-2">
                     <Link
                       href={`/admin/scholarship-rounds/${round.id}`}
-                      className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-primary py-2 px-3 rounded-xl bg-primary/10 hover:bg-primary hover:text-primary-foreground transition shadow-2xs"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-primary py-2.5 px-3 rounded-xl bg-primary/10 hover:bg-primary hover:text-primary-foreground transition shadow-2xs"
                     >
                       <Eye className="h-3.5 w-3.5" />
-                      จัดการรอบทุน
+                      {round.status === 'DRAFT' ? 'ตั้งค่า & ตรวจสอบ' : round.status === 'OPEN' ? 'ติดตามการประเมิน' : 'ดูผลและจัดสรรทุน'}
                       <ArrowRight className="h-3 w-3" />
                     </Link>
+                    {round.status === 'DRAFT' && (
+                      <button
+                        type="button"
+                        onClick={() => setDeletingRound(round)}
+                        className="p-2.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition border border-rose-200/60 dark:border-rose-900/40 cursor-pointer shrink-0"
+                        title="ลบรอบทุนแบบร่างนี้"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
+          )}
+        </div>
 
-            {/* Desktop View: Full Data Table (>= md) */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-muted/40 border-b border-border/80 text-muted-foreground font-semibold">
-                  <tr>
-                    <th className="py-3.5 px-5">ชื่อรอบทุน</th>
-                    <th className="py-3.5 px-4 text-center">ปี/ภาคการศึกษา</th>
-                    <th className="py-3.5 px-5">เกณฑ์การประเมินที่เชื่อมไว้</th>
-                    <th className="py-3.5 px-4 text-center">จำนวนผู้สมัคร</th>
-                    <th className="py-3.5 px-4 text-center">สถานะรอบทุน</th>
-                    <th className="py-3.5 px-5 text-right">ดำเนินการ</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/60">
-                  {rounds.map((round) => (
-                    <tr key={round.id} className="hover:bg-muted/20 transition-colors group">
-                      <td className="py-4 px-5 font-medium text-foreground">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
+        {/* Desktop View: Full Data Table (>= md) */}
+        <div className="hidden md:block overflow-x-auto flex-1">
+          <table className="w-full text-left text-sm table-fixed min-w-[980px]">
+            <thead className="bg-muted/40 border-b border-border/80 text-muted-foreground font-semibold">
+              <tr>
+                <th className="py-3.5 px-5">ชื่อรอบทุนการศึกษา</th>
+                <th className="py-3.5 px-4 text-center w-28">ปี/ภาคเรียน</th>
+                <th className="py-3.5 px-5 w-52">เกณฑ์การประเมิน</th>
+                <th className="py-3.5 px-4 text-center w-28">ผู้สมัคร</th>
+                <th className="py-3.5 px-4 text-center w-44">สถานะ</th>
+                <th className="py-3.5 px-5 text-right w-60">ดำเนินการ</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="py-24 text-center">
+                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em]" />
+                    <p className="mt-4 text-sm text-muted-foreground animate-pulse">กำลังโหลดรายการรอบทุน...</p>
+                  </td>
+                </tr>
+              ) : rounds.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-20 px-4 text-center">
+                    <div className="max-w-md mx-auto">
+                      <EmptyState
+                        icon={statusFilter ? Layers : Calendar}
+                        title={
+                          statusFilter === 'OPEN'
+                            ? 'ยังไม่มีรอบทุนที่เปิดรับประเมิน'
+                            : statusFilter === 'DRAFT'
+                            ? 'ไม่มีรอบทุนแบบร่าง'
+                            : statusFilter === 'CLOSED'
+                            ? 'ยังไม่มีรอบทุนที่ปิดการประเมิน'
+                            : 'ไม่พบรอบทุนตามเงื่อนไข'
+                        }
+                        description={
+                          statusFilter === 'OPEN'
+                            ? 'เมื่อรอบทุนแบบร่างได้รับการตั้งค่าครบถ้วนและกด "เปิดรับประเมิน" รอบทุนจะปรากฏที่นี่'
+                            : statusFilter === 'DRAFT'
+                            ? 'รอบทุนแบบร่างที่รอตั้งค่าจะแสดงที่นี่'
+                            : statusFilter === 'CLOSED'
+                            ? 'รอบทุนที่สิ้นสุดการประเมินจะถูกจัดเก็บไว้ที่นี่'
+                            : 'ไม่พบข้อมูลที่ตรงกับตัวกรองปัจจุบัน กรุณาลองค้นหาด้วยคำอื่น หรือกดล้างตัวกรอง'
+                        }
+                      >
+                        {statusFilter || searchTerm ? (
+                          <Button variant="secondary" onClick={handleClearFilter}>
+                            ล้างตัวกรองทั้งหมด
+                          </Button>
+                        ) : (
+                          <Link href="/admin/scholarship-rounds/create">
+                            <Button leftIcon={<Plus className="h-4 w-4" />}>
+                              สร้างรอบทุนชุดแรก
+                            </Button>
+                          </Link>
+                        )}
+                      </EmptyState>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                rounds.map((round) => (
+                  <tr key={round.id} className="hover:bg-muted/20 transition-colors group">
+                    {/* Name & Type */}
+                    <td className="py-4 px-5 font-medium text-foreground">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-foreground group-hover:text-primary transition-colors text-sm">
                             {round.name}
                           </span>
-                          <span className="text-xs text-muted-foreground font-mono mt-0.5">
-                            รอบที่ #{round.id}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>สร้างเมื่อ {new Date(round.createdAt).toLocaleDateString('th-TH')}</span>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Year & Semester */}
+                    <td className="py-4 px-4 text-center">
+                      <span className="inline-flex items-center font-mono font-bold px-2.5 py-1 rounded-lg bg-muted text-xs text-foreground border border-border/60">
+                        {round.academicYear}/{round.semester}
+                      </span>
+                    </td>
+
+                    {/* Criteria */}
+                    <td className="py-4 px-5">
+                      {round.criteriaName ? (
+                        <div className="flex flex-col gap-0.5 max-w-full">
+                          <span className="text-xs font-semibold text-foreground flex items-center gap-1.5 min-w-0">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                            <span className="truncate block" title={round.criteriaName}>
+                              {round.criteriaName}
+                            </span>
                           </span>
                         </div>
-                      </td>
-                      <td className="py-4 px-4 text-center">
-                        <span className="inline-flex items-center font-mono font-medium px-2.5 py-0.5 rounded-lg bg-muted text-xs">
-                          {round.academicYear}/{round.semester}
+                      ) : (
+                        <span className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md italic">
+                          ยังไม่ได้ผูกเกณฑ์
                         </span>
-                      </td>
-                      <td className="py-4 px-5">
-                        {round.criteriaName ? (
-                          <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                            {round.criteriaName}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md italic">
-                            ยังไม่ได้ผูกเกณฑ์
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-4 px-4 text-center">
-                        <span className="inline-flex items-center gap-1 font-mono text-xs font-semibold text-muted-foreground">
-                          <Users className="h-3.5 w-3.5" />
-                          {round.applicantCount} คน
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 text-center">
-                        {round.status === 'OPEN' ? (
-                          <StatusBadge label="เปิดรับสมัคร (Open)" variant="open" />
-                        ) : round.status === 'CLOSED' ? (
-                          <StatusBadge label="ปิดรอบแล้ว (Closed)" variant="closed" />
-                        ) : (
-                          <StatusBadge label="ร่าง (Draft)" variant="draft" />
-                        )}
-                      </td>
-                      <td className="py-4 px-5 text-right">
+                      )}
+                    </td>
+
+                    {/* Applicant Count */}
+                    <td className="py-4 px-4 text-center">
+                      <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-foreground px-2.5 py-1 rounded-lg bg-muted/60 border border-border/40">
+                        <Users className="h-3.5 w-3.5 text-blue-600" />
+                        {round.applicantCount} คน
+                      </span>
+                    </td>
+
+                    {/* Status */}
+                    <td className="py-4 px-4 text-center">
+                      <div className="flex justify-center">
+                        <RoundStageIndicator status={round.status} />
+                      </div>
+                    </td>
+
+                    {/* Contextual Action Buttons */}
+                    <td className="py-4 px-5 text-right">
+                      <div className="flex items-center justify-end gap-2">
                         <Link href={`/admin/scholarship-rounds/${round.id}`}>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-white hover:border-transparent font-medium"
-                            leftIcon={<Eye className="h-3.5 w-3.5" />}
-                            rightIcon={<ArrowRight className="h-3 w-3" />}
+                            className="w-[124px] justify-center whitespace-nowrap bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-white hover:border-transparent font-medium shrink-0"
+                            rightIcon={<ArrowRight className="h-3 w-3 shrink-0" />}
+                            leftIcon={
+                              round.status === 'DRAFT' ? (
+                                <Eye className="h-3.5 w-3.5 shrink-0" />
+                              ) : round.status === 'OPEN' ? (
+                                <Sliders className="h-3.5 w-3.5 shrink-0" />
+                              ) : (
+                                <Banknote className="h-3.5 w-3.5 shrink-0" />
+                              )
+                            }
                           >
-                            จัดการรอบ
+                            {round.status === 'DRAFT' ? 'ตั้งค่ารอบ' : round.status === 'OPEN' ? 'ติดตามผล' : 'จัดสรรทุน'}
                           </Button>
                         </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
+                        {round.status === 'DRAFT' && (
+                          <button
+                            type="button"
+                            onClick={() => setDeletingRound(round)}
+                            className="p-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition border border-rose-200/60 dark:border-rose-900/40 cursor-pointer shrink-0"
+                            title="ลบรอบทุนแบบร่างนี้"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
         {/* Pagination Controls */}
         {!loading && rounds.length > 0 && (
@@ -317,6 +526,23 @@ export default function ScholarshipRoundsPage() {
           />
         )}
       </div>
+
+      {/* Delete Draft Round Confirmation Modal */}
+      {deletingRound && (
+        <DeleteRoundModal
+          isOpen={true}
+          roundId={deletingRound.id}
+          roundName={deletingRound.name}
+          academicYear={deletingRound.academicYear}
+          semester={deletingRound.semester}
+          applicantCount={deletingRound.applicantCount}
+          onClose={() => setDeletingRound(null)}
+          onSuccess={() => {
+            setDeletingRound(null);
+            void loadRounds();
+          }}
+        />
+      )}
     </div>
   );
 }

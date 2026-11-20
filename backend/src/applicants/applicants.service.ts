@@ -7,10 +7,10 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ExcelParserService, ParseExcelResult } from './excel-parser.service';
-import { ConfirmImportDto } from './dto/import-applicant.dto';
+import { ConfirmImportDto, ImportMode } from './dto/import-applicant.dto';
 import { QueryApplicantDto } from './dto/query-applicant.dto';
 import { BusinessException } from '../common/http-exception.filter';
-import { encryptCitizenId } from '../common/crypto.util';
+import { encryptCitizenId, decryptCitizenId } from '../common/crypto.util';
 import {
   RoundStatus,
   AuditAction,
@@ -242,11 +242,15 @@ export class ApplicantsService implements OnModuleDestroy {
           });
         }
 
-        // Delete existing applicants and related data for this round
-        // Cascade handles applicant_contacts and applicant_supporting_info
-        await tx.applicant.deleteMany({
-          where: { roundId },
-        });
+        const importMode = dto.importMode || ImportMode.OVERWRITE;
+
+        if (importMode === ImportMode.OVERWRITE) {
+          // Delete existing applicants and related data for this round
+          // Cascade handles applicant_contacts and applicant_supporting_info
+          await tx.applicant.deleteMany({
+            where: { roundId },
+          });
+        }
 
         // Create ImportBatch
         const importBatch = await tx.importBatch.create({
@@ -266,6 +270,15 @@ export class ApplicantsService implements OnModuleDestroy {
 
         // Insert all valid applicants with encrypted contacts and supporting info
         for (const applicantData of previewData.validApplicants) {
+          if (importMode === ImportMode.APPEND) {
+            // Remove existing record for this student code in this round before inserting
+            await tx.applicant.deleteMany({
+              where: {
+                roundId,
+                studentCode: applicantData.studentCode,
+              },
+            });
+          }
           const encryptedCitizenId = encryptCitizenId(
             applicantData.rawCitizenId,
           );
@@ -671,6 +684,44 @@ export class ApplicantsService implements OnModuleDestroy {
       major: first.major,
       totalRounds: applicants.length,
       records,
+    };
+  }
+
+  async revealCitizenId(applicantId: number, actorId?: number) {
+    const contact = await this.prisma.applicantContact.findUnique({
+      where: { applicantId },
+      include: {
+        applicant: {
+          select: { id: true, roundId: true, studentCode: true },
+        },
+      },
+    });
+
+    if (!contact) {
+      throw new NotFoundException({
+        errorCode: 'NOT_FOUND',
+        message: `ไม่พบข้อมูลติดต่อของผู้สมัครรหัส ${applicantId}`,
+      });
+    }
+
+    const fullCitizenId = decryptCitizenId(contact.citizenIdEncrypted);
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorId: actorId ?? null,
+        action: AuditAction.VIEW_CITIZEN_ID,
+        entityType: 'Applicant',
+        entityId: String(applicantId),
+        roundId: contact.applicant.roundId,
+        detail: {
+          studentCode: contact.applicant.studentCode,
+        },
+      },
+    });
+
+    return {
+      success: true,
+      citizenId: fullCitizenId,
     };
   }
 }

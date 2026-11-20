@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, UserCheck, GraduationCap, Sparkles, Building, Lock } from "lucide-react";
+import { ArrowRight, ShieldCheck, UserCheck, GraduationCap, Building, Lock } from "lucide-react";
 import { SYSTEM_CONFIG } from "@/config/navigation";
 
 export default function HomePage() {
@@ -20,9 +20,6 @@ export default function HomePage() {
                 KKU EN
               </span>
             </div>
-            <p className="text-xs text-slate-500">
-              {SYSTEM_CONFIG.fullName}
-            </p>
           </div>
         </div>
         <div className="text-right text-xs text-slate-500 hidden sm:block">
@@ -34,10 +31,6 @@ export default function HomePage() {
       {/* Main Choice Cards */}
       <main className="max-w-5xl mx-auto w-full my-8 sm:my-12 space-y-8">
         <div className="text-center max-w-xl mx-auto space-y-2.5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>ระบบบริหารจัดการการประเมินและการจัดสรรทุนการศึกษา</span>
-          </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             เข้าสู่ระบบตามบทบาทการทำงาน
           </h2>

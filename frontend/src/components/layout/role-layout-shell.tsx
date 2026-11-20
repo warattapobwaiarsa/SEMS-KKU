@@ -29,6 +29,7 @@ export function RoleLayoutShell({
       <AppSidebar
         items={items}
         role={user.role}
+        user={user}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
         className="hidden md:flex"
@@ -40,6 +41,7 @@ export function RoleLayoutShell({
         onClose={() => setMobileMenuOpen(false)}
         items={items}
         role={user.role}
+        user={user}
       />
 
       {/* Main Content Area */}

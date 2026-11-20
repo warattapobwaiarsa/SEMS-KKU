@@ -13,7 +13,6 @@ import {
   Edit3, 
   Eye, 
   CheckCircle2, 
-  Sparkles,
   AlertCircle,
   RefreshCw,
 } from 'lucide-react';
@@ -70,10 +69,7 @@ export default function EvaluationCriteriaPage() {
     <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-12">
       {/* Standard Page Header */}
       <PageHeader
-        moduleBadge="การจัดการข้อมูลหลัก"
-        moduleBadgeIcon={Sparkles}
         title="เกณฑ์การประเมินทุน"
-        description="กำหนดชุดเกณฑ์และสัดส่วนคะแนนสำหรับการประเมินทุนการศึกษา (กำหนดคะแนนรวมเป้าหมายได้ 1–1,000 คะแนน)"
         action={
           <Link
             href="/admin/evaluation-criteria/create"

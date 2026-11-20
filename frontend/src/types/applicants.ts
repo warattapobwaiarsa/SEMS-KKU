@@ -42,6 +42,7 @@ export interface ExcelPreviewResponse {
 export interface ConfirmImportPayload {
   previewToken: string;
   acknowledgedInvalidRows: boolean;
+  importMode?: 'OVERWRITE' | 'APPEND';
 }
 
 export interface ConfirmImportResponse {

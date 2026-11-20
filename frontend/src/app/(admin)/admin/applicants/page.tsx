@@ -144,10 +144,7 @@ export default function ApplicantsPage() {
     <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-12">
       {/* Standard SEMS Page Header */}
       <PageHeader
-        moduleBadge="การจัดการผู้สมัครทุน"
-        moduleBadgeIcon={Users}
         title="ผู้สมัครทุนการศึกษา"
-        description="ตรวจสอบรายชื่อ ค้นหา และนำเข้าข้อมูลผู้สมัครทุนการศึกษาจากไฟล์ Excel"
         action={
           isRoundDraft ? (
             <Button
