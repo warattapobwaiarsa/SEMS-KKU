@@ -315,12 +315,9 @@ export default function ScholarshipTypesPage() {
                     <TableCell className="font-medium">
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                          <Link
-                            href={`/admin/scholarship-types/${item.id}`}
-                            className="font-bold text-foreground group-hover:text-primary transition-colors text-sm hover:underline"
-                          >
+                          <span className="font-bold text-foreground group-hover:text-primary transition-colors text-sm">
                             {item.name}
-                          </Link>
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span>สร้างเมื่อ {new Date(item.createdAt).toLocaleDateString('th-TH')}</span>
