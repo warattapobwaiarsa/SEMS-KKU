@@ -143,7 +143,7 @@ export default function ScholarshipRoundsPage() {
             leftIcon={<Search className="h-4 w-4" />}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="ค้นหาชื่อรอบทุน หรือรหัสรอบ..."
+            placeholder="ค้นหาชื่อรอบทุน"
           />
           {searchTerm && (
             <button

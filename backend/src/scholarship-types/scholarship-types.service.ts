@@ -191,6 +191,29 @@ export class ScholarshipTypesService {
           message: 'เกณฑ์ต้องมีข้อแบบ Scored อย่างน้อย 1 ข้อ',
         });
       }
+
+      for (const item of scoredItems) {
+        if (!item.maxScore || item.maxScore < 1 || item.maxScore > 1000) {
+          throw new BusinessException({
+            errorCode: 'MAX_SCORE_OUT_OF_RANGE',
+            statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+            message: 'คะแนนเต็มของแต่ละข้อต้องเป็นจำนวนเต็มตั้งแต่ 1 ขึ้นไป',
+          });
+        }
+      }
+
+      const targetScore = dto.criteria.targetScore ?? 100;
+      const totalScore = scoredItems.reduce(
+        (sum, item) => sum + (Number(item.maxScore) || 0),
+        0,
+      );
+      if (totalScore !== targetScore) {
+        throw new BusinessException({
+          errorCode: 'CRITERIA_SUM_NOT_100',
+          statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+          message: `ผลรวมคะแนนต้องเท่ากับ ${targetScore} คะแนนพอดี (ปัจจุบัน: ${totalScore} คะแนน)`,
+        });
+      }
     }
 
     const created = await this.prisma.$transaction(async (tx) => {
@@ -214,6 +237,7 @@ export class ScholarshipTypesService {
         const createdCrit = await tx.criteria.create({
           data: {
             name: criteriaName,
+            targetScore: dto.criteria.targetScore ?? 100,
             subCriteria: {
               create: dto.criteria.subCriteria.map((sub, idx) => ({
                 sortOrder: sub.sortOrder ?? idx + 1,
@@ -341,6 +365,29 @@ export class ScholarshipTypesService {
           errorCode: 'SCORED_CRITERIA_REQUIRED',
           statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
           message: 'เกณฑ์ต้องมีข้อแบบ Scored อย่างน้อย 1 ข้อ',
+        });
+      }
+
+      for (const item of scoredItems) {
+        if (!item.maxScore || item.maxScore < 1 || item.maxScore > 1000) {
+          throw new BusinessException({
+            errorCode: 'MAX_SCORE_OUT_OF_RANGE',
+            statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+            message: 'คะแนนเต็มของแต่ละข้อต้องเป็นจำนวนเต็มตั้งแต่ 1 ขึ้นไป',
+          });
+        }
+      }
+
+      const targetScore = dto.criteria.targetScore ?? 100;
+      const totalScore = scoredItems.reduce(
+        (sum, item) => sum + (Number(item.maxScore) || 0),
+        0,
+      );
+      if (totalScore !== targetScore) {
+        throw new BusinessException({
+          errorCode: 'CRITERIA_SUM_NOT_100',
+          statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+          message: `ผลรวมคะแนนต้องเท่ากับ ${targetScore} คะแนนพอดี (ปัจจุบัน: ${totalScore} คะแนน)`,
         });
       }
     }

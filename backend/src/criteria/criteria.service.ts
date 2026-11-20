@@ -69,7 +69,12 @@ export class CriteriaService {
     }
   }
 
-  async findAll(query?: { page?: number; limit?: number; search?: string }) {
+  async findAll(query?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+  }) {
     const page = Number(query?.page) || 1;
     const limit = Number(query?.limit) || 20;
     const skip = (page - 1) * limit;
@@ -86,7 +91,21 @@ export class CriteriaService {
       ];
     }
 
-    const [total, items] = await Promise.all([
+    if (query?.status === 'LOCKED') {
+      where.rounds = {
+        some: {
+          status: { in: [RoundStatus.OPEN, RoundStatus.CLOSED] },
+        },
+      };
+    } else if (query?.status === 'UNLOCKED') {
+      where.rounds = {
+        none: {
+          status: { in: [RoundStatus.OPEN, RoundStatus.CLOSED] },
+        },
+      };
+    }
+
+    const [total, items, unlockedCount, lockedCount] = await Promise.all([
       this.prisma.criteria.count({ where }),
       this.prisma.criteria.findMany({
         where,
@@ -102,6 +121,24 @@ export class CriteriaService {
               id: true,
               name: true,
               status: true,
+            },
+          },
+        },
+      }),
+      this.prisma.criteria.count({
+        where: {
+          rounds: {
+            none: {
+              status: { in: [RoundStatus.OPEN, RoundStatus.CLOSED] },
+            },
+          },
+        },
+      }),
+      this.prisma.criteria.count({
+        where: {
+          rounds: {
+            some: {
+              status: { in: [RoundStatus.OPEN, RoundStatus.CLOSED] },
             },
           },
         },
@@ -136,6 +173,11 @@ export class CriteriaService {
         limit,
         total,
         totalPages: Math.ceil(total / limit) || 1,
+        statusCounts: {
+          total: unlockedCount + lockedCount,
+          unlocked: unlockedCount,
+          locked: lockedCount,
+        },
       },
     };
   }
@@ -399,5 +441,59 @@ export class CriteriaService {
     });
 
     return this.findOne(id);
+  }
+
+  async delete(id: number) {
+    const existing = await this.prisma.criteria.findUnique({
+      where: { id },
+      include: {
+        rounds: {
+          where: {
+            status: { in: [RoundStatus.OPEN, RoundStatus.CLOSED] },
+          },
+          select: { id: true, name: true, status: true },
+        },
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException({
+        errorCode: 'NOT_FOUND',
+        message: `ไม่พบเกณฑ์การประเมินรหัส ${id}`,
+      });
+    }
+
+    if (existing.rounds.length > 0) {
+      throw new BusinessException({
+        errorCode: 'CRITERIA_LOCKED',
+        statusCode: HttpStatus.CONFLICT,
+        message:
+          'ไม่สามารถลบเกณฑ์ที่ถูกนำไปใช้ในรอบการประเมินที่เปิดหรือปิดรอบแล้วได้',
+      });
+    }
+
+    return await this.prisma.$transaction(async (tx) => {
+      // Disconnect any draft rounds from this criteria
+      await tx.scholarshipRound.updateMany({
+        where: { criteriaId: id },
+        data: { criteriaId: null },
+      });
+
+      // Disconnect any scholarship types from this criteria
+      await tx.scholarshipType.updateMany({
+        where: { defaultCriteriaId: id },
+        data: { defaultCriteriaId: null },
+      });
+
+      // Delete all sub-criteria
+      await tx.subCriteria.deleteMany({
+        where: { criteriaId: id },
+      });
+
+      // Delete criteria
+      return await tx.criteria.delete({
+        where: { id },
+      });
+    });
   }
 }

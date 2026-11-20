@@ -21,15 +21,12 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui';
-import {
-  DeleteScholarshipTypeModal,
-} from '@/components/scholarship-types';
+import { DeleteScholarshipTypeModal } from '@/components/scholarship-types/delete-scholarship-type-modal';
 import {
   Award,
   Plus,
   Search,
   CheckCircle2,
-  AlertCircle,
   Trash2,
   Layers,
   Calendar,
@@ -98,7 +95,7 @@ export default function ScholarshipTypesPage() {
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
       {/* Standard Page Header */}
       <PageHeader
-        title="ประเภททุน"
+        title="ประเภททุนการศึกษา"
         action={
           <Link href="/admin/scholarship-types/create">
             <Button leftIcon={<Plus className="h-4 w-4" />}>
@@ -224,7 +221,7 @@ export default function ScholarshipTypesPage() {
                   <div className="pt-1 flex items-center gap-2">
                     <Link
                       href={`/admin/scholarship-types/${item.id}`}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-primary py-2.5 px-3 rounded-xl bg-primary/10 hover:bg-primary hover:text-primary-foreground transition shadow-2xs"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-primary py-2.5 px-3 rounded-xl bg-primary/10 hover:bg-primary hover:text-primary-foreground transition shadow-2xs border-transparent"
                     >
                       <Sliders className="h-3.5 w-3.5" />
                       <span>ดูรายละเอียดและเกณฑ์</span>

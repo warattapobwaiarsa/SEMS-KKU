@@ -44,6 +44,11 @@ export class NestedCriteriaDto {
   name?: string;
 
   @IsOptional()
+  @IsInt({ message: 'คะแนนเป้าหมายต้องเป็นจำนวนเต็ม' })
+  @Min(1, { message: 'คะแนนเป้าหมายต้องมากกว่า 0' })
+  targetScore?: number;
+
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => NestedSubCriteriaDto)
   subCriteria?: NestedSubCriteriaDto[];

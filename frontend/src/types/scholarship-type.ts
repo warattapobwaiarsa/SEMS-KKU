@@ -49,6 +49,7 @@ export interface NestedSubCriteriaItem {
 
 export interface NestedCriteriaPayload {
   name?: string;
+  targetScore?: number;
   subCriteria: NestedSubCriteriaItem[];
 }
 

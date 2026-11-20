@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -24,8 +25,9 @@ export class CriteriaController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('search') search?: string,
+    @Query('status') status?: string,
   ) {
-    return this.criteriaService.findAll({ page, limit, search });
+    return this.criteriaService.findAll({ page, limit, search, status });
   }
 
   @Get(':id')
@@ -51,5 +53,10 @@ export class CriteriaController {
     @Body() updateCriteriaDto: UpdateCriteriaDto,
   ) {
     return this.criteriaService.update(id, updateCriteriaDto);
+  }
+
+  @Delete(':id')
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    return this.criteriaService.delete(id);
   }
 }

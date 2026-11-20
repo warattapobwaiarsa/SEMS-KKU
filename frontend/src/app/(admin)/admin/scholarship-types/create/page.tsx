@@ -2,17 +2,12 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  ScholarshipTypeStepper,
-  ScholarshipTypeWizardStep,
-  CriteriaBuilder,
-} from '@/components/scholarship-types';
+import Link from 'next/link';
 import {
   PageHeader,
   Card,
   CardHeader,
   CardTitle,
-  CardDescription,
   CardContent,
   CardFooter,
   Button,
@@ -20,302 +15,203 @@ import {
   Alert,
 } from '@/components/ui';
 import {
-  ArrowLeft,
-  ArrowRight,
+  Award,
   CheckCircle2,
-  Loader2,
-  PlusCircle,
+  Plus,
+  Layers,
+  ArrowLeft,
 } from 'lucide-react';
 import { createScholarshipType } from '@/services/scholarship-types.service';
-import { NestedSubCriteriaItem } from '@/types/scholarship-type';
 
 export default function CreateScholarshipTypePage() {
   const router = useRouter();
 
-  // Wizard Step
-  const [currentStep, setCurrentStep] = useState<ScholarshipTypeWizardStep>(1);
-
-  // Step 1 Form State
+  // Form State
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+
+  // Form Status State
   const [nameError, setNameError] = useState<string | null>(null);
-
-  // Step 2 Form State (Criteria Builder)
-  const [criteriaName, setCriteriaName] = useState('');
-  const [subCriteria, setSubCriteria] = useState<NestedSubCriteriaItem[]>([
-    {
-      title: 'ผลการเรียนเฉลี่ยสะสม (GPAX)',
-      type: 'SCORED',
-      allowComment: true,
-      sortOrder: 1,
-    },
-    {
-      title: 'สภาพความเป็นอยู่และความจำเป็นทางการเงิน',
-      type: 'SCORED',
-      allowComment: true,
-      sortOrder: 2,
-    },
-    {
-      title: 'กิจกรรมบำเพ็ญประโยชน์หรือผลงานดีเด่น',
-      type: 'SCORED',
-      allowComment: true,
-      sortOrder: 3,
-    },
-  ]);
-
-  // Submission State
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [createdTypeName, setCreatedTypeName] = useState('');
-  const [createdTypeId, setCreatedTypeId] = useState<number | null>(null);
 
-  // Step 1 Validation & Proceed
-  const handleProceedToStep2 = (e: React.FormEvent) => {
+  // Handle Form Submission
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed) {
-      setNameError('กรุณากรอกชื่อประเภททุน');
+
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setNameError('กรุณาระบุชื่อประเภททุน');
       return;
     }
     setNameError(null);
-    if (!criteriaName.trim()) {
-      setCriteriaName(`เกณฑ์สำหรับ${trimmed}`);
-    }
-    setCurrentStep(2);
-  };
-
-  // Step 2 Submission
-  const handleSubmit = async () => {
-    // Validate subCriteria
-    const validSubCriteria = subCriteria.filter((item) => item.title.trim().length > 0);
-    if (validSubCriteria.length === 0) {
-      setSubmitError('กรุณากำหนดหัวข้อเกณฑ์ย่อยอย่างน้อย 1 ข้อ');
-      return;
-    }
+    setSubmitError(null);
 
     try {
       setIsSubmitting(true);
-      setSubmitError(null);
-
       const payload = {
-        name: name.trim(),
+        name: trimmedName,
         description: description.trim() || undefined,
-        criteria: {
-          name: criteriaName.trim() || `เกณฑ์สำหรับ${name.trim()}`,
-          subCriteria: validSubCriteria.map((item, idx) => ({
-            title: item.title.trim(),
-            type: item.type,
-            allowComment: Boolean(item.allowComment),
-            sortOrder: idx + 1,
-          })),
-        },
       };
 
       const res = await createScholarshipType(payload);
       if (res && res.data) {
         setCreatedTypeName(res.data.name);
-        setCreatedTypeId(res.data.id);
-        setCurrentStep(3);
+        setIsSuccess(true);
       } else {
         throw new Error('ไม่ได้รับข้อมูลตอบกลับจากการสร้างประเภททุน');
       }
     } catch (err: unknown) {
       console.error('Create scholarship type error:', err);
-      const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการสร้างประเภททุน กรุณาลองใหม่อีกครั้ง';
+      const msg =
+        err instanceof Error
+          ? err.message
+          : 'เกิดข้อผิดพลาดในการสร้างประเภททุน กรุณาลองใหม่อีกครั้ง';
       setSubmitError(msg);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleResetForm = () => {
+    setName('');
+    setDescription('');
+    setNameError(null);
+    setSubmitError(null);
+    setIsSuccess(false);
+    setCreatedTypeName('');
+  };
+
+  // Success View
+  if (isSuccess) {
+    return (
+      <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-16">
+        <PageHeader
+          title="สร้างประเภททุนการศึกษาสำเร็จ"
+          backHref="/admin/scholarship-types"
+          backLabel="กลับสู่หน้ารายการประเภททุน"
+        />
+
+        <Card className="border-emerald-200/80 bg-emerald-50/40 p-8 text-center space-y-6">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-xs">
+            <CheckCircle2 className="h-9 w-9" />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold text-foreground">
+              สร้างประเภททุน &ldquo;{createdTypeName}&rdquo; เรียบร้อยแล้ว
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              ประเภททุนนี้พร้อมสำหรับนำไปใช้สร้างรอบการเปิดรับสมัครทุนการศึกษาในระบบแล้ว
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleResetForm}
+              leftIcon={<Plus className="h-4 w-4" />}
+            >
+              สร้างประเภททุนอื่นต่อ
+            </Button>
+            <Button
+              type="button"
+              onClick={() => router.push('/admin/scholarship-types')}
+              leftIcon={<Layers className="h-4 w-4" />}
+            >
+              ดูรายการประเภททุนทั้งหมด
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-16">
-      {/* Header */}
+      {/* Standard Header */}
       <PageHeader
-        title="สร้างประเภททุนใหม่"
-        description="กำหนดข้อมูลประเภททุนและโครงสร้างเกณฑ์การประเมินเริ่มต้นสำหรับใช้งานในรอบทุนการศึกษา"
+        title="สร้างประเภททุนการศึกษาใหม่"
         backHref="/admin/scholarship-types"
         backLabel="กลับสู่หน้ารายการประเภททุน"
       />
 
-      {/* Stepper */}
-      <ScholarshipTypeStepper currentStep={currentStep} />
-
-      {/* Error alert */}
+      {/* Global Error Banner */}
       {submitError && (
-        <Alert variant="destructive">
-          {submitError}
+        <Alert variant="destructive" title="ไม่สามารถสร้างประเภททุนได้">
+          <p className="text-xs text-destructive/90 mt-1">{submitError}</p>
         </Alert>
       )}
 
-      {/* Step 1: Basic Info */}
-      {currentStep === 1 && (
-        <form onSubmit={handleProceedToStep2} className="space-y-6">
-          <Card className="border-border/80 shadow-xs">
-            <CardHeader className="p-5 pb-4 border-b border-border/60">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
-                  1
-                </div>
-                <div>
-                  <CardTitle className="text-base sm:text-lg">ข้อมูลประเภททุน</CardTitle>
-                  <CardDescription>
-                    ระบุชื่อประเภททุนและคำอธิบายหรือวัตถุประสงค์ของทุน
-                  </CardDescription>
-                </div>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        {/* Section 1: Basic Information */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Award className="h-5 w-5" />
               </div>
-            </CardHeader>
-
-            <CardContent className="p-5 sm:p-6 space-y-5">
-              {/* Type Name */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-foreground flex items-center gap-1">
-                  <span>ชื่อประเภททุน</span>
-                  <span className="text-destructive">*</span>
-                </label>
-                <Input
-                  id="scholarship-type-name"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    if (nameError) setNameError(null);
-                  }}
-                  placeholder="เช่น ทุนเรียนดีเด่น, ทุนสนับสนุนค่าครองชีพ, ทุนกิจกรรมเด่น"
-                  error={nameError || undefined}
-                  autoFocus
-                />
-                <p className="text-xs text-muted-foreground">
-                  ชื่อนี้จะปรากฏให้เจ้าหน้าที่และกรรมการเห็นเมื่อเลือกรอบทุน
-                </p>
+              <div>
+                <CardTitle>ข้อมูลทั่วไปของประเภททุน</CardTitle>
               </div>
+            </div>
+          </CardHeader>
 
-              {/* Description */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-foreground">
-                  วัตถุประสงค์และคำอธิบายทุน (ไม่บังคับ)
-                </label>
-                <textarea
-                  id="scholarship-type-description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="ระบุวัตถุประสงค์ คุณสมบัติผู้สมัครเป้าหมาย หรือเงื่อนไขสำคัญของทุนประเภทนี้..."
-                  rows={4}
-                  className="w-full rounded-xl border border-border bg-background/60 p-3.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
-                />
-              </div>
-            </CardContent>
+          <CardContent className="space-y-5">
+            {/* Scholarship Type Name */}
+            <div className="space-y-2">
+              <label htmlFor="type-name" className="text-xs font-semibold text-foreground flex items-center gap-1">
+                ชื่อประเภททุนการศึกษา <span className="text-destructive">*</span>
+              </label>
+              <Input
+                id="type-name"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (nameError) setNameError(null);
+                }}
+                placeholder="เช่น ทุนเรียนดีเด่น, ทุนช่วยเหลือนักศึกษาขาดแคลนทุนทรัพย์, ทุนกิจกรรมดีเด่น"
+                error={nameError || undefined}
+              />
+            </div>
 
-            <CardFooter className="p-5 border-t border-border/60 flex items-center justify-between">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.push('/admin/scholarship-types')}
-              >
+            {/* Description / Objectives */}
+            <div className="space-y-2">
+              <label htmlFor="type-desc" className="text-xs font-semibold text-foreground flex items-center gap-1">
+                คำอธิบาย<span className="text-muted-foreground font-normal">(ไม่บังคับ)</span>
+              </label>
+              <textarea
+                id="type-desc"
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="อธิบายวัตถุประสงค์ คุณสมบัติทั่วไป หรือกลุ่มเป้าหมายของทุนประเภทนี้"
+                className="w-full rounded-xl border border-border bg-background/60 px-3.5 py-2.5 text-sm text-foreground transition-all duration-150 placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+              />
+            </div>
+          </CardContent>
+
+          {/* Form Actions Footer */}
+          <CardFooter className="flex items-center justify-between pt-4 border-t border-border/70">
+            <Link href="/admin/scholarship-types">
+              <Button type="button" variant="outline" leftIcon={<ArrowLeft className="h-4 w-4" />}>
                 ยกเลิก
               </Button>
+            </Link>
 
-              <Button type="submit" className="gap-2">
-                <span>ต่อไป: กำหนดเกณฑ์ประเมิน</span>
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </Card>
-        </form>
-      )}
-
-      {/* Step 2: Criteria Builder */}
-      {currentStep === 2 && (
-        <div className="space-y-6">
-          <CriteriaBuilder
-            scholarshipTypeName={name}
-            criteriaName={criteriaName}
-            onCriteriaNameChange={setCriteriaName}
-            subCriteria={subCriteria}
-            onSubCriteriaChange={setSubCriteria}
-          />
-
-          {/* Action Bar */}
-          <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-card border border-border/80 shadow-xs">
             <Button
-              type="button"
-              variant="outline"
-              onClick={() => setCurrentStep(1)}
+              type="submit"
               disabled={isSubmitting}
-              className="gap-2"
+              leftIcon={<CheckCircle2 className="h-4 w-4" />}
             >
-              <ArrowLeft className="h-4 w-4" />
-              <span>ย้อนกลับไปแก้ไขข้อมูลทุน</span>
+              {isSubmitting ? 'กำลังบันทึก...' : 'สร้างประเภททุนการศึกษา'}
             </Button>
-
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>กำลังบันทึกข้อมูล...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>ยืนยันและสร้างประเภททุนพร้อมเกณฑ์</span>
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 3: Success Screen */}
-      {currentStep === 3 && (
-        <Card className="border-border/80 shadow-sm text-center p-8 sm:p-12 space-y-6">
-          <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 flex items-center justify-center ring-8 ring-emerald-50 dark:ring-emerald-950/20">
-            <CheckCircle2 className="h-9 w-9 stroke-[2.5]" />
-          </div>
-
-          <div className="space-y-2 max-w-md mx-auto">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">
-              สร้างประเภททุนสำเร็จ!
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              ประเภททุน <span className="font-semibold text-foreground">&ldquo;{createdTypeName}&rdquo;</span> พร้อมโครงสร้างเกณฑ์ประเมินเริ่มต้นจำนวน{' '}
-              <span className="font-semibold text-foreground">{subCriteria.length} ข้อ</span> ถูกบันทึกเข้าสู่ระบบเรียบร้อยแล้ว
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => router.push('/admin/scholarship-types')}
-              className="w-full sm:w-auto"
-            >
-              กลับสู่หน้ารายการประเภททุน
-            </Button>
-
-            {createdTypeId && (
-              <Button
-                variant="outline"
-                onClick={() => router.push(`/admin/scholarship-types/${createdTypeId}`)}
-                className="w-full sm:w-auto"
-              >
-                ดูรายละเอียดประเภททุน
-              </Button>
-            )}
-
-            <Button
-              variant="primary"
-              onClick={() => router.push('/admin/scholarship-rounds/create')}
-              className="w-full sm:w-auto gap-2"
-            >
-              <PlusCircle className="h-4 w-4" />
-              <span>ไปสร้างรอบทุนการศึกษาใหม่ทันที</span>
-            </Button>
-          </div>
+          </CardFooter>
         </Card>
-      )}
+      </form>
     </div>
   );
 }

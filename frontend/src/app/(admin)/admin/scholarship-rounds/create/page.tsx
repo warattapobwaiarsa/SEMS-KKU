@@ -190,8 +190,7 @@ export default function CreateScholarshipRoundPage() {
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-16">
       {/* Header */}
       <PageHeader
-        title="สร้างรอบทุนการศึกษาใหม่ (Guided Round Setup)"
-        description="ตั้งค่ารอบทุน เชื่อมโยงเกณฑ์การประเมิน และนำเข้ารายชื่อผู้สมัครตามลำดับขั้นตอน"
+        title="สร้างรอบทุนการศึกษาใหม่"
         backHref="/admin/scholarship-rounds"
         backLabel="กลับสู่หน้ารายการรอบทุนการศึกษา"
       />
