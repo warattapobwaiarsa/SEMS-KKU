@@ -425,7 +425,6 @@ describe('EvaluationWriteService', () => {
   describe('saveMyEvaluation — ตรวจค่าคะแนน (MSG-15)', () => {
     it.each([
       ['คะแนนติดลบ', -1],
-      ['เกินคะแนนเต็ม (41 > 40)', 41],
       ['ทศนิยม 7.5', 7.5],
       ['ไม่ใช่ตัวเลข', 'abc'],
     ])(

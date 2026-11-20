@@ -361,29 +361,24 @@ export default function RoundDetailPage() {
           </div>
 
           {/* Quick Actions Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border/60">
-            <span className="text-xs text-muted-foreground">
-              ผู้สมัครในรอบนี้: <strong className="text-foreground font-mono">{round.applicantCount}</strong> คน
-            </span>
-            <div className="flex items-center gap-2">
-              {round.status === 'DRAFT' && (
-                <button
-                  type="button"
-                  onClick={() => setShowImportModal(true)}
-                  className="px-3.5 py-2 text-xs font-semibold bg-muted hover:bg-muted/80 text-foreground border border-border rounded-xl transition flex items-center gap-1.5"
-                >
-                  <FileSpreadsheet className="h-3.5 w-3.5 text-primary" />
-                  นำเข้าไฟล์ Excel เพิ่มเติม
-                </button>
-              )}
-              <Link
-                href="/admin/applicants"
-                className="px-3.5 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl transition flex items-center gap-1.5 shadow-2xs"
+          <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-border/60">
+            {round.status === 'DRAFT' && (
+              <button
+                type="button"
+                onClick={() => setShowImportModal(true)}
+                className="px-3.5 py-2 text-xs font-semibold bg-muted hover:bg-muted/80 text-foreground border border-border rounded-xl transition flex items-center gap-1.5"
               >
-                <Users className="h-3.5 w-3.5" />
-                เปิดหน้ารายชื่อผู้สมัคร
-              </Link>
-            </div>
+                <FileSpreadsheet className="h-3.5 w-3.5 text-primary" />
+                นำเข้าไฟล์ Excel เพิ่มเติม
+              </button>
+            )}
+            <Link
+              href="/admin/applicants"
+              className="px-3.5 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl transition flex items-center gap-1.5 shadow-2xs"
+            >
+              <Users className="h-3.5 w-3.5" />
+              เปิดหน้ารายชื่อผู้สมัคร
+            </Link>
           </div>
         </div>
 

@@ -40,17 +40,10 @@ export const ADMIN_NAV_ITEMS: NavItemConfig[] = [
   },
   // การตั้งค่าระบบและเกณฑ์ (Settings)
   {
-    title: "เกณฑ์การประเมิน",
-    href: "/admin/evaluation-criteria",
-    iconName: "CheckSquare",
-    description: "กำหนดชุดเกณฑ์และเกณฑ์ย่อยรวม 100 คะแนน",
-    group: "การตั้งค่าระบบ (Settings)",
-  },
-  {
-    title: "ประเภททุนการศึกษา",
+    title: "ประเภททุนและเกณฑ์การประเมิน",
     href: "/admin/scholarship-types",
     iconName: "Award",
-    description: "จัดการประเภททุนและกำหนดเกณฑ์การประเมินเริ่มต้น",
+    description: "จัดการประเภททุนและกำหนดโครงสร้างเกณฑ์การประเมินเริ่มต้น",
     group: "การตั้งค่าระบบ (Settings)",
   },
   {

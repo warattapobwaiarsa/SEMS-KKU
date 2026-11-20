@@ -76,13 +76,12 @@ export function ScoreInputRow({
 
       {isScored ? (
         <div className="space-y-1.5">
-          {/* ช่องกรอกคะแนน (จำนวนเต็ม 0 ถึง maxScore) */}
+          {/* ช่องกรอกคะแนน (จำนวนเต็ม >= 0) */}
           <div className="flex items-center gap-2.5">
             <input
               type="number"
               inputMode="numeric"
               min={0}
-              max={sub.maxScore ?? undefined}
               step={1}
               value={value.score}
               disabled={readOnly}
@@ -101,10 +100,10 @@ export function ScoreInputRow({
                 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition
                 disabled:cursor-not-allowed disabled:text-muted-foreground disabled:bg-muted/50
                 ${scoreError ? 'border-destructive bg-destructive/5 text-destructive' : 'border-border'}`}
-              placeholder="-"
+              placeholder="0"
             />
             <span className="text-sm sm:text-base font-medium text-muted-foreground">
-              / {sub.maxScore ?? '-'} คะแนน
+              {sub.maxScore ? `/ ${sub.maxScore} คะแนน` : 'คะแนน'}
             </span>
           </div>
 

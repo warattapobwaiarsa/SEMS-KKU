@@ -71,7 +71,7 @@ function buildInitialValues(items: MyEvaluationItem[]): ScoreFormValues {
   return result;
 }
 
-// ตรวจค่าคะแนนทุกข้อ: ต้องเป็นจำนวนเต็ม 0 ถึง maxScore (ทศนิยมไม่ได้ตาม backend) [FR-EVL-05] [BR-EVL-03]
+// ตรวจค่าคะแนนทุกข้อ: ต้องเป็นจำนวนเต็ม >= 0 (ทศนิยมไม่ได้ตาม backend) [FR-EVL-05] [BR-EVL-03]
 function validateScores(
   values: ScoreFormValues,
   items: MyEvaluationItem[],
@@ -82,9 +82,8 @@ function validateScores(
     const raw = values[item.subCriteriaId]?.score ?? '';
     if (raw === '') continue; // ยังไม่กรอก = ยังไม่ผิด แต่ส่งผลไม่ได้
     const numberValue = Number(raw);
-    const max = item.subCriteria.maxScore;
-    if (!Number.isInteger(numberValue) || numberValue < 0 || max === null || numberValue > max) {
-      errors[item.subCriteriaId] = `คะแนนต้องเป็นจำนวนเต็มตั้งแต่ 0 ถึง ${max ?? '-'}`;
+    if (!Number.isInteger(numberValue) || numberValue < 0) {
+      errors[item.subCriteriaId] = 'คะแนนต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป';
     }
   }
   return errors;

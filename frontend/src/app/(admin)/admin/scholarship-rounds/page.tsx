@@ -11,14 +11,12 @@ import {
   Search, 
   Users, 
   ArrowRight,
-  Eye,
   CheckCircle2,
   Check,
   RefreshCw,
   Trash2,
   X,
   Sliders,
-  Banknote,
   Layers,
 } from 'lucide-react';
 import { useDebounce } from '@/lib/use-debounce';
@@ -334,16 +332,29 @@ export default function ScholarshipRoundsPage() {
                       href={`/admin/scholarship-rounds/${round.id}`}
                       className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-primary py-2.5 px-3 rounded-xl bg-primary/10 hover:bg-primary hover:text-primary-foreground transition shadow-2xs"
                     >
-                      <Eye className="h-3.5 w-3.5" />
-                      {round.status === 'DRAFT' ? 'ตั้งค่า & ตรวจสอบ' : round.status === 'OPEN' ? 'ติดตามการประเมิน' : 'ดูผลและจัดสรรทุน'}
+                      <Sliders className="h-3.5 w-3.5" />
+                      <span>ตั้งค่ารอบทุน</span>
                       <ArrowRight className="h-3 w-3" />
                     </Link>
-                    {round.status === 'DRAFT' && (
+                    {round.status === 'DRAFT' ? (
                       <button
                         type="button"
                         onClick={() => setDeletingRound(round)}
                         className="p-2.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition border border-rose-200/60 dark:border-rose-900/40 cursor-pointer shrink-0"
                         title="ลบรอบทุนแบบร่างนี้"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        className="p-2.5 text-muted-foreground/35 bg-muted/20 border border-border/40 rounded-xl cursor-not-allowed shrink-0"
+                        title={
+                          round.status === 'OPEN'
+                            ? 'ไม่สามารถลบรอบทุนที่กำลังเปิดรับประเมินได้'
+                            : 'ไม่สามารถลบรอบทุนที่ปิดการประเมินแล้วได้'
+                        }
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -480,27 +491,32 @@ export default function ScholarshipRoundsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="w-[124px] justify-center whitespace-nowrap bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-white hover:border-transparent font-medium shrink-0"
+                            className="min-w-[124px] justify-center whitespace-nowrap bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-white hover:border-transparent font-medium shrink-0"
                             rightIcon={<ArrowRight className="h-3 w-3 shrink-0" />}
-                            leftIcon={
-                              round.status === 'DRAFT' ? (
-                                <Eye className="h-3.5 w-3.5 shrink-0" />
-                              ) : round.status === 'OPEN' ? (
-                                <Sliders className="h-3.5 w-3.5 shrink-0" />
-                              ) : (
-                                <Banknote className="h-3.5 w-3.5 shrink-0" />
-                              )
-                            }
+                            leftIcon={<Sliders className="h-3.5 w-3.5 shrink-0" />}
                           >
-                            {round.status === 'DRAFT' ? 'ตั้งค่ารอบ' : round.status === 'OPEN' ? 'ติดตามผล' : 'จัดสรรทุน'}
+                            ตั้งค่ารอบทุน
                           </Button>
                         </Link>
-                        {round.status === 'DRAFT' && (
+                        {round.status === 'DRAFT' ? (
                           <button
                             type="button"
                             onClick={() => setDeletingRound(round)}
                             className="p-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition border border-rose-200/60 dark:border-rose-900/40 cursor-pointer shrink-0"
                             title="ลบรอบทุนแบบร่างนี้"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled
+                            className="p-2 text-muted-foreground/35 bg-muted/20 border border-border/40 rounded-xl cursor-not-allowed shrink-0"
+                            title={
+                              round.status === 'OPEN'
+                                ? 'ไม่สามารถลบรอบทุนที่กำลังเปิดรับประเมินได้'
+                                : 'ไม่สามารถลบรอบทุนที่ปิดการประเมินแล้วได้'
+                            }
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>

@@ -67,37 +67,6 @@ export class CriteriaService {
         message: 'เกณฑ์ต้องมีข้อแบบ Scored อย่างน้อย 1 ข้อ',
       });
     }
-
-    // BR-CRT-05 (FR-CRT-04 & Scope 1.3.2.4): Max score must be 1 to targetScore
-    for (const item of scoredItems) {
-      if (
-        item.maxScore === undefined ||
-        item.maxScore === null ||
-        item.maxScore < 1 ||
-        item.maxScore > targetScore
-      ) {
-        throw new BusinessException({
-          errorCode: 'MAX_SCORE_OUT_OF_RANGE',
-          statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-          message: `คะแนนเต็มเกณฑ์ย่อยต้องเป็น 1–${targetScore}`,
-          params: { targetScore, maxScore: item.maxScore },
-        });
-      }
-    }
-
-    // BR-CRT-06 (FR-CRT-05 & Scope 1.3.2.4): Sum of SCORED items must equal exactly targetScore
-    const sum = scoredItems.reduce(
-      (acc, curr) => acc + (curr.maxScore || 0),
-      0,
-    );
-    if (sum !== targetScore) {
-      throw new BusinessException({
-        errorCode: 'CRITERIA_SUM_NOT_100',
-        statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-        message: `ผลรวมคะแนน Scored ไม่เท่ากับ ${targetScore} (ปัจจุบัน: ${sum})`,
-        params: { sum, targetScore, target: targetScore },
-      });
-    }
   }
 
   async findAll(query?: { page?: number; limit?: number; search?: string }) {

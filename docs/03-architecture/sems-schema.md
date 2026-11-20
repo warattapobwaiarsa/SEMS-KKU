@@ -81,7 +81,7 @@ Index: `(role, isActive)`, `(expiresAt)` — ใช้กับงานตั�
 | criteriaId | FK → criteria | |
 | title | String | **ซ้ำได้** แม้ในเกณฑ์เดียวกัน BR-CRT-12 |
 | type | SubCriteriaType | |
-| maxScore | Int? | เฉพาะ SCORED, จำนวนเต็ม 1–100 BR-CRT-05 |
+| maxScore | Int? | *(ยกเลิกการบังคับ)* รองรับค่า null ไม่จำกัดเพดานคะแนน |
 | allowComment | Boolean | เฉพาะ SCORED BR-CRT-03 |
 | sortOrder | Int | ลำดับแสดง; เปลี่ยนลำดับ = แก้ไข (ล็อกเมื่อเกณฑ์ถูกใช้ใน Open/Closed) BR-CRT-08 |
 
@@ -156,7 +156,7 @@ Unique: `(roundId, studentCode)` · Index: `(roundId, faculty)`, `(roundId, last
 | คอลัมน์ | หมายเหตุ |
 |---|---|
 | (evaluationId, subCriteriaId) | unique |
-| score | Int? — **null = ยังไม่กรอก ไม่ใช่ 0** BR-EVL-07; ช่วง 0..maxScore ตรวจที่ Backend (MSG-15) |
+| score | Int? — **null = ยังไม่กรอก ไม่ใช่ 0** BR-EVL-07; ค่า >= 0 ตรวจที่ Backend (MSG-15) |
 | comment | เฉพาะข้อที่ `allowComment`; ไม่จำกัดความยาว |
 | textValue | เฉพาะ TEXT; ไม่บังคับ |
 
@@ -204,8 +204,8 @@ Prisma ยังไม่รองรับ CHECK constraint ใน schema ใ�
 -- เกณฑ์ย่อย
 ALTER TABLE sub_criteria ADD CONSTRAINT chk_sub_criteria_scored
   CHECK (
-    ("type" = 'SCORED' AND "maxScore" BETWEEN 1 AND 100)
-    OR ("type" = 'TEXT' AND "maxScore" IS NULL AND "allowComment" = false)
+    ("type" = 'SCORED')
+    OR ("type" = 'TEXT' AND "allowComment" = false)
   );
 
 -- รอบทุน
@@ -244,7 +244,7 @@ ALTER TABLE evaluation_items ADD CONSTRAINT chk_item_score_nonneg CHECK ("score"
 | ปิดบัญชี Evaluator ที่มี Draft ในรอบ Open ไม่ได้; เลื่อนปิดอัตโนมัติ | BR-USR-09/10 |
 | สถานะรอบเปลี่ยนทางเดียว + optimistic check (`UPDATE ... WHERE status = :expected`) | BR-RND-04, NFR-DAT-03 |
 | แก้รอบ/เกณฑ์/ผู้สมัคร/ผูกเกณฑ์ ได้เฉพาะ Draft; เกณฑ์ที่ถูกใช้ใน Open/Closed แก้ไม่ได้ | BR-RND-05/10, BR-CRT-09 |
-| ผลรวม maxScore ของ SCORED = 100 ทุกครั้งที่บันทึก/ก่อนเปิดรอบ | BR-CRT-06, BR-RND-08 |
+| เกณฑ์ต้องมี SCORED อย่างน้อย 1 ข้อ และผูกกับรอบได้เฉพาะ Draft | BR-CRT-04, BR-RND-08 |
 | Evaluator เห็นเฉพาะผู้สมัครรอบ Open; ห้ามส่ง `applicant_contacts` ให้ Evaluator | BR-EVL-01, BR-PDP-05 |
 | Submit ต้องกรอกคะแนนครบทุก SCORED; ห้ามแก้ Submitted; ห้าม Submit หลังรอบ Closed (race กับปิดรอบ) | BR-EVL-11/12/14, NFR-DAT-04 |
 | คะแนนเฉลี่ย/อันดับ: ใช้ Decimal เทียบก่อนปัดเศษ ปัดแสดง 2 ตำแหน่ง | NFR-DAT-06 |

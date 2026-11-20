@@ -1,4 +1,13 @@
-import { IsOptional, IsString, IsInt, Min, IsBoolean } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsInt,
+  Min,
+  IsBoolean,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { NestedCriteriaDto } from './create-scholarship-type.dto';
 
 export class UpdateScholarshipTypeDto {
   @IsOptional()
@@ -17,4 +26,9 @@ export class UpdateScholarshipTypeDto {
   @IsOptional()
   @IsBoolean({ message: 'สถานะการใช้งานต้องเป็น boolean' })
   isActive?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => NestedCriteriaDto)
+  criteria?: NestedCriteriaDto;
 }

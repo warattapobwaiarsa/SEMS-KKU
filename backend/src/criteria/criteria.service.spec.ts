@@ -103,30 +103,38 @@ describe('CriteriaService', () => {
       }
     });
 
-    it('should throw MAX_SCORE_OUT_OF_RANGE if maxScore is out of 1-100 (BR-CRT-05)', async () => {
-      const dto = {
-        name: 'เกณฑ์ทดสอบ',
+    it('should allow creating criteria without requiring sum=100 or maxScore restriction', async () => {
+      mockPrismaService.criteria.findUnique.mockResolvedValueOnce(null);
+      mockPrismaService.criteria.create.mockResolvedValueOnce({
+        id: 1,
+        name: 'เกณฑ์ยืดหยุ่น',
+        targetScore: 100,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         subCriteria: [
           {
+            id: 1,
+            criteriaId: 1,
             sortOrder: 1,
             title: 'ผลการเรียน',
             type: SubCriteriaType.SCORED,
-            maxScore: 105,
+            maxScore: 60,
+            allowComment: false,
+          },
+          {
+            id: 2,
+            criteriaId: 1,
+            sortOrder: 2,
+            title: 'ความประพฤติ',
+            type: SubCriteriaType.SCORED,
+            maxScore: 30, // Total = 90 (previously threw error)
+            allowComment: false,
           },
         ],
-      };
+      });
 
-      try {
-        await service.create(dto);
-      } catch (err: unknown) {
-        const error = err as BusinessException;
-        expect(error.errorCode).toBe('MAX_SCORE_OUT_OF_RANGE');
-      }
-    });
-
-    it('should throw CRITERIA_SUM_NOT_100 if sum of scored items != 100 (BR-CRT-06)', async () => {
       const dto = {
-        name: 'เกณฑ์ทดสอบ',
+        name: 'เกณฑ์ยืดหยุ่น',
         subCriteria: [
           {
             sortOrder: 1,
@@ -138,22 +146,13 @@ describe('CriteriaService', () => {
             sortOrder: 2,
             title: 'ความประพฤติ',
             type: SubCriteriaType.SCORED,
-            maxScore: 30, // Total = 90
+            maxScore: 30,
           },
         ],
       };
 
-      try {
-        await service.create(dto);
-      } catch (err: unknown) {
-        const error = err as BusinessException;
-        expect(error.errorCode).toBe('CRITERIA_SUM_NOT_100');
-        expect(error.params).toEqual({
-          sum: 90,
-          targetScore: 100,
-          target: 100,
-        });
-      }
+      const result = await service.create(dto);
+      expect(result.id).toBe(1);
     });
 
     it('should throw TARGET_SCORE_OUT_OF_RANGE if targetScore is not between 1 and 1000 (Scope 1.3.2.4)', async () => {
@@ -175,28 +174,6 @@ describe('CriteriaService', () => {
       } catch (err: unknown) {
         const error = err as BusinessException;
         expect(error.errorCode).toBe('TARGET_SCORE_OUT_OF_RANGE');
-      }
-    });
-
-    it('should throw MAX_SCORE_OUT_OF_RANGE if subCriteria maxScore exceeds targetScore (Scope 1.3.2.4)', async () => {
-      const dto = {
-        name: 'เกณฑ์ทดสอบ',
-        targetScore: 50,
-        subCriteria: [
-          {
-            sortOrder: 1,
-            title: 'ผลการเรียน',
-            type: SubCriteriaType.SCORED,
-            maxScore: 60,
-          },
-        ],
-      };
-
-      try {
-        await service.create(dto);
-      } catch (err: unknown) {
-        const error = err as BusinessException;
-        expect(error.errorCode).toBe('MAX_SCORE_OUT_OF_RANGE');
       }
     });
 
