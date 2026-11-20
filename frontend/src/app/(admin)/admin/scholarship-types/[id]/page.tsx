@@ -147,27 +147,27 @@ export default function ScholarshipTypeDetailPage() {
           <Table className="w-full text-left text-sm table-fixed min-w-[800px]">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-1/4">หัวข้อเกณฑ์ย่อย</TableHead>
-                <TableHead className="w-1/4 text-center">ชนิดเกณฑ์</TableHead>
-                <TableHead className="w-1/4 text-center">คะแนนเต็ม</TableHead>
-                <TableHead className="w-1/4 text-center">การบันทึกความเห็น</TableHead>
+                <TableHead className="w-1/5 text-center">ลำดับ</TableHead>
+                <TableHead className="w-1/5">หัวข้อเกณฑ์ย่อย</TableHead>
+                <TableHead className="w-1/5 text-center">ชนิดเกณฑ์</TableHead>
+                <TableHead className="w-1/5 text-center">คะแนนเต็ม</TableHead>
+                <TableHead className="w-1/5 text-center">การบันทึกความเห็น</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {subCriteria.map((item, index) => (
                 <TableRow key={item.id || index} className="group">
-                  <TableCell className="w-1/4 font-medium">
-                    <div className="flex items-center gap-2.5">
-                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-muted text-xs font-mono font-bold text-muted-foreground shrink-0">
-                        {index + 1}
-                      </span>
-                      <span className="font-semibold text-foreground text-sm truncate" title={item.title}>
-                        {item.title}
-                      </span>
-                    </div>
+                  <TableCell className="w-1/5 text-center font-mono font-bold text-xs text-muted-foreground">
+                    {index + 1}
                   </TableCell>
 
-                  <TableCell className="w-1/4 text-center">
+                  <TableCell className="w-1/5 font-medium">
+                    <span className="font-semibold text-foreground text-sm truncate block" title={item.title}>
+                      {item.title}
+                    </span>
+                  </TableCell>
+
+                  <TableCell className="w-1/5 text-center">
                     {item.type === 'SCORED' ? (
                       <Badge
                         variant="secondary"
@@ -187,7 +187,7 @@ export default function ScholarshipTypeDetailPage() {
                     )}
                   </TableCell>
 
-                  <TableCell className="w-1/4 text-center">
+                  <TableCell className="w-1/5 text-center">
                     {item.type === 'SCORED' && item.maxScore != null ? (
                       <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-foreground px-2.5 py-1 rounded-lg bg-muted/60 border border-border/40">
                         <Award className="h-3.5 w-3.5 text-primary" />
@@ -198,7 +198,7 @@ export default function ScholarshipTypeDetailPage() {
                     )}
                   </TableCell>
 
-                  <TableCell className="w-1/4 text-center">
+                  <TableCell className="w-1/5 text-center">
                     {item.allowComment ? (
                       <span className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400 font-medium">
                         <CheckCircle2 className="h-3.5 w-3.5" />
