@@ -129,7 +129,7 @@ export default function CreateScholarshipTypePage() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-16">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-16">
       {/* Header */}
       <PageHeader
         title="สร้างประเภททุนใหม่"

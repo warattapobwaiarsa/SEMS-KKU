@@ -74,21 +74,26 @@ export default function ScholarshipTypeDetailPage() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto p-12 text-center text-sm text-muted-foreground">
-        กำลังโหลดข้อมูลประเภททุน...
+      <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
+        <div className="p-16 text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em]" />
+          <p className="mt-4 text-sm text-muted-foreground animate-pulse">กำลังโหลดข้อมูลประเภททุน...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !typeDetail) {
     return (
-      <div className="max-w-5xl mx-auto space-y-4">
+      <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
         <Alert variant="destructive">
           {error || 'ไม่พบข้อมูลประเภททุนที่ต้องการ'}
         </Alert>
-        <Link href="/admin/scholarship-types">
-          <Button variant="outline">กลับสู่หน้ารายการประเภททุน</Button>
-        </Link>
+        <div>
+          <Link href="/admin/scholarship-types">
+            <Button variant="outline">กลับสู่หน้ารายการประเภททุน</Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -98,7 +103,7 @@ export default function ScholarshipTypeDetailPage() {
   const textCount = subCriteria.filter((s) => s.type === 'TEXT').length;
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-16">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
       {/* Hero Header */}
       <ScholarshipTypeHeroHeader
         id={typeDetail.id}
