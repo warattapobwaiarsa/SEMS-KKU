@@ -33,7 +33,17 @@ import {
 } from 'lucide-react';
 import { DeleteRoundModal } from '@/components/rounds/delete-round-modal';
 import { ImportApplicantModal } from '@/components/applicants/import-modal';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Select } from '@/components/ui';
+import { 
+  Modal, 
+  ModalHeader, 
+  ModalBody, 
+  ModalFooter, 
+  Select,
+  Card,
+  Button,
+  StatusBadge,
+  Badge,
+} from '@/components/ui';
 import { RoundHeroHeader } from '@/components/rounds/round-hero-header';
 
 export default function RoundDetailPage() {
@@ -291,7 +301,7 @@ export default function RoundDetailPage() {
       {/* ข้อมูลของรอบทุนการศึกษา (Round Details & Information) */}
       <div className="flex flex-col gap-6">
         {/* Card 1: ข้อมูลทั่วไปของรอบทุน */}
-        <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-xs space-y-5">
+        <Card className="p-6 space-y-5">
           <div className="flex items-center justify-between border-b border-border/60 pb-3">
             <h3 className="text-base font-bold text-foreground flex items-center gap-2">
               <Sliders className="h-4 w-4 text-primary" />
@@ -299,14 +309,15 @@ export default function RoundDetailPage() {
             </h3>
             <div className="flex items-center gap-2">
               {round.status === 'DRAFT' && (
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={handleOpenEditModal}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-border hover:bg-muted text-foreground transition"
+                  leftIcon={<Pencil className="h-3.5 w-3.5 text-muted-foreground" />}
                 >
-                  <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                   แก้ไขข้อมูล
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -332,17 +343,11 @@ export default function RoundDetailPage() {
               <span className="text-xs text-muted-foreground font-medium block">สถานะรอบทุน</span>
               <div className="mt-1">
                 {round.status === 'OPEN' ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300">
-                    เปิดรับประเมิน
-                  </span>
+                  <StatusBadge variant="open" label="เปิดรับประเมิน" />
                 ) : round.status === 'CLOSED' ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300">
-                    ปิดรอบแล้ว
-                  </span>
+                  <StatusBadge variant="closed" label="ปิดรอบแล้ว" />
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300">
-                    แบบร่าง
-                  </span>
+                  <StatusBadge variant="draft" label="แบบร่าง" />
                 )}
               </div>
             </div>
@@ -363,27 +368,26 @@ export default function RoundDetailPage() {
           {/* Quick Actions Bar */}
           <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-border/60">
             {round.status === 'DRAFT' && (
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={() => setShowImportModal(true)}
-                className="px-3.5 py-2 text-xs font-semibold bg-muted hover:bg-muted/80 text-foreground border border-border rounded-xl transition flex items-center gap-1.5"
+                leftIcon={<FileSpreadsheet className="h-3.5 w-3.5 text-primary" />}
               >
-                <FileSpreadsheet className="h-3.5 w-3.5 text-primary" />
                 นำเข้าไฟล์ Excel เพิ่มเติม
-              </button>
+              </Button>
             )}
-            <Link
-              href="/admin/applicants"
-              className="px-3.5 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl transition flex items-center gap-1.5 shadow-2xs"
-            >
-              <Users className="h-3.5 w-3.5" />
-              เปิดหน้ารายชื่อผู้สมัคร
+            <Link href="/admin/applicants">
+              <Button size="sm" leftIcon={<Users className="h-3.5 w-3.5" />}>
+                เปิดหน้ารายชื่อผู้สมัคร
+              </Button>
             </Link>
           </div>
-        </div>
+        </Card>
 
         {/* Card 2: ชุดเกณฑ์การประเมินที่ใช้ */}
-        <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-xs space-y-4">
+        <Card className="p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3">
             <div>
               <h3 className="text-base font-bold text-foreground flex items-center gap-2">
@@ -393,12 +397,12 @@ export default function RoundDetailPage() {
             </div>
             {round.criteria && (
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20 font-mono">
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-mono text-xs">
                   เป้าหมาย {round.criteria.targetScore || targetScore} คะแนน
-                </span>
-                <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border">
+                </Badge>
+                <Badge variant="secondary" className="text-xs">
                   {round.criteria.subCriteria.length} เกณฑ์ย่อย
-                </span>
+                </Badge>
               </div>
             )}
           </div>
@@ -426,7 +430,7 @@ export default function RoundDetailPage() {
               ยังไม่มีการผูกชุดเกณฑ์การประเมินสำหรับรอบทุนนี้
             </div>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* Modal: Edit Round Info */}
@@ -518,20 +522,20 @@ export default function RoundDetailPage() {
           </ModalBody>
 
           <ModalFooter>
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => setShowEditModal(false)}
-              className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition cursor-pointer"
             >
               ยกเลิก
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={savingEdit || !editName.trim()}
-              className="px-5 py-2.5 text-xs font-bold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm disabled:opacity-40 transition-all cursor-pointer"
+              isLoading={savingEdit}
             >
-              {savingEdit ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}
-            </button>
+              บันทึกการเปลี่ยนแปลง
+            </Button>
           </ModalFooter>
         </form>
       </Modal>
@@ -598,21 +602,22 @@ export default function RoundDetailPage() {
               )}
             </ModalBody>
             <ModalFooter>
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={() => setShowOpenModal(false)}
-                className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition cursor-pointer"
               >
                 ยกเลิก
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 disabled={!readiness.isReady || openingRound}
+                isLoading={openingRound}
                 onClick={handleConfirmOpenRound}
-                className="px-5 py-2.5 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-sm disabled:opacity-40 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                {openingRound ? 'กำลังเปิดรอบ...' : 'ยืนยันเปิดรับประเมิน'}
-              </button>
+                ยืนยันเปิดรับประเมิน
+              </Button>
             </ModalFooter>
           </>
         )}
@@ -677,21 +682,22 @@ export default function RoundDetailPage() {
               )}
             </ModalBody>
             <ModalFooter>
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={() => setShowCloseModal(false)}
-                className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition cursor-pointer"
               >
                 ยกเลิก
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="destructive"
                 disabled={closingRound || (closeCheck.unsubmittedCount > 0 && !acknowledged)}
+                isLoading={closingRound}
                 onClick={handleConfirmCloseRound}
-                className="px-5 py-2.5 text-xs font-bold rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-sm disabled:opacity-40 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
               >
-                {closingRound ? 'กำลังปิดรอบ...' : 'ยืนยันปิดรอบทุน'}
-              </button>
+                ยืนยันปิดรอบทุน
+              </Button>
             </ModalFooter>
           </>
         )}

@@ -9,7 +9,6 @@ import { fetchScholarshipTypes } from '@/services/scholarship-types.service';
 import {
   uploadAndPreviewExcel,
   confirmImportApplicants,
-  cancelImportPreview,
 } from '@/services/applicants.service';
 import { CriteriaDetail } from '@/types/criteria';
 import { ScholarshipTypeListItem } from '@/types/scholarship-type';
@@ -17,7 +16,6 @@ import { ExcelPreviewResponse } from '@/types/applicants';
 import {
   ArrowLeft,
   ArrowRight,
-  Save,
   AlertCircle,
   Layers,
   Award,
@@ -25,10 +23,8 @@ import {
   Upload,
   FileSpreadsheet,
   Loader2,
-  TableProperties,
-  ShieldCheck,
 } from 'lucide-react';
-import { Select } from '@/components/ui';
+import { Select, PageHeader, Button, Card } from '@/components/ui';
 
 type WizardStep = 1 | 2 | 3;
 
@@ -192,26 +188,13 @@ export default function CreateScholarshipRoundPage() {
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-16">
-      {/* Top Breadcrumb */}
-      <div className="flex items-center justify-between border-b border-border/70 pb-4">
-        <Link
-          href="/admin/scholarship-rounds"
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition hover:-translate-x-0.5"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>กลับสู่หน้ารายการรอบทุนการศึกษา</span>
-        </Link>
-      </div>
-
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          สร้างรอบทุนการศึกษาใหม่ (Guided Round Setup)
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          ตั้งค่ารอบทุน เชื่อมโยงเกณฑ์การประเมิน และนำเข้ารายชื่อผู้สมัครตามลำดับขั้นตอน
-        </p>
-      </div>
+      <PageHeader
+        title="สร้างรอบทุนการศึกษาใหม่ (Guided Round Setup)"
+        description="ตั้งค่ารอบทุน เชื่อมโยงเกณฑ์การประเมิน และนำเข้ารายชื่อผู้สมัครตามลำดับขั้นตอน"
+        backHref="/admin/scholarship-rounds"
+        backLabel="กลับสู่หน้ารายการรอบทุนการศึกษา"
+      />
 
       {/* Wizard Progress Indicator */}
       <div className="grid grid-cols-3 gap-3">
@@ -373,19 +356,17 @@ export default function CreateScholarshipRoundPage() {
           </div>
 
           <div className="pt-4 flex items-center justify-between border-t border-border/60">
-            <Link
-              href="/admin/scholarship-rounds"
-              className="px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition"
-            >
-              ยกเลิก
+            <Link href="/admin/scholarship-rounds">
+              <Button type="button" variant="ghost">
+                ยกเลิก
+              </Button>
             </Link>
-            <button
+            <Button
               type="submit"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-all cursor-pointer"
+              rightIcon={<ArrowRight className="h-4 w-4" />}
             >
-              <span>ต่อไป</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
+              ต่อไป
+            </Button>
           </div>
         </form>
       )}
@@ -473,35 +454,26 @@ export default function CreateScholarshipRoundPage() {
 
           {/* Navigation Buttons */}
           <div className="pt-4 flex items-center justify-between border-t border-border/60">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => {
                 setCurrentStep(1);
                 setErrorMessage(null);
               }}
-              className="px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition flex items-center gap-2"
+              leftIcon={<ArrowLeft className="h-4 w-4" />}
             >
-              <ArrowLeft className="h-4 w-4" />
-              <span>ย้อนกลับ</span>
-            </button>
-            <button
+              ย้อนกลับ
+            </Button>
+            <Button
               type="button"
               disabled={saving}
+              isLoading={saving}
               onClick={handleCreateRound}
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-all cursor-pointer disabled:opacity-50"
+              rightIcon={<ArrowRight className="h-4 w-4" />}
             >
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>กำลังสร้างรอบทุน...</span>
-                </>
-              ) : (
-                <>
-                  <span>ต่อไป</span>
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
-            </button>
+              ต่อไป
+            </Button>
           </div>
         </div>
       )}
@@ -599,39 +571,31 @@ export default function CreateScholarshipRoundPage() {
 
                   {/* Actions */}
                   <div className="flex items-center justify-between pt-2">
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => {
                         setPreviewData(null);
                         setSelectedFile(null);
                       }}
-                      className="text-xs text-muted-foreground hover:text-foreground font-medium"
                     >
                       เลือกไฟล์ใหม่
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                       type="button"
                       disabled={
                         importing ||
                         previewData.validRows === 0 ||
                         (previewData.invalidRows > 0 && !acknowledged)
                       }
+                      isLoading={importing}
                       onClick={handleConfirmImport}
-                      className="inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-50"
+                      leftIcon={<CheckCircle2 className="w-4 h-4" />}
                     >
-                      {importing ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>กำลังนำเข้า...</span>
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="w-4 h-4" />
-                          <span>ยืนยันนำเข้าผู้สมัคร ({previewData.validRows} คน)</span>
-                        </>
-                      )}
-                    </button>
+                      ยืนยันนำเข้าผู้สมัคร ({previewData.validRows} คน)
+                    </Button>
                   </div>
                 </div>
               )}
