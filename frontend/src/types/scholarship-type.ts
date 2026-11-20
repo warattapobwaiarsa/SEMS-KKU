@@ -7,6 +7,8 @@ export interface ScholarshipTypeListItem {
   subCriteriaCount?: number;
   isActive: boolean;
   roundsCount: number;
+  canDelete?: boolean;
+  hasOpenOrClosedRounds?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,6 +32,8 @@ export interface ScholarshipTypeDetail {
   } | null;
   isActive: boolean;
   roundsCount: number;
+  canDelete?: boolean;
+  hasOpenOrClosedRounds?: boolean;
   createdAt: string;
   updatedAt: string;
 }

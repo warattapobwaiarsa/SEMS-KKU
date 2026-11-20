@@ -443,7 +443,13 @@ export default function CreateScholarshipRoundPage() {
                         </div>
                       </div>
                       <div className="font-mono font-bold text-foreground shrink-0 text-sm">
-                        {sub.maxScore ?? '-'} <span className="text-xs font-normal text-muted-foreground">คะแนน</span>
+                        {sub.type === 'TEXT' ? (
+                          <span className="text-xs font-normal text-muted-foreground">เกณฑ์ข้อความ</span>
+                        ) : sub.maxScore !== null && sub.maxScore !== undefined ? (
+                          <>{sub.maxScore} <span className="text-xs font-normal text-muted-foreground">คะแนน</span></>
+                        ) : (
+                          <span className="text-xs font-normal text-muted-foreground">มีคะแนน</span>
+                        )}
                       </div>
                     </div>
                   ))}

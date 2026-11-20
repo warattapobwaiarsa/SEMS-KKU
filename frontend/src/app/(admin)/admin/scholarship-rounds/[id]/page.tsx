@@ -261,7 +261,10 @@ export default function RoundDetailPage() {
     0
   ) ?? 0;
   const targetScore = round.criteria?.targetScore || 100;
-  const isCriteriaScoreValid = Boolean(round.criteria) && criteriaTotalScore === targetScore;
+  const hasScoredCriteria = Boolean(
+    round.criteria?.subCriteria?.some((item) => item.type === 'SCORED')
+  );
+  const isCriteriaScoreValid = Boolean(round.criteria) && hasScoredCriteria;
   const isDraftRoundReady = hasBasicInfo && hasApplicants && isCriteriaScoreValid;
 
   return (
@@ -419,7 +422,13 @@ export default function RoundDetailPage() {
                       <span className="font-semibold text-foreground truncate">{sub.title}</span>
                     </div>
                     <div className="font-mono font-bold text-foreground shrink-0 text-sm">
-                      {sub.maxScore ?? '-'} <span className="text-xs font-normal text-muted-foreground">คะแนน</span>
+                      {sub.type === 'TEXT' ? (
+                        <span className="text-xs font-normal text-muted-foreground">เกณฑ์ข้อความ</span>
+                      ) : sub.maxScore !== null && sub.maxScore !== undefined ? (
+                        <>{sub.maxScore} <span className="text-xs font-normal text-muted-foreground">คะแนน</span></>
+                      ) : (
+                        <span className="text-xs font-normal text-muted-foreground">มีคะแนน</span>
+                      )}
                     </div>
                   </div>
                 ))}

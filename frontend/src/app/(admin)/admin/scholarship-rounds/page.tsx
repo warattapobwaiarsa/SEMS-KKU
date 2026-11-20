@@ -4,7 +4,20 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ScholarshipRoundListItem } from '@/types/rounds';
 import { fetchRoundsList } from '@/services/rounds.service';
-import { PageHeader, Pagination, Button, Input, Alert, EmptyState } from '@/components/ui';
+import {
+  PageHeader,
+  Pagination,
+  Button,
+  Input,
+  Alert,
+  EmptyState,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui';
 import { 
   Calendar, 
   Plus, 
@@ -260,19 +273,23 @@ export default function ScholarshipRoundsPage() {
                       <ArrowRight className="h-3 w-3" />
                     </Link>
                     {round.status === 'DRAFT' ? (
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setDeletingRound(round)}
-                        className="p-2.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition border border-rose-200/60 dark:border-rose-900/40 cursor-pointer shrink-0"
+                        className="h-9 w-9 p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl border border-rose-200/60 dark:border-rose-900/40 shrink-0"
                         title="ลบรอบทุนแบบร่างนี้"
                       >
                         <Trash2 className="h-4 w-4" />
-                      </button>
+                      </Button>
                     ) : (
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         disabled
-                        className="p-2.5 text-muted-foreground/35 bg-muted/20 border border-border/40 rounded-xl cursor-not-allowed shrink-0"
+                        className="h-9 w-9 p-0 text-muted-foreground/35 bg-muted/20 border border-border/40 rounded-xl shrink-0"
                         title={
                           round.status === 'OPEN'
                             ? 'ไม่สามารถลบรอบทุนที่กำลังเปิดรับประเมินได้'
@@ -280,7 +297,7 @@ export default function ScholarshipRoundsPage() {
                         }
                       >
                         <Trash2 className="h-4 w-4" />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -291,28 +308,28 @@ export default function ScholarshipRoundsPage() {
 
         {/* Desktop View: Full Data Table (>= md) */}
         <div className="hidden md:block overflow-x-auto flex-1">
-          <table className="w-full text-left text-sm table-fixed min-w-[980px]">
-            <thead className="bg-muted/40 border-b border-border/80 text-muted-foreground font-semibold">
-              <tr>
-                <th className="py-3.5 px-5">ชื่อรอบทุนการศึกษา</th>
-                <th className="py-3.5 px-4 text-center w-28">ปี/ภาคเรียน</th>
-                <th className="py-3.5 px-5 w-52">เกณฑ์การประเมิน</th>
-                <th className="py-3.5 px-4 text-center w-28">ผู้สมัคร</th>
-                <th className="py-3.5 px-4 text-center w-44">สถานะ</th>
-                <th className="py-3.5 px-5 text-right w-60">ดำเนินการ</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
+          <Table className="table-fixed min-w-[980px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-1/6">ชื่อรอบทุนการศึกษา</TableHead>
+                <TableHead className="w-1/6 text-center">ปี/ภาคเรียน</TableHead>
+                <TableHead className="w-1/6">เกณฑ์การประเมิน</TableHead>
+                <TableHead className="w-1/6 text-center">ผู้สมัคร</TableHead>
+                <TableHead className="w-1/6 text-center">สถานะ</TableHead>
+                <TableHead className="w-1/6 text-center">ดำเนินการ</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading ? (
-                <tr>
-                  <td colSpan={6} className="py-24 text-center">
+                <TableRow>
+                  <TableCell colSpan={6} className="py-24 text-center">
                     <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em]" />
                     <p className="mt-4 text-sm text-muted-foreground animate-pulse">กำลังโหลดรายการรอบทุน...</p>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : rounds.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-20 px-4 text-center">
+                <TableRow>
+                  <TableCell colSpan={6} className="py-20 px-4 text-center">
                     <div className="max-w-md mx-auto">
                       <EmptyState
                         icon={statusFilter ? Layers : Calendar}
@@ -348,13 +365,13 @@ export default function ScholarshipRoundsPage() {
                         )}
                       </EmptyState>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
                 rounds.map((round) => (
-                  <tr key={round.id} className="hover:bg-muted/20 transition-colors group">
+                  <TableRow key={round.id} className="group">
                     {/* Name & Type */}
-                    <td className="py-4 px-5 font-medium text-foreground">
+                    <TableCell className="font-medium">
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-foreground group-hover:text-primary transition-colors text-sm">
@@ -365,17 +382,17 @@ export default function ScholarshipRoundsPage() {
                           <span>สร้างเมื่อ {new Date(round.createdAt).toLocaleDateString('th-TH')}</span>
                         </div>
                       </div>
-                    </td>
+                    </TableCell>
 
                     {/* Year & Semester */}
-                    <td className="py-4 px-4 text-center">
+                    <TableCell className="text-center">
                       <span className="inline-flex items-center font-mono font-bold px-2.5 py-1 rounded-lg bg-muted text-xs text-foreground border border-border/60">
                         {round.academicYear}/{round.semester}
                       </span>
-                    </td>
+                    </TableCell>
 
                     {/* Criteria */}
-                    <td className="py-4 px-5">
+                    <TableCell>
                       {round.criteriaName ? (
                         <div className="flex flex-col gap-0.5 max-w-full">
                           <span className="text-xs font-semibold text-foreground flex items-center gap-1.5 min-w-0">
@@ -390,31 +407,31 @@ export default function ScholarshipRoundsPage() {
                           ยังไม่ได้ผูกเกณฑ์
                         </span>
                       )}
-                    </td>
+                    </TableCell>
 
                     {/* Applicant Count */}
-                    <td className="py-4 px-4 text-center">
+                    <TableCell className="text-center">
                       <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-foreground px-2.5 py-1 rounded-lg bg-muted/60 border border-border/40">
                         <Users className="h-3.5 w-3.5 text-blue-600" />
                         {round.applicantCount} คน
                       </span>
-                    </td>
+                    </TableCell>
 
                     {/* Status */}
-                    <td className="py-4 px-4 text-center">
+                    <TableCell className="text-center">
                       <div className="flex justify-center">
                         <RoundStageIndicator status={round.status} />
                       </div>
-                    </td>
+                    </TableCell>
 
                     {/* Contextual Action Buttons */}
-                    <td className="py-4 px-5 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-1.5">
                         <Link href={`/admin/scholarship-rounds/${round.id}`}>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="min-w-[124px] justify-center whitespace-nowrap bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-white hover:border-transparent font-medium shrink-0"
+                            className="min-w-[110px] justify-center whitespace-nowrap bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-white hover:border-transparent font-medium shrink-0 text-xs px-2.5"
                             rightIcon={<ArrowRight className="h-3 w-3 shrink-0" />}
                             leftIcon={<Sliders className="h-3.5 w-3.5 shrink-0" />}
                           >
@@ -422,19 +439,23 @@ export default function ScholarshipRoundsPage() {
                           </Button>
                         </Link>
                         {round.status === 'DRAFT' ? (
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => setDeletingRound(round)}
-                            className="p-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition border border-rose-200/60 dark:border-rose-900/40 cursor-pointer shrink-0"
+                            className="h-8 w-8 p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl border border-rose-200/60 dark:border-rose-900/40 shrink-0"
                             title="ลบรอบทุนแบบร่างนี้"
                           >
                             <Trash2 className="h-4 w-4" />
-                          </button>
+                          </Button>
                         ) : (
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             disabled
-                            className="p-2 text-muted-foreground/35 bg-muted/20 border border-border/40 rounded-xl cursor-not-allowed shrink-0"
+                            className="h-8 w-8 p-0 text-muted-foreground/35 bg-muted/20 border border-border/40 rounded-xl shrink-0 cursor-not-allowed"
                             title={
                               round.status === 'OPEN'
                                 ? 'ไม่สามารถลบรอบทุนที่กำลังเปิดรับประเมินได้'
@@ -442,15 +463,15 @@ export default function ScholarshipRoundsPage() {
                             }
                           >
                             <Trash2 className="h-4 w-4" />
-                          </button>
+                          </Button>
                         )}
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         {/* Pagination Controls */}

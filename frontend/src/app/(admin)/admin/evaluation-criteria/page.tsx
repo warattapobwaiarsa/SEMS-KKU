@@ -9,12 +9,12 @@ import {
   FileCheck2, 
   Plus, 
   Search, 
-
   Edit3, 
   Eye, 
   CheckCircle2, 
   AlertCircle,
   RefreshCw,
+  Award,
 } from 'lucide-react';
 import { useDebounce } from '@/lib/use-debounce';
 
@@ -80,6 +80,22 @@ export default function EvaluationCriteriaPage() {
           </Link>
         }
       />
+
+      {/* Unified Banner */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-primary/10 border border-primary/20 rounded-2xl text-primary">
+        <div className="flex items-center gap-3">
+          <Award className="h-5 w-5 shrink-0" />
+          <span className="text-sm font-medium">
+            ระบบได้รวมการจัดการเกณฑ์การประเมินเข้ากับเมนู <strong>&ldquo;ประเภททุน&rdquo;</strong> เพื่อความสะดวกในการสร้างประเภททุนและกำหนดเกณฑ์ในขั้นตอนเดียว
+          </span>
+        </div>
+        <Link
+          href="/admin/scholarship-types"
+          className="shrink-0 px-4 py-2 text-xs font-semibold bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition shadow-xs"
+        >
+          ไปยังหน้าประเภททุน
+        </Link>
+      </div>
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card border border-border/80 rounded-2xl p-3 shadow-xs">

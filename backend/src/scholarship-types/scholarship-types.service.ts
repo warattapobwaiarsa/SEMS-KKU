@@ -58,6 +58,13 @@ export class ScholarshipTypesService {
               rounds: true,
             },
           },
+          rounds: {
+            where: {
+              status: { in: [RoundStatus.OPEN, RoundStatus.CLOSED] },
+            },
+            select: { id: true },
+            take: 1,
+          },
         },
       }),
     ]);
@@ -71,6 +78,8 @@ export class ScholarshipTypesService {
       subCriteriaCount: item.defaultCriteria?._count?.subCriteria ?? 0,
       isActive: item.isActive,
       roundsCount: item._count.rounds,
+      canDelete: (item.rounds ?? []).length === 0,
+      hasOpenOrClosedRounds: (item.rounds ?? []).length > 0,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
     }));
@@ -112,6 +121,13 @@ export class ScholarshipTypesService {
             rounds: true,
           },
         },
+        rounds: {
+          where: {
+            status: { in: [RoundStatus.OPEN, RoundStatus.CLOSED] },
+          },
+          select: { id: true },
+          take: 1,
+        },
       },
     });
 
@@ -127,6 +143,8 @@ export class ScholarshipTypesService {
       defaultCriteria: item.defaultCriteria,
       isActive: item.isActive,
       roundsCount: item._count.rounds,
+      canDelete: (item.rounds ?? []).length === 0,
+      hasOpenOrClosedRounds: (item.rounds ?? []).length > 0,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
     };
@@ -502,5 +520,44 @@ export class ScholarshipTypesService {
     });
 
     return updated;
+  }
+
+  async delete(id: number) {
+    const existing = await this.prisma.scholarshipType.findUnique({
+      where: { id },
+      include: {
+        rounds: {
+          where: {
+            status: { in: [RoundStatus.OPEN, RoundStatus.CLOSED] },
+          },
+          select: { id: true, name: true, status: true },
+        },
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(`ไม่พบประเภททุนรหัส ${id}`);
+    }
+
+    if (existing.rounds.length > 0) {
+      throw new BusinessException({
+        errorCode: 'CANNOT_DELETE_ACTIVE_SCHOLARSHIP_TYPE',
+        statusCode: HttpStatus.CONFLICT,
+        message:
+          'ไม่สามารถลบประเภททุนที่ผูกกับรอบที่เปิดรับประเมินหรือปิดรอบไปแล้วได้ สามารถลบได้เฉพาะประเภททุนที่ไม่มีรอบ หรือผูกกับรอบสถานะแบบร่าง (Draft) เท่านั้น',
+      });
+    }
+
+    return await this.prisma.$transaction(async (tx) => {
+      // Disconnect any draft rounds from this scholarship type
+      await tx.scholarshipRound.updateMany({
+        where: { scholarshipTypeId: id },
+        data: { scholarshipTypeId: null },
+      });
+
+      return await tx.scholarshipType.delete({
+        where: { id },
+      });
+    });
   }
 }

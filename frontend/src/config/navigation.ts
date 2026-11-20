@@ -40,7 +40,7 @@ export const ADMIN_NAV_ITEMS: NavItemConfig[] = [
   },
   // การตั้งค่าระบบและเกณฑ์ (Settings)
   {
-    title: "ประเภททุนและเกณฑ์การประเมิน",
+    title: "ประเภททุน",
     href: "/admin/scholarship-types",
     iconName: "Award",
     description: "จัดการประเภททุนและกำหนดโครงสร้างเกณฑ์การประเมินเริ่มต้น",
