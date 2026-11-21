@@ -15,7 +15,8 @@ import {
   openRound, 
   checkCloseStatus, 
   closeRound,
-  updateRound 
+  updateRound,
+  linkRoundCriteria 
 } from '@/services/rounds.service';
 import { fetchCriteriaList } from '@/services/criteria.service';
 import { 
@@ -56,8 +57,40 @@ export default function RoundDetailPage() {
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  // Criteria Linking
-  const [, setCriteriaList] = useState<CriteriaDetail[]>([]);
+  // Criteria Linking State
+  const [criteriaList, setCriteriaList] = useState<CriteriaDetail[]>([]);
+  const [showCriteriaModal, setShowCriteriaModal] = useState(false);
+  const [selectedCriteriaId, setSelectedCriteriaId] = useState<number | null>(null);
+  const [savingCriteria, setSavingCriteria] = useState(false);
+  const [criteriaError, setCriteriaError] = useState<string | null>(null);
+
+  const handleOpenCriteriaModal = () => {
+    if (!round || round.status !== 'DRAFT') return;
+    setSelectedCriteriaId(round.criteriaId || null);
+    setCriteriaError(null);
+    setShowCriteriaModal(true);
+  };
+
+  const handleSaveCriteria = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!round || round.status !== 'DRAFT') return;
+    if (!selectedCriteriaId) {
+      setCriteriaError('กรุณาเลือกชุดเกณฑ์การประเมิน');
+      return;
+    }
+    try {
+      setSavingCriteria(true);
+      setCriteriaError(null);
+      await linkRoundCriteria(roundId, selectedCriteriaId);
+      await loadData();
+      setShowCriteriaModal(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการบันทึกชุดเกณฑ์';
+      setCriteriaError(msg);
+    } finally {
+      setSavingCriteria(false);
+    }
+  };
 
   // Open Modal State
   const [showOpenModal, setShowOpenModal] = useState(false);
@@ -398,16 +431,29 @@ export default function RoundDetailPage() {
                 ชุดเกณฑ์การประเมินที่ใช้: {round.criteria?.name || 'ยังไม่ระบุชุดเกณฑ์'}
               </h3>
             </div>
-            {round.criteria && (
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-mono text-xs">
-                  เป้าหมาย {round.criteria.targetScore || targetScore} คะแนน
-                </Badge>
-                <Badge variant="secondary" className="text-xs">
-                  {round.criteria.subCriteria.length} เกณฑ์ย่อย
-                </Badge>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {round.criteria && (
+                <>
+                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-mono text-xs">
+                    เป้าหมาย {round.criteria.targetScore || targetScore} คะแนน
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    {round.criteria.subCriteria.length} เกณฑ์ย่อย
+                  </Badge>
+                </>
+              )}
+              {round.status === 'DRAFT' && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleOpenCriteriaModal}
+                  leftIcon={<Pencil className="h-3.5 w-3.5 text-muted-foreground" />}
+                >
+                  {round.criteria ? 'เปลี่ยนชุดเกณฑ์' : 'กำหนดชุดเกณฑ์'}
+                </Button>
+              )}
+            </div>
           </div>
 
           {round.criteria && round.criteria.subCriteria.length > 0 ? (
@@ -435,8 +481,26 @@ export default function RoundDetailPage() {
               </div>
             </div>
           ) : (
-            <div className="p-6 text-center text-xs text-muted-foreground bg-muted/20 rounded-xl border border-border/50">
-              ยังไม่มีการผูกชุดเกณฑ์การประเมินสำหรับรอบทุนนี้
+            <div className="p-8 text-center bg-muted/20 rounded-xl border border-dashed border-border/80 space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto">
+                <AlertCircle className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-foreground">ยังไม่มีการผูกชุดเกณฑ์การประเมินสำหรับรอบทุนนี้</p>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                  รอบทุนนี้ถูกสร้างไว้ในสถานะร่าง (Draft) โดยยังไม่ได้กำหนดเกณฑ์ จำเป็นต้องกำหนดเกณฑ์การประเมินก่อนเปิดรับประเมิน
+                </p>
+              </div>
+              {round.status === 'DRAFT' && (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleOpenCriteriaModal}
+                  leftIcon={<Layers className="h-3.5 w-3.5" />}
+                >
+                  เลือกหรือผูกชุดเกณฑ์การประเมิน
+                </Button>
+              )}
             </div>
           )}
         </Card>
@@ -741,6 +805,80 @@ export default function RoundDetailPage() {
           }}
         />
       )}
+
+      {/* Modal: Link Criteria */}
+      <Modal isOpen={showCriteriaModal} onClose={() => setShowCriteriaModal(false)} size="lg">
+        <ModalHeader
+          title="กำหนดชุดเกณฑ์การประเมินประจำรอบ"
+          icon={Layers}
+          onClose={() => setShowCriteriaModal(false)}
+        />
+        <form onSubmit={handleSaveCriteria}>
+          <ModalBody className="space-y-4">
+            {criteriaError && (
+              <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
+                <span>{criteriaError}</span>
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              เลือกชุดเกณฑ์การประเมินมาตรฐานเพื่อนำมาใช้ให้คะแนนผู้สมัครในรอบ <span className="font-semibold text-foreground">{round.name}</span>
+            </p>
+
+            <div className="space-y-1.5">
+              <label htmlFor="selectCriteria" className="block text-xs font-semibold text-foreground">
+                ชุดเกณฑ์การประเมิน <span className="text-destructive">*</span>
+              </label>
+              <Select
+                id="selectCriteria"
+                value={selectedCriteriaId || ''}
+                onChange={(e) => setSelectedCriteriaId(e.target.value ? Number(e.target.value) : null)}
+              >
+                <option value="">-- กรุณาเลือกชุดเกณฑ์ --</option>
+                {criteriaList.map((crit) => (
+                  <option key={crit.id} value={crit.id}>
+                    {crit.name} (เป้าหมาย {crit.targetScore || 100} คะแนน, {crit.subCriteria?.length || 0} เกณฑ์ย่อย)
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            {selectedCriteriaId && (
+              <div className="p-3.5 rounded-xl bg-muted/40 border border-border/80 text-xs space-y-2">
+                <span className="font-semibold text-foreground block">เกณฑ์ย่อยในชุดที่เลือก:</span>
+                <div className="space-y-1">
+                  {criteriaList
+                    .find((c) => c.id === selectedCriteriaId)
+                    ?.subCriteria?.map((sub, idx) => (
+                      <div key={sub.id || idx} className="flex justify-between text-muted-foreground">
+                        <span>{idx + 1}. {sub.title}</span>
+                        <span className="font-mono font-medium">{sub.type === 'TEXT' ? 'ข้อความ' : `${sub.maxScore ?? '-'} คะแนน`}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowCriteriaModal(false)}
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              type="submit"
+              disabled={savingCriteria || !selectedCriteriaId}
+              isLoading={savingCriteria}
+            >
+              บันทึกชุดเกณฑ์
+            </Button>
+          </ModalFooter>
+        </form>
+      </Modal>
     </div>
   );
 }

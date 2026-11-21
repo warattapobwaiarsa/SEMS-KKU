@@ -1,4 +1,5 @@
 import { RoundStatus } from './criteria';
+import { NestedCriteriaPayload } from './scholarship-type';
 
 export interface ScholarshipRoundListItem {
   id: number;
@@ -44,6 +45,7 @@ export interface CreateRoundPayload {
   semester: number;
   criteriaId?: number;
   scholarshipTypeId?: number;
+  criteria?: NestedCriteriaPayload;
 }
 
 export interface UpdateRoundPayload {

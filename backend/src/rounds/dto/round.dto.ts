@@ -6,7 +6,10 @@ import {
   Max,
   IsOptional,
   IsBoolean,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateCriteriaDto } from '../../criteria/dto/create-criteria.dto';
 
 export class CreateScholarshipRoundDto {
   @IsString()
@@ -30,6 +33,11 @@ export class CreateScholarshipRoundDto {
   @IsOptional()
   @IsInt()
   scholarshipTypeId?: number;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateCriteriaDto)
+  criteria?: CreateCriteriaDto;
 }
 
 export class UpdateScholarshipRoundDto {

@@ -191,65 +191,146 @@ export class RoundsService {
       });
     }
 
-    let criteriaId = dto.criteriaId ?? null;
-
-    if (dto.scholarshipTypeId) {
-      const scholarshipType = await this.prisma.scholarshipType.findUnique({
-        where: { id: dto.scholarshipTypeId },
-      });
-      if (!scholarshipType) {
-        throw new NotFoundException(
-          `ไม่พบประเภททุนรหัส ${dto.scholarshipTypeId}`,
-        );
-      }
-      if (!scholarshipType.isActive) {
+    if (dto.criteria?.subCriteria && dto.criteria.subCriteria.length > 0) {
+      const scoredItems = dto.criteria.subCriteria.filter(
+        (item) => item.type === SubCriteriaType.SCORED,
+      );
+      if (scoredItems.length === 0) {
         throw new BusinessException({
-          errorCode: 'SCHOLARSHIP_TYPE_INACTIVE',
+          errorCode: 'SCORED_CRITERIA_REQUIRED',
           statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-          message:
-            'ประเภททุนนี้ถูกปิดการใช้งาน ไม่สามารถนำมาสร้างรอบทุนใหม่ได้',
+          message: 'เกณฑ์ต้องมีข้อแบบ Scored อย่างน้อย 1 ข้อ',
         });
       }
-      if (!criteriaId && scholarshipType.defaultCriteriaId) {
-        criteriaId = scholarshipType.defaultCriteriaId;
+
+      for (const item of scoredItems) {
+        if (!item.maxScore || item.maxScore < 1 || item.maxScore > 1000) {
+          throw new BusinessException({
+            errorCode: 'MAX_SCORE_OUT_OF_RANGE',
+            statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+            message: 'คะแนนเต็มของแต่ละข้อต้องเป็นจำนวนเต็มตั้งแต่ 1 ขึ้นไป',
+          });
+        }
+      }
+
+      const targetScore = dto.criteria.targetScore ?? 100;
+      const totalScore = scoredItems.reduce(
+        (sum, item) => sum + (Number(item.maxScore) || 0),
+        0,
+      );
+      if (totalScore !== targetScore) {
+        throw new BusinessException({
+          errorCode: 'CRITERIA_SUM_NOT_100',
+          statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+          message: `ผลรวมคะแนนต้องเท่ากับ ${targetScore} คะแนนพอดี (ปัจจุบัน: ${totalScore} คะแนน)`,
+        });
       }
     }
 
-    const created = await this.prisma.scholarshipRound.create({
-      data: {
-        name: dto.name.trim(),
-        academicYear: dto.academicYear,
-        semester: dto.semester,
-        status: RoundStatus.DRAFT,
-        scholarshipTypeId: dto.scholarshipTypeId ?? null,
-        criteriaId,
-      },
-      include: {
-        scholarshipType: {
-          select: { id: true, name: true },
-        },
-        criteria: {
-          select: { id: true, name: true },
-        },
-      },
-    });
+    return await this.prisma.$transaction(async (tx) => {
+      let criteriaId = dto.criteriaId ?? null;
 
-    return {
-      id: created.id,
-      name: created.name,
-      academicYear: created.academicYear,
-      semester: created.semester,
-      scholarshipTypeId: created.scholarshipTypeId,
-      scholarshipTypeName: created.scholarshipType?.name ?? null,
-      status: created.status,
-      criteriaId: created.criteriaId,
-      criteriaName: created.criteria?.name ?? null,
-      applicantCount: 0,
-      createdAt: created.createdAt,
-      openedAt: created.openedAt,
-      closedAt: created.closedAt,
-      updatedAt: created.updatedAt,
-    };
+      if (dto.scholarshipTypeId) {
+        const scholarshipType = await tx.scholarshipType.findUnique({
+          where: { id: dto.scholarshipTypeId },
+        });
+        if (!scholarshipType) {
+          throw new NotFoundException(
+            `ไม่พบประเภททุนรหัส ${dto.scholarshipTypeId}`,
+          );
+        }
+        if (!scholarshipType.isActive) {
+          throw new BusinessException({
+            errorCode: 'SCHOLARSHIP_TYPE_INACTIVE',
+            statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+            message:
+              'ประเภททุนนี้ถูกปิดการใช้งาน ไม่สามารถนำมาสร้างรอบทุนใหม่ได้',
+          });
+        }
+        if (!criteriaId && !dto.criteria && scholarshipType.defaultCriteriaId) {
+          criteriaId = scholarshipType.defaultCriteriaId;
+        }
+      }
+
+      if (
+        dto.criteria &&
+        dto.criteria.subCriteria &&
+        dto.criteria.subCriteria.length > 0
+      ) {
+        const criteriaName =
+          dto.criteria.name?.trim() || `เกณฑ์สำหรับ${dto.name.trim()}`;
+
+        const existingCrit = await tx.criteria.findUnique({
+          where: { name: criteriaName },
+        });
+        if (existingCrit) {
+          throw new BusinessException({
+            errorCode: 'CRITERIA_NAME_DUPLICATE',
+            statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+            message: `ชื่อเกณฑ์ "${criteriaName}" มีอยู่แล้วในระบบ กรุณาระบุชื่อเกณฑ์อื่น`,
+          });
+        }
+
+        const createdCrit = await tx.criteria.create({
+          data: {
+            name: criteriaName,
+            targetScore: dto.criteria.targetScore ?? 100,
+            subCriteria: {
+              create: dto.criteria.subCriteria.map((sub, idx) => ({
+                sortOrder: sub.sortOrder ?? idx + 1,
+                title: sub.title.trim(),
+                type: sub.type,
+                maxScore:
+                  sub.type === SubCriteriaType.SCORED
+                    ? (sub.maxScore ?? null)
+                    : null,
+                allowComment:
+                  sub.type === SubCriteriaType.SCORED
+                    ? (sub.allowComment ?? false)
+                    : false,
+              })),
+            },
+          },
+        });
+        criteriaId = createdCrit.id;
+      }
+
+      const created = await tx.scholarshipRound.create({
+        data: {
+          name: dto.name.trim(),
+          academicYear: dto.academicYear,
+          semester: dto.semester,
+          status: RoundStatus.DRAFT,
+          scholarshipTypeId: dto.scholarshipTypeId ?? null,
+          criteriaId,
+        },
+        include: {
+          scholarshipType: {
+            select: { id: true, name: true },
+          },
+          criteria: {
+            select: { id: true, name: true },
+          },
+        },
+      });
+
+      return {
+        id: created.id,
+        name: created.name,
+        academicYear: created.academicYear,
+        semester: created.semester,
+        scholarshipTypeId: created.scholarshipTypeId,
+        scholarshipTypeName: created.scholarshipType?.name ?? null,
+        status: created.status,
+        criteriaId: created.criteriaId,
+        criteriaName: created.criteria?.name ?? null,
+        applicantCount: 0,
+        createdAt: created.createdAt,
+        openedAt: created.openedAt,
+        closedAt: created.closedAt,
+        updatedAt: created.updatedAt,
+      };
+    });
   }
 
   async update(id: number, dto: UpdateScholarshipRoundDto) {

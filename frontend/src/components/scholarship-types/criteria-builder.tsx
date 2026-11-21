@@ -21,6 +21,8 @@ interface CriteriaBuilderProps {
   onTargetScoreChange?: (score: number) => void;
   subCriteria: NestedSubCriteriaItem[];
   onSubCriteriaChange: (items: NestedSubCriteriaItem[]) => void;
+  nameError?: string;
+  emptyTitleIndices?: number[];
 }
 
 export function CriteriaBuilder({
@@ -31,6 +33,8 @@ export function CriteriaBuilder({
   onTargetScoreChange = () => {},
   subCriteria,
   onSubCriteriaChange,
+  nameError,
+  emptyTitleIndices,
 }: CriteriaBuilderProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -44,12 +48,6 @@ export function CriteriaBuilder({
     Number.isInteger(targetScore) && targetScore >= 1 && targetScore <= 1000;
   const isScoreValid = isTargetScoreValid && totalScore === targetScore;
   const scoredCount = subCriteria.filter((r) => r.type === 'SCORED').length;
-  const hasAtLeastOneScored = scoredCount > 0;
-  const hasAllTitles =
-    subCriteria.length > 0 && subCriteria.every((r) => r.title.trim().length > 0);
-  const hasValidMaxScores = subCriteria
-    .filter((r) => r.type === 'SCORED')
-    .every((r) => r.maxScore != null && r.maxScore >= 1 && r.maxScore <= targetScore);
 
   // Handlers for rows
   const handleItemChange = (index: number, updatedItem: NestedSubCriteriaItem) => {
@@ -159,9 +157,23 @@ export function CriteriaBuilder({
                 required
                 value={criteriaName}
                 onChange={(e) => onCriteriaNameChange(e.target.value)}
-                placeholder="เช่น เกณฑ์การพิจารณาทุนเรียนดี ประจำปีการศึกษา 2569"
-                className="w-full px-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
+                placeholder={
+                  scholarshipTypeName
+                    ? `เช่น เกณฑ์การประเมิน${scholarshipTypeName}`
+                    : 'เช่น เกณฑ์การพิจารณาทุนเรียนดี ประจำปีการศึกษา 2569'
+                }
+                className={`w-full px-4 py-2.5 text-sm bg-background border rounded-xl focus:outline-none focus:ring-2 transition ${
+                  nameError
+                    ? 'border-destructive focus:ring-destructive/20 ring-1 ring-destructive/30'
+                    : 'border-border focus:ring-primary/20 focus:border-primary'
+                }`}
               />
+              {nameError && (
+                <p className="text-xs text-destructive font-medium mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{nameError}</span>
+                </p>
+              )}
             </div>
 
             <div className="sm:col-span-4 space-y-2">
@@ -265,6 +277,7 @@ export function CriteriaBuilder({
                   index={idx}
                   item={item}
                   targetScore={targetScore}
+                  titleError={emptyTitleIndices?.includes(idx) ? 'กรุณาระบุหัวข้อเกณฑ์การประเมินในข้อนี้ (ห้ามเว้นว่าง)' : undefined}
                   onChange={(updated) => handleItemChange(idx, updated)}
                   onDelete={() => handleDeleteItem(idx)}
                   canDelete={subCriteria.length > 1}
@@ -300,10 +313,6 @@ export function CriteriaBuilder({
                   เพิ่มข้อความคิดเห็น
                 </button>
               </div>
-
-              <span className="text-xs text-muted-foreground font-medium">
-                ทั้งหมด {subCriteria.length} ข้อ (คะแนนรวม {totalScore}/{targetScore})
-              </span>
             </div>
           )}
         </div>
@@ -351,49 +360,6 @@ export function CriteriaBuilder({
                 </span>
               </div>
             )}
-          </div>
-
-          {/* Validation Checklist */}
-          <div className="space-y-2 pt-2 border-t border-border/70 text-xs">
-            <span className="font-semibold text-foreground block mb-2">เงื่อนไขความถูกต้อง:</span>
-            <ul className="space-y-1.5 text-muted-foreground">
-              <li className="flex items-center gap-2">
-                <span className={scholarshipTypeName?.trim() ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>
-                  ✓
-                </span>
-                <span>ระบุชื่อประเภททุน</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className={criteriaName?.trim() ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>
-                  ✓
-                </span>
-                <span>ระบุชื่อชุดเกณฑ์การประเมิน</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className={hasAllTitles ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>
-                  ✓
-                </span>
-                <span>ระบุชื่อหัวข้อเกณฑ์ย่อยครบทุกข้อ</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className={hasAtLeastOneScored ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>
-                  ✓
-                </span>
-                <span>มีเกณฑ์คำนวณคะแนนอย่างน้อย 1 ข้อ</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className={hasValidMaxScores ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>
-                  ✓
-                </span>
-                <span>คะแนนเต็มแต่ละข้ออยู่ในช่วง 1–{targetScore}</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className={isScoreValid ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>
-                  ✓
-                </span>
-                <span>ผลรวมคะแนนเท่ากับ {targetScore} คะแนนพอดี</span>
-              </li>
-            </ul>
           </div>
         </div>
       </div>

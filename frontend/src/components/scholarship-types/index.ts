@@ -6,3 +6,4 @@ export * from './scholarship-type-hero-header';
 export * from './scholarship-type-status-filter-tabs';
 export * from './delete-scholarship-type-modal';
 export * from './scholarship-type-detail-modal';
+export * from './quick-create-scholarship-type-modal';

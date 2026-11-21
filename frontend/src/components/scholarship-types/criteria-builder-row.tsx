@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Trash2, GripVertical, Award, FileText, MessageSquare } from 'lucide-react';
+import { Trash2, GripVertical, Award, FileText, MessageSquare, AlertCircle } from 'lucide-react';
 import { NestedSubCriteriaItem } from '@/types/scholarship-type';
 
 interface CriteriaBuilderRowProps {
@@ -11,6 +11,7 @@ interface CriteriaBuilderRowProps {
   onChange: (updated: NestedSubCriteriaItem) => void;
   onDelete: () => void;
   canDelete: boolean;
+  titleError?: string;
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
@@ -26,6 +27,7 @@ export function CriteriaBuilderRow({
   onChange,
   onDelete,
   canDelete,
+  titleError,
   onDragStart,
   onDragOver,
   onDrop,
@@ -120,16 +122,27 @@ export function CriteriaBuilderRow({
           </div>
 
           {/* Title & Max Score inputs */}
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
             <div className={isScored ? 'sm:col-span-8' : 'sm:col-span-12'}>
               <input
+                id={`subcriteria-title-${index}`}
                 type="text"
                 required
                 value={item.title}
                 onChange={(e) => onChange({ ...item, title: e.target.value })}
                 placeholder="ระบุหัวข้อเกณฑ์การประเมิน เช่น ผลการเรียนเฉลี่ย (GPAX), ความจำเป็นทางการเงิน..."
-                className="w-full px-3.5 py-2 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
+                className={`w-full px-3.5 py-2 text-sm bg-background border rounded-xl focus:outline-none focus:ring-2 transition ${
+                  titleError
+                    ? 'border-destructive focus:ring-destructive/20 ring-1 ring-destructive/30'
+                    : 'border-border focus:ring-primary/20 focus:border-primary'
+                }`}
               />
+              {titleError && (
+                <p className="text-xs text-destructive font-medium mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{titleError}</span>
+                </p>
+              )}
             </div>
 
             {isScored && (
