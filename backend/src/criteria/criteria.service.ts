@@ -67,40 +67,14 @@ export class CriteriaService {
         message: 'เกณฑ์ต้องมีข้อแบบ Scored อย่างน้อย 1 ข้อ',
       });
     }
-
-    // BR-CRT-05 (FR-CRT-04 & Scope 1.3.2.4): Max score must be 1 to targetScore
-    for (const item of scoredItems) {
-      if (
-        item.maxScore === undefined ||
-        item.maxScore === null ||
-        item.maxScore < 1 ||
-        item.maxScore > targetScore
-      ) {
-        throw new BusinessException({
-          errorCode: 'MAX_SCORE_OUT_OF_RANGE',
-          statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-          message: `คะแนนเต็มเกณฑ์ย่อยต้องเป็น 1–${targetScore}`,
-          params: { targetScore, maxScore: item.maxScore },
-        });
-      }
-    }
-
-    // BR-CRT-06 (FR-CRT-05 & Scope 1.3.2.4): Sum of SCORED items must equal exactly targetScore
-    const sum = scoredItems.reduce(
-      (acc, curr) => acc + (curr.maxScore || 0),
-      0,
-    );
-    if (sum !== targetScore) {
-      throw new BusinessException({
-        errorCode: 'CRITERIA_SUM_NOT_100',
-        statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-        message: `ผลรวมคะแนน Scored ไม่เท่ากับ ${targetScore} (ปัจจุบัน: ${sum})`,
-        params: { sum, targetScore, target: targetScore },
-      });
-    }
   }
 
-  async findAll(query?: { page?: number; limit?: number; search?: string }) {
+  async findAll(query?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+  }) {
     const page = Number(query?.page) || 1;
     const limit = Number(query?.limit) || 20;
     const skip = (page - 1) * limit;
@@ -117,7 +91,21 @@ export class CriteriaService {
       ];
     }
 
-    const [total, items] = await Promise.all([
+    if (query?.status === 'LOCKED') {
+      where.rounds = {
+        some: {
+          status: { in: [RoundStatus.OPEN, RoundStatus.CLOSED] },
+        },
+      };
+    } else if (query?.status === 'UNLOCKED') {
+      where.rounds = {
+        none: {
+          status: { in: [RoundStatus.OPEN, RoundStatus.CLOSED] },
+        },
+      };
+    }
+
+    const [total, items, unlockedCount, lockedCount] = await Promise.all([
       this.prisma.criteria.count({ where }),
       this.prisma.criteria.findMany({
         where,
@@ -133,6 +121,24 @@ export class CriteriaService {
               id: true,
               name: true,
               status: true,
+            },
+          },
+        },
+      }),
+      this.prisma.criteria.count({
+        where: {
+          rounds: {
+            none: {
+              status: { in: [RoundStatus.OPEN, RoundStatus.CLOSED] },
+            },
+          },
+        },
+      }),
+      this.prisma.criteria.count({
+        where: {
+          rounds: {
+            some: {
+              status: { in: [RoundStatus.OPEN, RoundStatus.CLOSED] },
             },
           },
         },
@@ -167,6 +173,11 @@ export class CriteriaService {
         limit,
         total,
         totalPages: Math.ceil(total / limit) || 1,
+        statusCounts: {
+          total: unlockedCount + lockedCount,
+          unlocked: unlockedCount,
+          locked: lockedCount,
+        },
       },
     };
   }
@@ -430,5 +441,59 @@ export class CriteriaService {
     });
 
     return this.findOne(id);
+  }
+
+  async delete(id: number) {
+    const existing = await this.prisma.criteria.findUnique({
+      where: { id },
+      include: {
+        rounds: {
+          where: {
+            status: { in: [RoundStatus.OPEN, RoundStatus.CLOSED] },
+          },
+          select: { id: true, name: true, status: true },
+        },
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException({
+        errorCode: 'NOT_FOUND',
+        message: `ไม่พบเกณฑ์การประเมินรหัส ${id}`,
+      });
+    }
+
+    if (existing.rounds.length > 0) {
+      throw new BusinessException({
+        errorCode: 'CRITERIA_LOCKED',
+        statusCode: HttpStatus.CONFLICT,
+        message:
+          'ไม่สามารถลบเกณฑ์ที่ถูกนำไปใช้ในรอบการประเมินที่เปิดหรือปิดรอบแล้วได้',
+      });
+    }
+
+    return await this.prisma.$transaction(async (tx) => {
+      // Disconnect any draft rounds from this criteria
+      await tx.scholarshipRound.updateMany({
+        where: { criteriaId: id },
+        data: { criteriaId: null },
+      });
+
+      // Disconnect any scholarship types from this criteria
+      await tx.scholarshipType.updateMany({
+        where: { defaultCriteriaId: id },
+        data: { defaultCriteriaId: null },
+      });
+
+      // Delete all sub-criteria
+      await tx.subCriteria.deleteMany({
+        where: { criteriaId: id },
+      });
+
+      // Delete criteria
+      return await tx.criteria.delete({
+        where: { id },
+      });
+    });
   }
 }

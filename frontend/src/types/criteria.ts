@@ -63,6 +63,11 @@ export interface ApiResponse<T> {
     limit: number;
     total: number;
     totalPages: number;
+    statusCounts?: {
+      total: number;
+      unlocked: number;
+      locked: number;
+    };
   };
   errorCode?: string;
   message?: string;

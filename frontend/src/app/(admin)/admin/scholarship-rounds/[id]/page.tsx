@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ScholarshipRoundDetail, 
@@ -15,52 +15,82 @@ import {
   openRound, 
   checkCloseStatus, 
   closeRound,
-  linkRoundCriteria,
-  updateRound 
+  updateRound,
+  linkRoundCriteria 
 } from '@/services/rounds.service';
 import { fetchCriteriaList } from '@/services/criteria.service';
 import { 
-  ArrowLeft, 
   Layers, 
   CheckCircle2, 
   AlertCircle, 
-  Clock, 
-  Archive, 
   Play, 
   PowerOff, 
   ShieldAlert, 
   X, 
-  Lock, 
   Pencil, 
   FileSpreadsheet, 
   Users, 
-  Award,
-  Trophy,
-  Banknote,
-  Sliders
+  Sliders,
 } from 'lucide-react';
+import { DeleteRoundModal } from '@/components/rounds/delete-round-modal';
 import { ImportApplicantModal } from '@/components/applicants/import-modal';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Select } from '@/components/ui';
-import { RoundLifecycleStepper } from '@/components/rounds/round-lifecycle-stepper';
-import { RoundEvaluationTab } from '@/components/rounds/round-evaluation-tab';
-import { RoundAllocationTab } from '@/components/rounds/round-allocation-tab';
-import { RoundReportsTab } from '@/components/rounds/round-reports-tab';
-
-type TabKey = 'setup' | 'evaluation' | 'allocation' | 'reports';
+import { 
+  Modal, 
+  ModalHeader, 
+  ModalBody, 
+  ModalFooter, 
+  Select,
+  Card,
+  Button,
+  StatusBadge,
+  Badge,
+} from '@/components/ui';
+import { RoundHeroHeader } from '@/components/rounds/round-hero-header';
 
 export default function RoundDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const roundId = Number(params?.id);
 
   const [round, setRound] = useState<ScholarshipRoundDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabKey>('setup');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  // Criteria Linking
+  // Criteria Linking State
   const [criteriaList, setCriteriaList] = useState<CriteriaDetail[]>([]);
-  const [selectedCriteriaId, setSelectedCriteriaId] = useState<number | ''>('');
-  const [linkingCriteria, setLinkingCriteria] = useState(false);
+  const [showCriteriaModal, setShowCriteriaModal] = useState(false);
+  const [selectedCriteriaId, setSelectedCriteriaId] = useState<number | null>(null);
+  const [savingCriteria, setSavingCriteria] = useState(false);
+  const [criteriaError, setCriteriaError] = useState<string | null>(null);
+
+  const handleOpenCriteriaModal = () => {
+    if (!round || round.status !== 'DRAFT') return;
+    setSelectedCriteriaId(round.criteriaId || null);
+    setCriteriaError(null);
+    setShowCriteriaModal(true);
+  };
+
+  const handleSaveCriteria = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!round || round.status !== 'DRAFT') return;
+    if (!selectedCriteriaId) {
+      setCriteriaError('กรุณาเลือกชุดเกณฑ์การประเมิน');
+      return;
+    }
+    try {
+      setSavingCriteria(true);
+      setCriteriaError(null);
+      await linkRoundCriteria(roundId, selectedCriteriaId);
+      await loadData();
+      setShowCriteriaModal(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการบันทึกชุดเกณฑ์';
+      setCriteriaError(msg);
+    } finally {
+      setSavingCriteria(false);
+    }
+  };
 
   // Open Modal State
   const [showOpenModal, setShowOpenModal] = useState(false);
@@ -138,9 +168,6 @@ export default function RoundDetailPage() {
       ]);
       setRound(roundRes.data);
       setCriteriaList(criteriaRes.data);
-      if (roundRes.data.criteriaId) {
-        setSelectedCriteriaId(roundRes.data.criteriaId);
-      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'ไม่สามารถโหลดข้อมูลรอบทุนได้';
       setErrorBanner(msg);
@@ -153,21 +180,6 @@ export default function RoundDetailPage() {
   useEffect(() => {
     void loadData();
   }, [loadData]);
-
-  const handleLinkCriteria = async () => {
-    if (!round || round.status !== 'DRAFT') return;
-    try {
-      setLinkingCriteria(true);
-      setErrorBanner(null);
-      await linkRoundCriteria(roundId, selectedCriteriaId ? Number(selectedCriteriaId) : null);
-      await loadData();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการเชื่อมโยงเกณฑ์';
-      setErrorBanner(msg);
-    } finally {
-      setLinkingCriteria(false);
-    }
-  };
 
   const handleOpenCheckClick = async () => {
     try {
@@ -235,7 +247,6 @@ export default function RoundDetailPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'ไม่สามารถปิดรอบทุนได้';
       if (msg.includes('ROUND_CLOSE_STATE_CHANGED') || msg.includes('เปลี่ยนแปลงไปจากที่รับทราบ')) {
-        // Auto refresh unsubmitted check
         try {
           const freshCheck = await checkCloseStatus(roundId);
           setCloseCheck(freshCheck.data);
@@ -283,64 +294,32 @@ export default function RoundDetailPage() {
     0
   ) ?? 0;
   const targetScore = round.criteria?.targetScore || 100;
-  const isCriteriaScoreValid = Boolean(round.criteria) && criteriaTotalScore === targetScore;
+  const hasScoredCriteria = Boolean(
+    round.criteria?.subCriteria?.some((item) => item.type === 'SCORED')
+  );
+  const isCriteriaScoreValid = Boolean(round.criteria) && hasScoredCriteria;
   const isDraftRoundReady = hasBasicInfo && hasApplicants && isCriteriaScoreValid;
 
   return (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-16">
-      {/* Breadcrumb & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4">
-        <Link
-          href="/admin/scholarship-rounds"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition hover:-translate-x-0.5"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          กลับสู่หน้ารายการรอบทุนการศึกษา
-        </Link>
-
-        {/* State Transition Actions */}
-        <div className="flex items-center gap-3">
-          {round.status === 'DRAFT' && (
-            <>
-              <button
-                type="button"
-                onClick={handleOpenEditModal}
-                className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 text-sm font-semibold shadow-xs hover:border-slate-300 transition-all cursor-pointer"
-              >
-                <Pencil className="h-4 w-4 text-slate-500" />
-                แก้ไขรอบทุน
-              </button>
-              <button
-                onClick={handleOpenCheckClick}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white px-5 py-2.5 text-sm font-bold shadow-md shadow-emerald-600/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all cursor-pointer ring-2 ring-emerald-600/30"
-              >
-                <Play className="h-4 w-4 fill-white" />
-                เปิดรับประเมิน (Open Round)
-              </button>
-            </>
-          )}
-
-          {round.status === 'OPEN' && (
-            <button
-              onClick={handleCloseCheckClick}
-              className="inline-flex items-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white px-5 py-2.5 text-sm font-bold shadow-md shadow-rose-600/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all cursor-pointer ring-2 ring-rose-600/30"
-            >
-              <PowerOff className="h-4 w-4" />
-              ปิดรอบการประเมิน (Close Round)
-            </button>
-          )}
-
-          {round.status === 'CLOSED' && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 border border-slate-300 shadow-xs">
-              <Archive className="h-4 w-4 text-slate-500" />
-              รอบทุนปิดการประเมินแล้ว (ถาวร)
-            </span>
-          )}
-        </div>
-      </div>
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
+      {/* Page Header (Consistent with all other admin pages) */}
+      <RoundHeroHeader
+        round={round}
+        isDraftRoundReady={isDraftRoundReady}
+        hasBasicInfo={hasBasicInfo}
+        hasApplicants={hasApplicants}
+        isCriteriaScoreValid={isCriteriaScoreValid}
+        criteriaTotalScore={criteriaTotalScore}
+        targetScore={targetScore}
+        onOpenEditModal={handleOpenEditModal}
+        onOpenCheckClick={handleOpenCheckClick}
+        onCloseCheckClick={handleCloseCheckClick}
+        onShowDeleteModal={() => setShowDeleteModal(true)}
+        onShowImportModal={() => setShowImportModal(true)}
+      />
 
       {errorBanner && (
-        <div className="rounded-2xl border border-rose-300 bg-rose-50/90 p-4 text-sm text-rose-900 flex items-start gap-3 shadow-xs">
+        <div className="rounded-2xl border border-rose-300 bg-rose-50/90 p-4 text-sm text-rose-900 flex items-start gap-3 shadow-xs dark:bg-rose-950/20 dark:border-rose-900/40 dark:text-rose-300">
           <AlertCircle className="h-5 w-5 shrink-0 mt-0.5 text-rose-600" />
           <div className="flex-1">
             <h4 className="font-bold">เกิดข้อผิดพลาด</h4>
@@ -355,379 +334,177 @@ export default function RoundDetailPage() {
         </div>
       )}
 
-      {/* Title & Status Banner */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-2.5 mb-2.5">
-            {round.status === 'OPEN' ? (
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-2xs">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                สถานะ: เปิดรับประเมิน (Open)
-              </span>
-            ) : round.status === 'CLOSED' ? (
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
-                <Archive className="h-3.5 w-3.5 text-slate-500" />
-                สถานะ: ปิดรอบแล้ว (Closed)
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300">
-                <Clock className="h-3.5 w-3.5 text-amber-600" />
-                สถานะ: แบบร่าง (Draft)
-              </span>
-            )}
-            <span className="text-xs text-slate-500 font-mono font-medium bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
-              รหัสรอบ #{round.id}
-            </span>
-          </div>
-
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            {round.name}
-          </h1>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm font-medium text-slate-500">
-            <span>ปีการศึกษา {round.academicYear} | ภาคเรียนที่ {round.semester}</span>
-            {round.scholarshipType?.name && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
-                <Award className="h-3 w-3" />
-                {round.scholarshipType.name}
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-5 bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-2xs">
-          <div className="text-center min-w-22.5">
-            <div className="text-xs text-slate-500 font-medium">ผู้สมัครในรอบ</div>
-            <div className="text-2xl font-extrabold font-mono text-slate-900">{round.applicantCount} <span className="text-sm font-normal text-slate-500">คน</span></div>
-          </div>
-          <div className="h-9 w-px bg-slate-200" />
-          <div className="text-center min-w-22.5">
-            <div className="text-xs text-slate-500 font-medium">แถวที่ไม่ผ่านล่าสุด</div>
-            <div className={`text-2xl font-extrabold font-mono ${round.lastInvalidRowsCount > 0 ? 'text-amber-600' : 'text-slate-400'}`}>
-              {round.lastInvalidRowsCount} <span className="text-sm font-normal text-slate-500">แถว</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Round Lifecycle Stepper */}
-      <RoundLifecycleStepper
-        roundId={round.id}
-        status={round.status}
-        onStepClick={(step) => {
-          if (step === 1) setActiveTab('setup');
-          else if (step === 2 || step === 3) setActiveTab('evaluation');
-          else if (step === 4) setActiveTab('allocation');
-        }}
-      />
-
-      {/* Unified Command Center Tabs */}
-      <div className="flex border-b border-border gap-2 overflow-x-auto pb-px">
-        <button
-          type="button"
-          onClick={() => setActiveTab('setup')}
-          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
-            activeTab === 'setup'
-              ? 'border-primary text-primary bg-primary/5 rounded-t-xl'
-              : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-t-xl'
-          }`}
-        >
-          <Sliders className="w-4 h-4" />
-          <span>1. การตั้งค่า & ความพร้อม</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('evaluation')}
-          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
-            activeTab === 'evaluation'
-              ? 'border-primary text-primary bg-primary/5 rounded-t-xl'
-              : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-t-xl'
-          }`}
-        >
-          <Trophy className="w-4 h-4" />
-          <span>2. ผลการประเมิน & อันดับ</span>
-          {round.status !== 'DRAFT' && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/20 text-primary font-bold">
-              {round.status}
-            </span>
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('allocation')}
-          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
-            activeTab === 'allocation'
-              ? 'border-primary text-primary bg-primary/5 rounded-t-xl'
-              : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-t-xl'
-          }`}
-        >
-          <Banknote className="w-4 h-4" />
-          <span>3. การจัดสรรทุน & งบประมาณ</span>
-          {round.status === 'CLOSED' && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold">
-              พร้อมจัดสรร
-            </span>
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('reports')}
-          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
-            activeTab === 'reports'
-              ? 'border-primary text-primary bg-primary/5 rounded-t-xl'
-              : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-t-xl'
-          }`}
-        >
-          <FileSpreadsheet className="w-4 h-4" />
-          <span>4. รายงาน & ดาวน์โหลด (PDPA)</span>
-        </button>
-      </div>
-
-      {/* Tab 1: Setup & Readiness Grid */}
-      {activeTab === 'setup' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Criteria Linking & Info (7 Cols) */}
-        <div className="lg:col-span-7 flex flex-col gap-6">
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Layers className="h-5 w-5 text-blue-600" />
-                ชุดเกณฑ์การประเมินที่ผูกกับรอบทุน
-              </h3>
-              {round.status !== 'DRAFT' && (
-                <span className="text-xs font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md flex items-center gap-1.5">
-                  <Lock className="h-3 w-3" /> ล็อกการเปลี่ยนเกณฑ์
-                </span>
+      {/* ข้อมูลของรอบทุนการศึกษา (Round Details & Information) */}
+      <div className="flex flex-col gap-6">
+        {/* Card 1: ข้อมูลทั่วไปของรอบทุน */}
+        <Card className="p-6 space-y-5">
+          <div className="flex items-center justify-between border-b border-border/60 pb-3">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+              <Sliders className="h-4 w-4 text-primary" />
+              ข้อมูลทั่วไปของรอบทุนการศึกษา
+            </h3>
+            <div className="flex items-center gap-2">
+              {round.status === 'DRAFT' && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleOpenEditModal}
+                  leftIcon={<Pencil className="h-3.5 w-3.5 text-muted-foreground" />}
+                >
+                  แก้ไขข้อมูล
+                </Button>
               )}
             </div>
-
-            {round.status === 'DRAFT' ? (
-              <div className="space-y-4">
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  คุณสามารถเปลี่ยนหรือถอดชุดเกณฑ์ได้เฉพาะในสถานะร่าง (Draft) เท่านั้น เมื่อเปิดรอบทุนแล้วจะไม่สามารถแก้ไขชุดเกณฑ์ได้
-                </p>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-                  <Select
-                    icon={Layers}
-                    value={selectedCriteriaId}
-                    onChange={(e) => setSelectedCriteriaId(e.target.value ? Number(e.target.value) : '')}
-                  >
-                    <option value="">-- ยังไม่ผูกเกณฑ์ (ไม่มีเกณฑ์) --</option>
-                    {criteriaList.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} ({c.totalScore} คะแนน, {c.subCriteria.length} ข้อ)
-                      </option>
-                    ))}
-                  </Select>
-                  <button
-                    onClick={handleLinkCriteria}
-                    disabled={linkingCriteria}
-                    className="px-5 py-2.5 text-sm font-bold bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl transition-all shadow-md shadow-blue-600/20 active:scale-[0.98] cursor-pointer whitespace-nowrap disabled:opacity-50"
-                  >
-                    {linkingCriteria ? 'กำลังบันทึก...' : 'บันทึกเกณฑ์'}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div>
-                {round.criteria ? (
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                    <div className="font-bold text-sm text-slate-900">{round.criteria.name}</div>
-                    <div className="text-xs text-slate-600">
-                      จำนวนเกณฑ์ย่อย: {round.criteria.subCriteria.length} ข้อ
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 p-3 rounded-xl">ไม่มีชุดเกณฑ์ผูกกับรอบนี้</p>
-                )}
-              </div>
-            )}
           </div>
 
-          {/* Applicants Management Card */}
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Users className="h-5 w-5 text-indigo-600" />
-                ข้อมูลผู้สมัครในรอบทุน
-              </h3>
-              <span className="text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+            <div className="p-4 rounded-xl bg-muted/20 border border-border/60">
+              <span className="text-xs text-muted-foreground font-medium block">ชื่อรอบทุน</span>
+              <span className="font-bold text-foreground text-sm mt-1 block">{round.name}</span>
+            </div>
+            <div className="p-4 rounded-xl bg-muted/20 border border-border/60">
+              <span className="text-xs text-muted-foreground font-medium block">ปีการศึกษา / ภาคเรียน</span>
+              <span className="font-bold text-foreground text-sm mt-1 block">
+                ปีการศึกษา {round.academicYear} (ภาคเรียนที่ {round.semester})
+              </span>
+            </div>
+            <div className="p-4 rounded-xl bg-muted/20 border border-border/60">
+              <span className="text-xs text-muted-foreground font-medium block">ประเภททุนการศึกษา</span>
+              <span className="font-bold text-foreground text-sm mt-1 block">
+                {round.scholarshipType?.name || 'ไม่ระบุประเภททุน'}
+              </span>
+            </div>
+            <div className="p-4 rounded-xl bg-muted/20 border border-border/60">
+              <span className="text-xs text-muted-foreground font-medium block">สถานะรอบทุน</span>
+              <div className="mt-1">
+                {round.status === 'OPEN' ? (
+                  <StatusBadge variant="open" label="เปิดรับประเมิน" />
+                ) : round.status === 'CLOSED' ? (
+                  <StatusBadge variant="closed" label="ปิดรอบแล้ว" />
+                ) : (
+                  <StatusBadge variant="draft" label="แบบร่าง" />
+                )}
+              </div>
+            </div>
+            <div className="p-4 rounded-xl bg-muted/20 border border-border/60">
+              <span className="text-xs text-muted-foreground font-medium block">จำนวนผู้สมัครในรอบ</span>
+              <span className="font-bold font-mono text-foreground text-sm mt-1 block">
                 {round.applicantCount} คน
               </span>
             </div>
-
-            <div className="space-y-3">
-              <p className="text-xs text-slate-600 leading-relaxed">
-                การนำเข้าข้อมูลผู้สมัครทำผ่านไฟล์ Excel (.xlsx) ตามรูปแบบของระบบ ข้อมูลจะถูกเข้ารหัสเลขบัตรประชาชนอัตโนมัติ
-              </p>
-
-              <div className="flex flex-wrap items-center gap-3 pt-1">
-                {round.status === 'DRAFT' ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowImportModal(true)}
-                    className="px-4 py-2.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl transition-all shadow-md shadow-indigo-600/20 active:scale-[0.98] cursor-pointer flex items-center gap-1.5"
-                  >
-                    <FileSpreadsheet className="h-4 w-4" />
-                    {round.applicantCount > 0 ? 'นำเข้าข้อมูลใหม่ (แทนที่เดิม)' : 'นำเข้าข้อมูลผู้สมัคร (Excel)'}
-                  </button>
-                ) : (
-                  <span className="text-xs font-medium text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-                    นำเข้าไม่ได้ (รอบ{round.status === 'OPEN' ? 'เปิดแล้ว' : 'ปิดแล้ว'})
-                  </span>
-                )}
-
-                <Link
-                  href="/admin/applicants"
-                  className="px-4 py-2.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer flex items-center gap-1.5"
-                >
-                  <Users className="h-3.5 w-3.5 text-slate-500" />
-                  เปิดหน้ารายชื่อผู้สมัคร
-                </Link>
-              </div>
+            <div className="p-4 rounded-xl bg-muted/20 border border-border/60">
+              <span className="text-xs text-muted-foreground font-medium block">วันที่สร้าง</span>
+              <span className="font-semibold text-foreground text-sm mt-1 block">
+                {new Date(round.createdAt).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </span>
             </div>
           </div>
-        </div>
 
-        {/* Right Column: Round Lifecycle Timeline & Live Readiness (5 Cols) */}
-        <div className="lg:col-span-5 flex flex-col gap-4">
-          {round.status === 'DRAFT' && (
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <CheckCircle2 className={`h-5 w-5 ${isDraftRoundReady ? 'text-emerald-600' : 'text-amber-500'}`} />
-                  เงื่อนไขความพร้อมในการเปิดรอบ
-                </h3>
-                <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
-                  isDraftRoundReady 
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
-                    : 'bg-amber-100 text-amber-800 border border-amber-300'
-                }`}>
-                  {isDraftRoundReady ? 'พร้อมเปิดรอบ' : 'ยังไม่พร้อม'}
-                </span>
-              </div>
+          {/* Quick Actions Bar */}
+          <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-border/60">
+            {round.status === 'DRAFT' && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowImportModal(true)}
+                leftIcon={<FileSpreadsheet className="h-3.5 w-3.5 text-primary" />}
+              >
+                นำเข้าไฟล์ Excel เพิ่มเติม
+              </Button>
+            )}
+            <Link href="/admin/applicants">
+              <Button size="sm" leftIcon={<Users className="h-3.5 w-3.5" />}>
+                เปิดหน้ารายชื่อผู้สมัคร
+              </Button>
+            </Link>
+          </div>
+        </Card>
 
-              <div className="space-y-2.5 text-xs">
-                {/* Condition 1: Basic Info */}
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="font-medium text-slate-800">1. ข้อมูลหลักครบถ้วน (ชื่อ, ปี, ภาคเรียน)</span>
-                  {hasBasicInfo ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
-                  )}
-                </div>
-
-                {/* Condition 2: Applicants */}
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <div>
-                    <span className="font-medium text-slate-800">2. มีผู้สมัครอย่างน้อย 1 คน</span>
-                    <span className="text-slate-500 ml-1.5 font-mono">({round.applicantCount} คน)</span>
-                  </div>
-                  {hasApplicants ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
-                  )}
-                </div>
-
-                {/* Condition 3: Criteria & target score */}
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <div>
-                    <span className="font-medium text-slate-800">3. ผูกชุดเกณฑ์ผลรวม {targetScore} คะแนน</span>
-                    <span className="text-slate-500 ml-1.5 font-mono">
-                      ({round.criteria ? `${round.criteria.name} : ${criteriaTotalScore}/${targetScore}` : 'ยังไม่มีเกณฑ์'})
-                    </span>
-                  </div>
-                  {isCriteriaScoreValid ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
-                  )}
-                </div>
-              </div>
-
-              {round.lastInvalidRowsCount > 0 && (
-                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium leading-relaxed">
-                  ℹ️ มีแถวที่ไม่ผ่านจากการนำเข้าล่าสุด {round.lastInvalidRowsCount} แถว (สามารถเปิดรอบได้ตามปกติ)
-                </div>
+        {/* Card 2: ชุดเกณฑ์การประเมินที่ใช้ */}
+        <Card className="p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3">
+            <div>
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                <Layers className="h-4 w-4 text-primary" />
+                ชุดเกณฑ์การประเมินที่ใช้: {round.criteria?.name || 'ยังไม่ระบุชุดเกณฑ์'}
+              </h3>
+            </div>
+            <div className="flex items-center gap-2">
+              {round.criteria && (
+                <>
+                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-mono text-xs">
+                    เป้าหมาย {round.criteria.targetScore || targetScore} คะแนน
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    {round.criteria.subCriteria.length} เกณฑ์ย่อย
+                  </Badge>
+                </>
               )}
+              {round.status === 'DRAFT' && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleOpenCriteriaModal}
+                  leftIcon={<Pencil className="h-3.5 w-3.5 text-muted-foreground" />}
+                >
+                  {round.criteria ? 'เปลี่ยนชุดเกณฑ์' : 'กำหนดชุดเกณฑ์'}
+                </Button>
+              )}
+            </div>
+          </div>
 
-              {!isDraftRoundReady && (
-                <p className="text-xs text-slate-500 leading-relaxed italic">
-                  * ต้องผ่านเงื่อนไขทั้ง 3 ข้อข้างต้น จึงจะสามารถกดยืนยันเปิดรอบการประเมินได้
+          {round.criteria && round.criteria.subCriteria.length > 0 ? (
+            <div className="space-y-2">
+              <div className="border border-border/80 rounded-xl overflow-hidden divide-y divide-border/60 text-xs">
+                {round.criteria.subCriteria.map((sub, idx) => (
+                  <div key={sub.id || idx} className="p-3.5 flex items-start justify-between gap-4 bg-background/50 hover:bg-background transition-colors">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-5 h-5 rounded-md bg-muted text-center leading-5 font-mono text-xs font-bold shrink-0">
+                        {idx + 1}
+                      </span>
+                      <span className="font-semibold text-foreground truncate">{sub.title}</span>
+                    </div>
+                    <div className="font-mono font-bold text-foreground shrink-0 text-sm">
+                      {sub.type === 'TEXT' ? (
+                        <span className="text-xs font-normal text-muted-foreground">เกณฑ์ข้อความ</span>
+                      ) : sub.maxScore !== null && sub.maxScore !== undefined ? (
+                        <>{sub.maxScore} <span className="text-xs font-normal text-muted-foreground">คะแนน</span></>
+                      ) : (
+                        <span className="text-xs font-normal text-muted-foreground">มีคะแนน</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="p-8 text-center bg-muted/20 rounded-xl border border-dashed border-border/80 space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto">
+                <AlertCircle className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-foreground">ยังไม่มีการผูกชุดเกณฑ์การประเมินสำหรับรอบทุนนี้</p>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                  รอบทุนนี้ถูกสร้างไว้ในสถานะร่าง (Draft) โดยยังไม่ได้กำหนดเกณฑ์ จำเป็นต้องกำหนดเกณฑ์การประเมินก่อนเปิดรับประเมิน
                 </p>
+              </div>
+              {round.status === 'DRAFT' && (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleOpenCriteriaModal}
+                  leftIcon={<Layers className="h-3.5 w-3.5" />}
+                >
+                  เลือกหรือผูกชุดเกณฑ์การประเมิน
+                </Button>
               )}
             </div>
           )}
-
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
-            <h3 className="text-base font-bold text-slate-900 border-b border-slate-200 pb-3">
-              วงจรสถานะรอบทุน (State Machine)
-            </h3>
-
-            <div className="space-y-3.5 text-xs">
-              <div className={`p-3.5 rounded-xl border transition ${round.status === 'DRAFT' ? 'bg-amber-50/80 border-amber-300 ring-1 ring-amber-400/40 shadow-xs' : 'bg-slate-50/60 border-slate-200'}`}>
-                <div className="font-bold text-slate-900 flex items-center justify-between">
-                  <span>1. ขั้นตอนแบบร่าง (DRAFT)</span>
-                  {round.status === 'DRAFT' && <span className="text-xs bg-amber-200 text-amber-900 px-2.5 py-0.5 rounded-full font-extrabold shadow-2xs">ปัจจุบัน</span>}
-                </div>
-                <p className="mt-1 text-slate-600 leading-relaxed">
-                  แก้ไขข้อมูลรอบ, ผูกชุดเกณฑ์ที่มีผลรวมคะแนนครบเป้าหมาย และนำเข้าข้อมูลผู้สมัคร
-                </p>
-              </div>
-
-              <div className={`p-3.5 rounded-xl border transition ${round.status === 'OPEN' ? 'bg-emerald-50/80 border-emerald-300 ring-1 ring-emerald-400/40 shadow-xs' : 'bg-slate-50/60 border-slate-200'}`}>
-                <div className="font-bold text-slate-900 flex items-center justify-between">
-                  <span>2. เปิดรับประเมิน (OPEN)</span>
-                  {round.status === 'OPEN' && <span className="text-xs bg-emerald-200 text-emerald-900 px-2.5 py-0.5 rounded-full font-extrabold shadow-2xs">ปัจจุบัน</span>}
-                </div>
-                <p className="mt-1 text-slate-600 leading-relaxed">
-                  ล็อกข้อมูลรอบทุนและเกณฑ์ ผู้ประเมินสามารถเริ่มให้คะแนนผู้สมัครได้
-                </p>
-              </div>
-
-              <div className={`p-3.5 rounded-xl border transition ${round.status === 'CLOSED' ? 'bg-slate-100 border-slate-300 ring-1 ring-slate-400/40 shadow-xs' : 'bg-slate-50/60 border-slate-200'}`}>
-                <div className="font-bold text-slate-900 flex items-center justify-between">
-                  <span>3. ปิดรอบการประเมิน (CLOSED)</span>
-                  {round.status === 'CLOSED' && <span className="text-xs bg-slate-300 text-slate-900 px-2.5 py-0.5 rounded-full font-extrabold shadow-2xs">ปัจจุบัน</span>}
-                </div>
-                <p className="mt-1 text-slate-600 leading-relaxed">
-                  สิ้นสุดการให้คะแนน นำผลคะแนนไปใช้จัดสรรทุนการศึกษาต่อไป
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        </Card>
       </div>
-      )}
-
-      {/* Tab 2: Evaluation Results & Rankings */}
-      {activeTab === 'evaluation' && (
-        <RoundEvaluationTab
-          roundId={round.id}
-          roundStatus={round.status}
-          targetScore={round.criteria?.targetScore || 100}
-        />
-      )}
-
-      {/* Tab 3: Scholarship Allocation & Budgeting */}
-      {activeTab === 'allocation' && (
-        <RoundAllocationTab
-          roundId={round.id}
-          roundStatus={round.status}
-        />
-      )}
-
-      {/* Tab 4: Reports & Export Hub */}
-      {activeTab === 'reports' && (
-        <RoundReportsTab
-          roundId={round.id}
-          roundStatus={round.status}
-        />
-      )}
 
       {/* Modal: Edit Round Info */}
       <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
@@ -818,20 +595,20 @@ export default function RoundDetailPage() {
           </ModalBody>
 
           <ModalFooter>
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => setShowEditModal(false)}
-              className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition cursor-pointer"
             >
               ยกเลิก
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={savingEdit || !editName.trim()}
-              className="px-5 py-2.5 text-xs font-bold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm disabled:opacity-40 transition-all cursor-pointer"
+              isLoading={savingEdit}
             >
-              {savingEdit ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}
-            </button>
+              บันทึกการเปลี่ยนแปลง
+            </Button>
           </ModalFooter>
         </form>
       </Modal>
@@ -898,21 +675,22 @@ export default function RoundDetailPage() {
               )}
             </ModalBody>
             <ModalFooter>
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={() => setShowOpenModal(false)}
-                className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition cursor-pointer"
               >
                 ยกเลิก
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 disabled={!readiness.isReady || openingRound}
+                isLoading={openingRound}
                 onClick={handleConfirmOpenRound}
-                className="px-5 py-2.5 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-sm disabled:opacity-40 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                {openingRound ? 'กำลังเปิดรอบ...' : 'ยืนยันเปิดรับประเมิน'}
-              </button>
+                ยืนยันเปิดรับประเมิน
+              </Button>
             </ModalFooter>
           </>
         )}
@@ -977,21 +755,22 @@ export default function RoundDetailPage() {
               )}
             </ModalBody>
             <ModalFooter>
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={() => setShowCloseModal(false)}
-                className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition cursor-pointer"
               >
                 ยกเลิก
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="destructive"
                 disabled={closingRound || (closeCheck.unsubmittedCount > 0 && !acknowledged)}
+                isLoading={closingRound}
                 onClick={handleConfirmCloseRound}
-                className="px-5 py-2.5 text-xs font-bold rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-sm disabled:opacity-40 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
               >
-                {closingRound ? 'กำลังปิดรอบ...' : 'ยืนยันปิดรอบทุน'}
-              </button>
+                ยืนยันปิดรอบทุน
+              </Button>
             </ModalFooter>
           </>
         )}
@@ -1009,6 +788,97 @@ export default function RoundDetailPage() {
           }}
         />
       )}
+
+      {/* Delete Draft Round Modal */}
+      {round && round.status === 'DRAFT' && (
+        <DeleteRoundModal
+          isOpen={showDeleteModal}
+          roundId={round.id}
+          roundName={round.name}
+          academicYear={round.academicYear}
+          semester={round.semester}
+          applicantCount={round.applicantCount}
+          onClose={() => setShowDeleteModal(false)}
+          onSuccess={() => {
+            setShowDeleteModal(false);
+            router.push('/admin/scholarship-rounds');
+          }}
+        />
+      )}
+
+      {/* Modal: Link Criteria */}
+      <Modal isOpen={showCriteriaModal} onClose={() => setShowCriteriaModal(false)} size="lg">
+        <ModalHeader
+          title="กำหนดชุดเกณฑ์การประเมินประจำรอบ"
+          icon={Layers}
+          onClose={() => setShowCriteriaModal(false)}
+        />
+        <form onSubmit={handleSaveCriteria}>
+          <ModalBody className="space-y-4">
+            {criteriaError && (
+              <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
+                <span>{criteriaError}</span>
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              เลือกชุดเกณฑ์การประเมินมาตรฐานเพื่อนำมาใช้ให้คะแนนผู้สมัครในรอบ <span className="font-semibold text-foreground">{round.name}</span>
+            </p>
+
+            <div className="space-y-1.5">
+              <label htmlFor="selectCriteria" className="block text-xs font-semibold text-foreground">
+                ชุดเกณฑ์การประเมิน <span className="text-destructive">*</span>
+              </label>
+              <Select
+                id="selectCriteria"
+                value={selectedCriteriaId || ''}
+                onChange={(e) => setSelectedCriteriaId(e.target.value ? Number(e.target.value) : null)}
+              >
+                <option value="">-- กรุณาเลือกชุดเกณฑ์ --</option>
+                {criteriaList.map((crit) => (
+                  <option key={crit.id} value={crit.id}>
+                    {crit.name} (เป้าหมาย {crit.targetScore || 100} คะแนน, {crit.subCriteria?.length || 0} เกณฑ์ย่อย)
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            {selectedCriteriaId && (
+              <div className="p-3.5 rounded-xl bg-muted/40 border border-border/80 text-xs space-y-2">
+                <span className="font-semibold text-foreground block">เกณฑ์ย่อยในชุดที่เลือก:</span>
+                <div className="space-y-1">
+                  {criteriaList
+                    .find((c) => c.id === selectedCriteriaId)
+                    ?.subCriteria?.map((sub, idx) => (
+                      <div key={sub.id || idx} className="flex justify-between text-muted-foreground">
+                        <span>{idx + 1}. {sub.title}</span>
+                        <span className="font-mono font-medium">{sub.type === 'TEXT' ? 'ข้อความ' : `${sub.maxScore ?? '-'} คะแนน`}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowCriteriaModal(false)}
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              type="submit"
+              disabled={savingCriteria || !selectedCriteriaId}
+              isLoading={savingCriteria}
+            >
+              บันทึกชุดเกณฑ์
+            </Button>
+          </ModalFooter>
+        </form>
+      </Modal>
     </div>
   );
 }

@@ -1,11 +1,9 @@
 import React, { ReactNode } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, LucideIcon } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 interface PageHeaderProps {
-  moduleBadge?: string;
-  moduleBadgeIcon?: LucideIcon;
-  title: string;
+  title?: string;
   description?: string;
   backHref?: string;
   backLabel?: string;
@@ -13,8 +11,6 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({
-  moduleBadge,
-  moduleBadgeIcon: BadgeIcon,
   title,
   description,
   backHref,
@@ -35,32 +31,28 @@ export function PageHeader({
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          {moduleBadge && (
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                {BadgeIcon && <BadgeIcon className="h-3 w-3" />}
-                {moduleBadge}
-              </span>
+      {(title || action || description) && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {title && (
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                {title}
+              </h1>
+              {description && (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {description}
+                </p>
+              )}
             </div>
           )}
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            {title}
-          </h1>
-          {description && (
-            <p className="mt-1 text-sm text-muted-foreground">
-              {description}
-            </p>
+
+          {action && (
+            <div className="flex items-center gap-2.5 ml-auto">
+              {action}
+            </div>
           )}
         </div>
-
-        {action && (
-          <div className="flex items-center gap-2.5">
-            {action}
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }

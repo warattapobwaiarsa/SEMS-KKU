@@ -25,7 +25,7 @@ docs/
 
 ### 📂 `00-project/` (ข้อมูลโครงการและขอบเขต)
 * [README.md](file:///d:/SEMS-KKU/docs/00-project/README.md) — **Project Overview & History:** สรุปรายการเอกสารและประวัติการเปลี่ยนแปลงเวอร์ชันขอบเขต
-* [sems-scope.md](file:///d:/SEMS-KKU/docs/00-project/sems-scope.md) — **ขอบเขตโครงงาน (Scope 1.3 - Version 4 ปัจจุบัน):** ขอบเขตระบบที่ปรับปรุงตามข้อเสนอแนะอาจารย์ผู้ประเมิน (เพิ่มระบบประเภททุน, ปลดล็อกคะแนนเป้าหมาย 1-1000, ประวัตินักศึกษาข้ามรอบ, และ Analytics Dashboard)
+* [sems-scope.md](file:///d:/SEMS-KKU/docs/00-project/sems-scope.md) — **ขอบเขตโครงงาน (Scope 1.3 - Version 4.2 ปัจจุบัน):** ขอบเขตระบบล่าสุด รวมการจัดการประเภททุนและเกณฑ์เป็น Flow เดียวกัน, กำหนด MaxScore และเงื่อนไขผลรวม 100 คะแนนเต็ม, ประวัตินักศึกษาข้ามรอบ, และ Analytics Dashboard
 * [sems-project-proposal.pdf](file:///d:/SEMS-KKU/docs/00-project/sems-project-proposal.pdf) — **ข้อเสนอโครงงาน (Project Proposal):** ฉบับยื่นเสนอคณะวิศวกรรมศาสตร์ มหาวิทยาลัยขอนแก่น
 * [archive/sems-scope-v1.md](file:///d:/SEMS-KKU/docs/00-project/archive/sems-scope-v1.md) — **ขอบเขตฉบับร่างเดิม (Version 1 Archive):** เอกสารขอบเขตฉบับเริ่มต้นสำหรับสอบทานประวัติย้อนหลัง
 

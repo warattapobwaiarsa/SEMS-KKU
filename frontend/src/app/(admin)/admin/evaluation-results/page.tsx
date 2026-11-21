@@ -166,10 +166,7 @@ export default function EvaluationResultsPage() {
     <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-12">
       {/* Standard SEMS Page Header */}
       <PageHeader
-        moduleBadge="การประเมินและจัดสรรทุน"
-        moduleBadgeIcon={Award}
         title="ผลการประเมินและอันดับ"
-        description="ตรวจสอบคะแนนเฉลี่ยจากผู้ประเมินหลายท่าน พร้อมจัดอันดับอัตโนมัติตามเกณฑ์ Tie-break แบบเรียลไทม์"
         action={
           <Link
             href="/admin/scholarship-allocation"

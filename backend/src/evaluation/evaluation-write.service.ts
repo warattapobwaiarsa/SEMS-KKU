@@ -482,8 +482,8 @@ export class EvaluationWriteService {
         });
       }
 
-      // (ง) score ต้องเป็นจำนวนเต็ม 0 ถึง maxScore ไม่งั้น 422 SCORE_OUT_OF_RANGE
-      //     ครอบคลุมทั้งค่าติดลบ เกินเต็ม ทศนิยม และไม่ใช่ตัวเลข [FR-EVL-05] [BR-EVL-03] (MSG-15)
+      // (ง) score ต้องเป็นจำนวนเต็ม >= 0 ไม่งั้น 422 SCORE_OUT_OF_RANGE
+      //     ครอบคลุมทั้งค่าติดลบ ทศนิยม และไม่ใช่ตัวเลข [FR-EVL-05] [BR-EVL-03] (MSG-15)
       if (
         item.score !== undefined &&
         item.score !== null &&
@@ -493,9 +493,7 @@ export class EvaluationWriteService {
         if (
           typeof score !== 'number' ||
           !Number.isInteger(score) ||
-          score < 0 ||
-          subCriteria.maxScore === null ||
-          score > subCriteria.maxScore
+          score < 0
         ) {
           throw new AppException(
             'SCORE_OUT_OF_RANGE',

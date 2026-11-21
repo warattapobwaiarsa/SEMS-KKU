@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, UserCheck, GraduationCap, Sparkles, Building, Lock } from "lucide-react";
+import { ArrowRight, ShieldCheck, UserCheck, GraduationCap} from "lucide-react";
 import { SYSTEM_CONFIG } from "@/config/navigation";
 
 export default function HomePage() {
@@ -20,9 +20,6 @@ export default function HomePage() {
                 KKU EN
               </span>
             </div>
-            <p className="text-xs text-slate-500">
-              {SYSTEM_CONFIG.fullName}
-            </p>
           </div>
         </div>
         <div className="text-right text-xs text-slate-500 hidden sm:block">
@@ -34,16 +31,9 @@ export default function HomePage() {
       {/* Main Choice Cards */}
       <main className="max-w-5xl mx-auto w-full my-8 sm:my-12 space-y-8">
         <div className="text-center max-w-xl mx-auto space-y-2.5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>ระบบบริหารจัดการการประเมินและการจัดสรรทุนการศึกษา</span>
-          </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             เข้าสู่ระบบตามบทบาทการทำงาน
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-            เลือกระบบปฏิบัติการตามสิทธิ์การใช้งานเพื่อเริ่มต้นจัดการรอบทุน หรือประเมินผู้สมัคร
-          </p>
+          </h2>          
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -62,24 +52,7 @@ export default function HomePage() {
                 <h3 className="text-xl font-bold text-slate-900">
                   ผู้ดูแลระบบ (Admin)
                 </h3>
-                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                  จัดการบัญชีผู้ใช้งาน, ควบคุมวงจรรอบทุน (Draft ➔ Open ➔ Closed), กำหนดชุดเกณฑ์การประเมิน, นำเข้าข้อมูลผู้สมัคร, ตรวจสอบคะแนนเฉลี่ย, และบริหารการจัดสรรงบประมาณ
-                </p>
-              </div>
-              <ul className="text-xs text-slate-600 space-y-2 pt-3 border-t border-slate-100">
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-700" />
-                  <span>จัดการข้อมูลหลัก, วงจรรอบทุน และชุดเกณฑ์การประเมิน</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-700" />
-                  <span>ตรวจสอบผลคะแนน Tie-breaker และจัดสรรงบประมาณสด</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-700" />
-                  <span>ส่งออกรายงาน Excel เข้ารหัสผ่านตามมาตรฐาน PDPA</span>
-                </li>
-              </ul>
+              </div>              
             </div>
             <Link
               href="/admin/scholarship-rounds"
@@ -104,25 +77,8 @@ export default function HomePage() {
               <div>
                 <h3 className="text-xl font-bold text-slate-900">
                   ผู้ประเมิน (Evaluator)
-                </h3>
-                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                  ตรวจสอบรายชื่อผู้สมัครที่เปิดให้ประเมิน, ตรวจเอกสารและประวัติผู้สมัครผ่าน Split-Screen, บันทึกคะแนนร่างอัตโนมัติ (Auto-save), และตรวจสอบผลการประเมินของตนเอง
-                </p>
-              </div>
-              <ul className="text-xs text-slate-600 space-y-2 pt-3 border-t border-slate-100">
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-                  <span>ห้องตรวจประเมินแบบ Resizable Split-Screen พร้อม Focus Mode</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-                  <span>แถบสลับผู้สมัครต่อเนื่อง (Sequential Navigation) ป้องกันข้อมูลหลุด</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-                  <span>ระบบบันทึกร่างอัตโนมัติทุก 3 วินาที (Cloud Auto-Save)</span>
-                </li>
-              </ul>
+                </h3>                
+              </div>              
             </div>
             <Link
               href="/evaluator/rounds"
@@ -133,27 +89,11 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-
-        {/* System Badges / Standards */}
-        <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-4 pt-4 text-xs text-slate-500">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 shadow-2xs">
-            <Lock className="w-3.5 h-3.5 text-slate-600" />
-            <span>ISO/IEC 29110 & 25010 Standards</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 shadow-2xs">
-            <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-            <span>PDPA Compliant (AES-256 Data Masking)</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 shadow-2xs">
-            <Building className="w-3.5 h-3.5 text-orange-600" />
-            <span>KKU Single Sign-On Ready</span>
-          </span>
-        </div>
       </main>
 
       {/* Footer */}
       <footer className="max-w-5xl mx-auto w-full pt-6 border-t border-slate-200 text-center text-xs text-slate-500">
-        <p>ระบบบริหารจัดการการประเมินทุนการศึกษา (SEMS-KKU) — คณะวิศวกรรมศาสตร์ มหาวิทยาลัยขอนแก่น</p>
+        <p>ระบบบริหารจัดการการประเมินทุนการศึกษา - คณะวิศวกรรมศาสตร์ มหาวิทยาลัยขอนแก่น</p>
       </footer>
     </div>
   );

@@ -143,7 +143,6 @@ export default function MyEvaluationsPage() {
       {/* Header */}
       <PageHeader
         title="ผลการประเมินของฉัน"
-        description="ตรวจสอบประวัติผลคะแนนและฉบับร่างการประเมินที่ตนเองได้บันทึกไว้ในแต่ละรอบทุนการศึกษา [FR-EVL-14]"
       />
 
       {/* Error Banner */}

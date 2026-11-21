@@ -20,6 +20,10 @@ describe('ScholarshipTypesService', () => {
       findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      delete: jest.fn(),
+    },
+    scholarshipRound: {
+      updateMany: jest.fn(),
     },
     criteria: {
       findUnique: jest.fn(),
@@ -258,6 +262,50 @@ describe('ScholarshipTypesService', () => {
           action: AuditAction.SCHOLARSHIP_TYPE_ACTIVATE,
           actorId: 101,
         }),
+      });
+    });
+  });
+
+  describe('delete', () => {
+    it('should throw NotFoundException if scholarship type not found', async () => {
+      mockPrismaService.scholarshipType.findUnique.mockResolvedValue(null);
+      await expect(service.delete(999)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BusinessException if scholarship type is linked to open/closed rounds', async () => {
+      mockPrismaService.scholarshipType.findUnique.mockResolvedValue({
+        id: 1,
+        name: 'ทุนเรียนดี',
+        rounds: [{ id: 10, name: 'รอบที่ 1', status: 'OPEN' }],
+      });
+
+      await expect(service.delete(1)).rejects.toThrow(BusinessException);
+    });
+
+    it('should successfully delete scholarship type if it only has draft rounds or no rounds', async () => {
+      mockPrismaService.scholarshipType.findUnique.mockResolvedValue({
+        id: 1,
+        name: 'ทุนเรียนดี',
+        rounds: [],
+      });
+      mockPrismaService.scholarshipRound.updateMany.mockResolvedValue({
+        count: 1,
+      });
+      mockPrismaService.scholarshipType.delete.mockResolvedValue({
+        id: 1,
+        name: 'ทุนเรียนดี',
+      });
+
+      const res = await service.delete(1);
+      expect(res.id).toBe(1);
+      expect(
+        mockPrismaService.scholarshipRound.updateMany,
+      ).toHaveBeenCalledWith({
+        where: { scholarshipTypeId: 1 },
+        data: { scholarshipTypeId: null },
+      });
+      expect(mockPrismaService.scholarshipType.delete).toHaveBeenCalledWith({
+        where: { id: 1 },
       });
     });
   });

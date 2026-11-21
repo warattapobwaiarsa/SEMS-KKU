@@ -17,7 +17,9 @@ import {
   MessageSquare,
   Layers,
   ShieldCheck,
+  Sliders,
 } from 'lucide-react';
+import { Button } from '@/components/ui';
 
 interface SubCriteriaRow {
   id?: number;
@@ -265,7 +267,7 @@ export default function EditOrViewCriteriaPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-16">
+    <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto pb-24 md:pb-16">
       {/* Top Breadcrumb & Status */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4">
         <Link
@@ -300,9 +302,6 @@ export default function EditOrViewCriteriaPage() {
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
           {isLocked ? 'รายละเอียดเกณฑ์การประเมิน' : 'แก้ไขเกณฑ์การประเมิน'}
         </h1>
-        <p className="mt-1.5 text-sm font-medium text-slate-500">
-          รหัสอ้างอิง: CRT-{criteriaId.toString().padStart(4, '0')}
-        </p>
       </div>
 
       {isLocked && (
@@ -339,8 +338,8 @@ export default function EditOrViewCriteriaPage() {
       )}
 
       {/* Main Grid */}
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-8 flex flex-col gap-6">
+      <form onSubmit={handleSubmit} className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="w-full lg:col-span-8 flex flex-col gap-6">
           {/* Card 1: Criteria General Info */}
           <div className="bg-card border border-border rounded-xl p-5 shadow-xs space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
@@ -391,29 +390,35 @@ export default function EditOrViewCriteriaPage() {
 
           {/* Card 2: Sub-Criteria List */}
           <div className="bg-card border border-border rounded-xl p-5 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-border">
-              <div>
-                <h3 className="text-base font-semibold text-foreground">รายการเกณฑ์ย่อย</h3>
-                <p className="text-xs text-muted-foreground">ทั้งหมด {subCriteria.length} รายการ</p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border/80">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Sliders className="h-4 w-4 text-primary" />
+                  <h3 className="text-base font-bold text-foreground">รายการเกณฑ์ย่อย</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  ทั้งหมด {subCriteria.length} ข้อ (แบบคำนวณคะแนน {scoredCount} ข้อ)
+                </p>
               </div>
               {!isLocked && (
-                <div className="flex items-center gap-2">
-                  <button
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <Button
                     type="button"
+                    size="sm"
                     onClick={handleAddScoredRow}
-                    className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition"
+                    leftIcon={<Plus className="h-4 w-4" />}
                   >
-                    <Plus className="h-3.5 w-3.5" />
-                    เพิ่มเกณฑ์มีคะแนน
-                  </button>
-                  <button
+                    เพิ่มข้อแบบมีคะแนน
+                  </Button>
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={handleAddTextRow}
-                    className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg bg-muted text-foreground hover:bg-muted/80 transition"
+                    leftIcon={<MessageSquare className="h-4 w-4" />}
                   >
-                    <MessageSquare className="h-3.5 w-3.5" />
-                    เพิ่มเกณฑ์ข้อความ
-                  </button>
+                    เพิ่มข้อความคิดเห็น
+                  </Button>
                 </div>
               )}
             </div>

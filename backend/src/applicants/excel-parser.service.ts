@@ -118,10 +118,8 @@ export class ExcelParserService {
       });
     }
 
-    // BR-IMP-18: Read sheet named "Data"
     let worksheet = workbook.getWorksheet('Data');
     if (!worksheet) {
-      // Try case-insensitive matching
       const targetSheet = workbook.worksheets.find(
         (ws) => ws.name.trim().toLowerCase() === 'data',
       );
@@ -139,11 +137,9 @@ export class ExcelParserService {
       });
     }
 
-    // Row 2 is headers (Row 1 is skipped column numbers)
     const headerRow = worksheet.getRow(2);
     const colIndexMap = this.mapHeaderColumns(headerRow);
 
-    // Validate presence of all mandatory columns (BR-IMP-19)
     const missingColumns: string[] = [];
     for (const col of MANDATORY_COLUMNS) {
       if (!colIndexMap.has(col)) {
@@ -169,17 +165,14 @@ export class ExcelParserService {
       errors: string[];
     }[] = [];
 
-    // Data starts at row 3 (BR-IMP-18)
     const rowCount = worksheet.rowCount;
     for (let r = 3; r <= rowCount; r++) {
       const row = worksheet.getRow(r);
 
-      // Check if closing '*' row (BR-IMP-18: Stop reading data immediately)
       if (this.isEndingStarRow(row)) {
         break;
       }
 
-      // Check if entire row is empty
       if (this.isRowEmpty(row)) {
         continue;
       }
@@ -187,7 +180,6 @@ export class ExcelParserService {
       const rowErrors: string[] = [];
       const parsedRow = this.extractRowData(row, r, colIndexMap, rowErrors);
 
-      // Check student code duplicate in file (BR-IMP-04)
       if (parsedRow.studentCode) {
         if (seenStudentCodes.has(parsedRow.studentCode)) {
           rowErrors.push(
@@ -336,8 +328,6 @@ export class ExcelParserService {
       }
     }
 
-    // Special fallback for accommodation map URL (BR-IMP-22):
-    // In legacy sample, column 37 is untitled between "ทุน" (col 36) and "CITIZENID" (col 38)
     if (!map.has('accommodationMapUrl')) {
       const citizenIdCol = map.get('citizenId');
       const scholarshipsCol = map.get('previousScholarships');
@@ -375,7 +365,6 @@ export class ExcelParserService {
       return s ? s : null;
     };
 
-    // 1. legacySeq (BR-IMP-20: positive integer, optional)
     let legacySeq: number | null = null;
     const rawSeq = getString('legacySeq');
     if (rawSeq) {
@@ -389,59 +378,51 @@ export class ExcelParserService {
       }
     }
 
-    // 2. studentCode (BR-IMP-03, BR-IMP-04: Mandatory)
     const studentCode = getString('studentCode');
     if (!studentCode) {
       errors.push('รหัสนักศึกษาห้ามเว้นว่าง (BR-IMP-03)');
     }
 
-    // 3. titlePrefix (Mandatory)
     const titlePrefix = getString('titlePrefix');
     if (!titlePrefix) {
       errors.push('คำนำหน้าห้ามเว้นว่าง (BR-IMP-03)');
     }
 
-    // 4. firstName (Mandatory)
     const firstName = getString('firstName');
     if (!firstName) {
       errors.push('ชื่อห้ามเว้นว่าง (BR-IMP-03)');
     }
 
-    // 5. lastName (Mandatory)
     const lastName = getString('lastName');
     if (!lastName) {
       errors.push('สกุลห้ามเว้นว่าง (BR-IMP-03)');
     }
 
-    // 6. faculty (Mandatory)
     const faculty = getString('faculty');
     if (!faculty) {
       errors.push('คณะห้ามเว้นว่าง (BR-IMP-03)');
     }
 
-    // 7. major (Mandatory)
     const major = getString('major');
     if (!major) {
       errors.push('สาขาห้ามเว้นว่าง (BR-IMP-03)');
     }
 
-    // 8. studyYear (BR-IMP-07: Mandatory 1-4)
     const rawStudyYear = getString('studyYear');
     let studyYear = 0;
     if (!rawStudyYear) {
       errors.push('ชั้นปีห้ามเว้นว่าง (BR-IMP-03)');
     } else {
       const y = Number(rawStudyYear);
-      if (Number.isInteger(y) && y >= 1 && y <= 4) {
+      if (Number.isInteger(y) && y >= 1 && y <= 6) {
         studyYear = y;
       } else {
         errors.push(
-          `ชั้นปีต้องเป็นจำนวนเต็ม 1–4 (พบ: "${rawStudyYear}") (BR-IMP-07)`,
+          `ชั้นปีต้องเป็นจำนวนเต็ม 1–6 (พบ: "${rawStudyYear}") (BR-IMP-07)`,
         );
       }
     }
 
-    // 9. gpa (BR-IMP-05: Mandatory 0.00-4.00)
     const rawGpa = getString('gpa');
     let gpa = 0;
     if (!rawGpa) {
@@ -457,7 +438,6 @@ export class ExcelParserService {
       }
     }
 
-    // 10. phone (BR-IMP-08: 10 digits starting with 0. Auto-prefix 0 if 9 digits starting with 6,8,9)
     let rawPhone = getString('phone').replace(/[\s-]/g, '');
     if (!rawPhone) {
       errors.push('โทรศัพท์ห้ามเว้นว่าง (BR-IMP-03)');
@@ -470,31 +450,32 @@ export class ExcelParserService {
       ) {
         rawPhone = '0' + rawPhone;
       }
-      if (!/^0\d{9}$/.test(rawPhone)) {
+      if (!/^0\d{8,9}$/.test(rawPhone)) {
         errors.push(
-          `โทรศัพท์ต้องเป็นตัวเลข 10 หลักขึ้นต้นด้วย 0 (พบ: "${rawPhone}") (BR-IMP-08)`,
+          `โทรศัพท์ต้องเป็นตัวเลข 9–10 หลักขึ้นต้นด้วย 0 (พบ: "${rawPhone}") (BR-IMP-08)`,
         );
       }
     }
     const phone = rawPhone;
 
-    // 11. email (BR-IMP-03: Mandatory, format not strictly checked per BR-IMP-08)
     const email = getString('email');
     if (!email) {
       errors.push('อีเมลห้ามเว้นว่าง (BR-IMP-03)');
     }
 
-    // 12. citizenId (BR-IMP-06: 13 digits and Mod-11 checksum)
     const rawCitizenId = getString('citizenId').replace(/[\s-]/g, '');
     if (!rawCitizenId) {
       errors.push('เลขบัตรประชาชนห้ามเว้นว่าง (BR-IMP-03)');
     } else if (!validateThaiCitizenId(rawCitizenId)) {
+      const maskedDisplay =
+        rawCitizenId.length >= 4
+          ? `xxxx-xxxx-${rawCitizenId.slice(-4)}`
+          : 'xxxxxxxxxxxxx';
       errors.push(
-        `เลขบัตรประชาชนไม่ถูกต้อง ต้องเป็นตัวเลข 13 หลักและผ่านการตรวจสอบ Checksum (พบ: "${rawCitizenId}") (BR-IMP-06)`,
+        `เลขบัตรประชาชนไม่ถูกต้อง ต้องเป็นตัวเลข 13 หลักและผ่านการตรวจสอบ Checksum (พบ: "${maskedDisplay}") (BR-IMP-06)`,
       );
     }
 
-    // 13. applicationDate (BR-IMP-23: Format as dd/MM/yyyy HH:mm in Buddhist era if Date)
     let applicationDate: string | null = null;
     const dateIdx = colMap.get('applicationDate');
     if (dateIdx) {
@@ -502,7 +483,6 @@ export class ExcelParserService {
       applicationDate = this.formatApplicationDate(cell);
     }
 
-    // 14. accommodationMapUrl (BR-IMP-22: must start with http:// or https:// if provided)
     const accommodationMapUrl = getNullableString('accommodationMapUrl');
     if (accommodationMapUrl) {
       if (

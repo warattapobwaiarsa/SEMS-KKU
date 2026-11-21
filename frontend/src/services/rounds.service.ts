@@ -81,3 +81,12 @@ export async function closeRound(
     body: JSON.stringify(payload),
   });
 }
+
+export async function deleteRound(id: number): Promise<{ success: boolean; message: string }> {
+  return apiClient<{ success: boolean; message: string }>(`/scholarship-rounds/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'x-user-role': 'ADMIN',
+    },
+  });
+}

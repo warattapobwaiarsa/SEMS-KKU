@@ -40,6 +40,7 @@ export function ImportApplicantModal({
   const [uploading, setUploading] = useState(false);
   const [previewData, setPreviewData] = useState<ExcelPreviewResponse | null>(null);
   const [activeTab, setActiveTab] = useState<'valid' | 'invalid'>('valid');
+  const [importMode, setImportMode] = useState<'APPEND' | 'OVERWRITE'>('APPEND');
   const [acknowledged, setAcknowledged] = useState(false);
   const [importing, setImporting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -110,6 +111,7 @@ export function ImportApplicantModal({
     setPreviewData(null);
     setSelectedFile(null);
     setAcknowledged(false);
+    setImportMode('APPEND');
     setErrorMessage(null);
   };
 
@@ -125,6 +127,7 @@ export function ImportApplicantModal({
       const res = await confirmImportApplicants(roundId, {
         previewToken: previewData.previewToken,
         acknowledgedInvalidRows: acknowledged,
+        importMode,
       });
       setImportResult(res);
       onSuccess();
@@ -471,11 +474,60 @@ export function ImportApplicantModal({
               </div>
             )}
 
-            {/* Replace Warning & Acknowledgement Area */}
+            {/* Import Mode Selection & Replace Warning Area */}
             <div className="space-y-3 pt-1">
-              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
-                <span>การยืนยันนำเข้าจะ <strong className="underline">แทนที่ (Replace)</strong> ข้อมูลผู้สมัครเดิมทั้งหมดของรอบนี้</span>
+              <div className="p-3.5 bg-muted/40 border border-border rounded-xl space-y-2.5">
+                <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Info className="h-4 w-4 text-primary shrink-0" />
+                  <span>รูปแบบการนำเข้าข้อมูล (Import Mode)</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <label
+                    className={`flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition ${
+                      importMode === 'APPEND'
+                        ? 'border-primary bg-primary/10 text-foreground font-medium ring-1 ring-primary/20'
+                        : 'border-border/60 text-muted-foreground hover:bg-muted/30'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="importMode"
+                      value="APPEND"
+                      checked={importMode === 'APPEND'}
+                      onChange={() => setImportMode('APPEND')}
+                      className="mt-0.5 text-primary cursor-pointer"
+                    />
+                    <div>
+                      <div className="font-semibold text-foreground">นำเข้าเพิ่มเติม (Append) - แนะนำ</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        เก็บข้อมูลผู้สมัครเดิมในรอบไว้ นำเข้าเฉพาะรายชื่อใหม่ (หากรหัสซ้ำจะอัปเดตข้อมูล)
+                      </div>
+                    </div>
+                  </label>
+
+                  <label
+                    className={`flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition ${
+                      importMode === 'OVERWRITE'
+                        ? 'border-rose-500 bg-rose-500/10 text-foreground font-medium ring-1 ring-rose-500/20'
+                        : 'border-border/60 text-muted-foreground hover:bg-muted/30'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="importMode"
+                      value="OVERWRITE"
+                      checked={importMode === 'OVERWRITE'}
+                      onChange={() => setImportMode('OVERWRITE')}
+                      className="mt-0.5 text-rose-600 cursor-pointer"
+                    />
+                    <div>
+                      <div className="font-semibold text-rose-700 dark:text-rose-400">เขียนทับทั้งหมด (Overwrite)</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        ลบรายชื่อผู้สมัครเดิมทั้งหมดในรอบนี้ และแทนที่ด้วยข้อมูลจากไฟล์ใหม่นี้เท่านั้น
+                      </div>
+                    </div>
+                  </label>
+                </div>
               </div>
 
               {previewData.invalidRows > 0 && (

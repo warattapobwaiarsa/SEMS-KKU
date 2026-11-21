@@ -188,4 +188,27 @@ export class ApplicantsController {
       actorId,
     );
   }
+
+  @Post('applicants/:id/reveal-citizen-id')
+  @UseGuards(RoleDispatchGuard)
+  async revealCitizenId(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers('x-user-role') roleHeader?: string,
+    @Query('userRole') roleQuery?: string,
+    @Headers('x-user-id') userIdHeader?: string,
+    @Req() request?: RequestWithResolvedRole,
+  ) {
+    const role = request?.resolvedRole || roleHeader || roleQuery;
+    if (role && role !== 'ADMIN') {
+      throw new BusinessException({
+        errorCode: 'FORBIDDEN',
+        statusCode: HttpStatus.FORBIDDEN,
+        message: 'เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถดูเลขบัตรประชาชนเต็มได้',
+      });
+    }
+    const actorId =
+      request?.user?.id ??
+      (userIdHeader ? parseInt(userIdHeader, 10) : undefined);
+    return this.applicantsService.revealCitizenId(id, actorId);
+  }
 }

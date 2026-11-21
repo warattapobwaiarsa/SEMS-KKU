@@ -4,6 +4,7 @@ import {
   Post,
   Put,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -103,5 +104,24 @@ export class ScholarshipTypesController {
     }
     const actorId = request?.user?.id ?? null;
     return this.scholarshipTypesService.toggleActive(id, isActive, actorId);
+  }
+
+  @Delete(':id')
+  @UseGuards(RoleDispatchGuard)
+  async delete(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers('x-user-role') roleHeader?: string,
+    @Query('userRole') roleQuery?: string,
+    @Req() request?: RequestWithResolvedRole,
+  ) {
+    const role = request?.resolvedRole || roleHeader || roleQuery;
+    if (role && role !== 'ADMIN') {
+      throw new BusinessException({
+        errorCode: 'FORBIDDEN',
+        statusCode: HttpStatus.FORBIDDEN,
+        message: 'เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถลบประเภททุนได้',
+      });
+    }
+    return this.scholarshipTypesService.delete(id);
   }
 }

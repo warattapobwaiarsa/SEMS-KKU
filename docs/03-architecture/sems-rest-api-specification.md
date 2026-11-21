@@ -225,13 +225,16 @@ flowchart LR
 
 ---
 
-### Module 4: Evaluation Criteria (`/criteria`)
-*รองรับ Use Case: UC-A03*
+### Module 4: Scholarship Types & Evaluation Criteria (`/scholarship-types`, `/criteria`)
+*รองรับ Use Case: UC-A03, Scope 1.3.2.4, 1.3.2.14*
 
 | Method | Endpoint | สิทธิ์ | คำอธิบาย & กฎทางธุรกิจ |
 |---|---|---|---|
+| `GET` | `/api/v1/scholarship-types` | `ADMIN` | รายการประเภททุนทั้งหมด พร้อมข้อมูลเกณฑ์เริ่มต้นที่ผูกอยู่ |
+| `POST` | `/api/v1/scholarship-types` | `ADMIN` | สร้างประเภททุนใหม่ พร้อมรองรับการกำหนดชุดเกณฑ์การประเมินเริ่มต้นใน Flow เดียวกัน (Step 1: ข้อมูลประเภททุน, Step 2: ชุดเกณฑ์ย่อย Scored/Text กำหนด MaxScore และผลรวม 100 คะแนน) *(Log: SCHOLARSHIP_TYPE_CREATE)* |
+| `PATCH` | `/api/v1/scholarship-types/:id` | `ADMIN` | แก้ไขประเภททุนหรือสลับสถานะ Active/Inactive พร้อมแก้ไขเกณฑ์เริ่มต้น (โครงสร้างเกณฑ์ล็อกหากถูกใช้ในรอบ Open/Closed) *(Log: SCHOLARSHIP_TYPE_UPDATE)* |
 | `GET` | `/api/v1/criteria` | `ADMIN` | รายการเกณฑ์ทั้งหมด พร้อมแสดงรอบทุนที่นำเกณฑ์ไปใช้ (FR-CRT-12) |
-| `POST` | `/api/v1/criteria` | `ADMIN` | สร้างเกณฑ์ใหม่: ชื่อไม่ซ้ำ (MSG-31), มี Scored ≥ 1 ข้อ (MSG-08), ผลรวม Scored เท่ากับ 100 (MSG-06) *(Log: CRITERIA_CREATE)* |
+| `POST` | `/api/v1/criteria` | `ADMIN` | สร้างเกณฑ์ใหม่: ชื่อไม่ซ้ำ (MSG-31), มี Scored ≥ 1 ข้อ (MSG-08), ผลรวมคะแนนเต็ม Scored เท่ากับ 100 (MSG-06) และ MaxScore แต่ละข้อ 1–100 (MSG-07) *(Log: CRITERIA_CREATE)* |
 | `GET` | `/api/v1/criteria/:id` | `ADMIN`, `EVALUATOR` | รายละเอียดเกณฑ์และเกณฑ์ย่อย: **ป้องกัน IDOR:** สำหรับ Evaluator อนุญาตให้เข้าถึงได้เฉพาะเกณฑ์ที่**ผูกอยู่กับรอบสถานะ `OPEN` อย่างน้อยหนึ่งรอบ** เท่านั้น (BR-CRT-10) หากไม่ใช่ให้ตอบ **`404 Not Found`** |
 | `PUT` | `/api/v1/criteria/:id` | `ADMIN` | แก้ไขชุดเกณฑ์: ทำได้เฉพาะเกณฑ์ที่ยังไม่ถูกใช้ในรอบ `OPEN` หรือ `CLOSED` (MSG-09) และ **ต้องรักษา `id` ของเกณฑ์ย่อยเดิมไว้ (Update in-place)** ไม่ลบสร้างใหม่ทั้งหมด เพื่อคง Foreign Key อ้างอิง *(Log: CRITERIA_UPDATE)* |
 

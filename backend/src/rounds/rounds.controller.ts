@@ -3,6 +3,8 @@ import {
   Get,
   Post,
   Patch,
+  Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -20,6 +22,7 @@ import {
   LinkCriteriaDto,
   CloseRoundDto,
 } from './dto/round.dto';
+import { SetBudgetDto, SaveAllocationsDto } from './dto/allocation.dto';
 import { RoundStatus } from '@prisma/client';
 import {
   RoleDispatchGuard,
@@ -124,5 +127,68 @@ export class RoundsController {
     @Body() dto: CloseRoundDto,
   ) {
     return this.roundsService.closeRound(id, dto);
+  }
+
+  @Get(':id/allocation')
+  @UseGuards(RoleDispatchGuard)
+  async getAllocation(@Param('id', ParseIntPipe) id: number) {
+    return this.roundsService.getAllocationSummary(id);
+  }
+
+  @Post(':id/allocation/budget')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  @UseGuards(RoleDispatchGuard)
+  async setBudget(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: SetBudgetDto,
+    @Headers('x-user-id') userIdHeader?: string,
+  ) {
+    const actorId = userIdHeader ? parseInt(userIdHeader, 10) : undefined;
+    return this.roundsService.setRoundBudget(id, dto, actorId);
+  }
+
+  @Put(':id/allocation/items')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  @UseGuards(RoleDispatchGuard)
+  async saveAllocations(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: SaveAllocationsDto,
+    @Headers('x-user-id') userIdHeader?: string,
+  ) {
+    const actorId = userIdHeader ? parseInt(userIdHeader, 10) : undefined;
+    return this.roundsService.saveAllocations(id, dto, actorId);
+  }
+
+  @Post(':id/allocation/finalize')
+  @UseGuards(RoleDispatchGuard)
+  async finalizeAllocation(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers('x-user-id') userIdHeader?: string,
+  ) {
+    const actorId = userIdHeader ? parseInt(userIdHeader, 10) : undefined;
+    return this.roundsService.finalizeAllocation(id, actorId);
+  }
+
+  @Post(':id/allocation/reopen')
+  @UseGuards(RoleDispatchGuard)
+  async reopenAllocation(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers('x-user-id') userIdHeader?: string,
+  ) {
+    const actorId = userIdHeader ? parseInt(userIdHeader, 10) : undefined;
+    return this.roundsService.reopenAllocation(id, actorId);
+  }
+
+  @Delete(':id')
+  @UseGuards(RoleDispatchGuard)
+  async deleteRound(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers('x-user-id') userIdHeader?: string,
+    @Req() request?: RequestWithResolvedRole,
+  ) {
+    const actorId =
+      request?.user?.id ??
+      (userIdHeader ? parseInt(userIdHeader, 10) : undefined);
+    return this.roundsService.deleteDraftRound(id, actorId);
   }
 }

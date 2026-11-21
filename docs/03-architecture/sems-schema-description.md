@@ -46,7 +46,7 @@
 |---|---|---|
 | คะแนนสุดท้ายของผู้สมัคร | ค่าเฉลี่ย `evaluations.totalScore` ที่ `status = SUBMITTED` (ไม่มี Submitted = 0.00) | BR-SCR-01..04 |
 | อันดับ | เรียงคะแนนสุดท้ายมาก→น้อย เท่ากันเรียง `studentCode` น้อย→มาก (เทียบก่อนปัดเศษ) | BR-SCR-05 |
-| ผลรวมคะแนนสูงสุดของเกณฑ์ | SUM(`sub_criteria.maxScore`) เฉพาะ `SCORED` | BR-CRT-07 |
+| ผลรวมคะแนนสูงสุดของเกณฑ์ | *(ยกเลิก)* ไม่มีการคำนวณเพดานคะแนนรวมของเกณฑ์ | — |
 | ยอดจัดสรรแล้ว | SUM(`allocations.amount`) ของรอบ | BR-ALC-08 |
 | งบคงเหลือ | `totalBudget` − ยอดจัดสรรแล้ว | BR-ALC-08 |
 | จำนวนผู้ได้รับทุน | COUNT(`allocations`) ที่ `isAwarded = true` | Scope 1.3.4.6 |
@@ -109,7 +109,7 @@
 | 2 | criteriaId | integer | FK→criteria.id | ไม่ | — | เกณฑ์แม่ |
 | 3 | title | text | | ไม่ | — | ชื่อหัวข้อ **ซ้ำได้** แม้ในเกณฑ์เดียวกัน (BR-CRT-12) |
 | 4 | type | SubCriteriaType | | ไม่ | — | 1 = SCORED, 2 = TEXT |
-| 5 | maxScore | integer | | ได้ | null | เฉพาะ SCORED จำนวนเต็ม 1–100 (BR-CRT-05); TEXT = null |
+| 5 | maxScore | integer | | ได้ | null | *(ยกเลิกการบังคับ)* รองรับ null ไม่จำกัดเพดานคะแนน |
 | 6 | allowComment | boolean | | ไม่ | false | อนุญาต Comment เฉพาะ SCORED (BR-CRT-03) |
 | 7 | sortOrder | integer | | ไม่ | — | ลำดับแสดง |
 
@@ -218,7 +218,7 @@
 | 1 | id | integer | PK | ไม่ | auto increment | |
 | 2 | evaluationId | integer | FK→evaluations.id, UK(ผสม) | ไม่ | — | ON DELETE CASCADE |
 | 3 | subCriteriaId | integer | FK→sub_criteria.id, UK(ผสม) | ไม่ | — | |
-| 4 | score | integer | | ได้ | null | จำนวนเต็ม 0..maxScore; **null = ยังไม่กรอก (ไม่ใช่ 0)** (BR-EVL-03, BR-EVL-07) |
+| 4 | score | integer | | ได้ | null | จำนวนเต็ม >= 0; **null = ยังไม่กรอก (ไม่ใช่ 0)** (BR-EVL-03, BR-EVL-07) |
 | 5 | comment | text | | ได้ | null | ความคิดเห็น เฉพาะข้อที่ allowComment (ไม่จำกัดความยาว) |
 | 6 | textValue | text | | ได้ | null | ข้อความ เฉพาะเกณฑ์ย่อยแบบ TEXT (ไม่บังคับ) |
 
@@ -368,7 +368,7 @@ evaluations ─1:N─ evaluation_items ─N:1─ sub_criteria
 
 | ตาราง | กฎ | ที่มา |
 |---|---|---|
-| sub_criteria | SCORED: maxScore 1–100; TEXT: maxScore null และ allowComment = false | BR-CRT-03, BR-CRT-05 |
+| sub_criteria | SCORED: allowComment boolean; TEXT: allowComment = false | BR-CRT-02, BR-CRT-03 |
 | scholarship_rounds | academicYear 2550–2700; semester ∈ {1, 2} | BR-RND-01, BR-RND-02 |
 | applicants | studyYear 1–4; gpa 0.00–4.00 | BR-IMP-05, BR-IMP-07 |
 | allocation_summaries | totalBudget > 0 | BR-ALC-02 |

@@ -107,7 +107,7 @@
 | 2 | `criteriaId` | Integer | FK | NN | - | รหัสเกณฑ์หลัก (อ้างอิง `criteria.id`) |
 | 3 | `title` | Text | - | NN | - | ชื่อหัวข้อเกณฑ์ย่อย (สามารถซ้ำกันได้) |
 | 4 | `type` | Enum (`SubCriteriaType`) | - | NN | - | ประเภทเกณฑ์: `SCORED` (คิดคะแนน), `TEXT` (ข้อความประเมิน) |
-| 5 | `maxScore` | Integer | - | Nullable | `null` | คะแนนเต็ม 1–100 (เฉพาะประเภท SCORED, ประเภท TEXT เป็น null) |
+| 5 | `maxScore` | Integer | - | Nullable | `null` | *(ยกเลิกการบังคับใช้งาน)* คะแนนเต็มต่อข้อ (ปัจจุบันไม่จำกัดเพดานคะแนน) |
 | 6 | `allowComment` | Boolean | - | NN | `false` | อนุญาตให้ระบุความเห็นเพิ่มเติมหรือไม่ (เฉพาะ SCORED) |
 | 7 | `sortOrder` | Integer | - | NN | - | ลำดับการแสดงผลของหัวข้อเกณฑ์ย่อย |
 
@@ -249,7 +249,7 @@
 | 1 | `id` | Integer | PK | NN | Auto Increment | รหัสรายการประเมินย่อย |
 | 2 | `evaluationId` | Integer | FK, UK* | NN | - | รหัสใบประเมิน (อ้างอิง `evaluations.id`, ON DELETE CASCADE) |
 | 3 | `subCriteriaId` | Integer | FK, UK* | NN | - | รหัสเกณฑ์ย่อย (*Unique ร่วมกับ `evaluationId` ห้ามลงคะแนนซ้ำข้อเดิม) |
-| 4 | `score` | Integer | - | Nullable | `null` | คะแนนที่ได้ (0 ถึง maxScore, null = ยังไม่กรอก) |
+| 4 | `score` | Integer | - | Nullable | `null` | คะแนนที่ได้ (จำนวนเต็ม >= 0, null = ยังไม่กรอก) |
 | 5 | `comment` | Text | - | Nullable | `null` | ความคิดเห็นเพิ่มเติมของกรรมการ |
 | 6 | `textValue` | Text | - | Nullable | `null` | ข้อความผลการประเมิน (สำหรับเกณฑ์ย่อยประเภท TEXT) |
 
