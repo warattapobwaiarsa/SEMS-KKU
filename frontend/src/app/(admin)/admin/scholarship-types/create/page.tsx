@@ -281,7 +281,7 @@ export default function CreateScholarshipTypePage() {
                   <Sliders className="h-5 w-5" />
                 </div>
                 <div>
-                  <CardTitle>2. ผูกเกณฑ์การประเมินเริ่มต้น (Default Criteria)</CardTitle>
+                  <CardTitle>2. ผูกเกณฑ์การประเมินเริ่มต้น</CardTitle>
                 </div>
               </div>
 
