@@ -751,7 +751,15 @@ export default function CreateScholarshipRoundPage() {
                   <>
                     <div className="font-semibold text-foreground flex items-center gap-1.5">
                       <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                      <span>ระบบจะใช้เกณฑ์แม่แบบเริ่มต้นประจำประเภททุนโดยอัตโนมัติ</span>
+                      <span>
+                        {selectedType?.defaultCriteriaName
+                          ? `ระบบจะใช้เกณฑ์มาตรฐาน "${selectedType.defaultCriteriaName}"${
+                              selectedType.subCriteriaCount
+                                ? ` (${selectedType.subCriteriaCount} ข้อ)`
+                                : ''
+                            } โดยอัตโนมัติ`
+                          : 'ระบบจะใช้เกณฑ์แม่แบบเริ่มต้นประจำประเภททุนโดยอัตโนมัติ'}
+                      </span>
                     </div>
                     <p className="text-[11px]">
                       เมื่อบันทึกรอบทุน เกณฑ์การประเมินจะถูกผูกกับรอบนี้ทันทีโดยไม่ต้องตั้งค่าเพิ่มเติม
