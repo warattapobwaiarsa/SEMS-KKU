@@ -219,7 +219,7 @@ export default function CreateScholarshipRoundPage() {
             {currentStep > 1 ? '✓' : '1'}
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-bold text-foreground truncate">1. ข้อมูลรอบทุน</div>
+            <div className="text-xs font-bold text-foreground truncate">ข้อมูลรอบทุน</div>
           </div>
         </div>
 
@@ -245,7 +245,7 @@ export default function CreateScholarshipRoundPage() {
             {currentStep > 2 ? '✓' : '2'}
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-bold text-foreground truncate">2. เกณฑ์การประเมิน</div>
+            <div className="text-xs font-bold text-foreground truncate">เกณฑ์การประเมิน</div>
           </div>
         </div>
 
@@ -267,7 +267,7 @@ export default function CreateScholarshipRoundPage() {
             3
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-bold text-foreground truncate">3. นำเข้าผู้สมัคร & เปิดตัว</div>
+            <div className="text-xs font-bold text-foreground truncate">นำเข้าผู้สมัคร</div>
           </div>
         </div>
       </div>
