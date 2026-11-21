@@ -52,21 +52,17 @@ describe('CreateScholarshipTypePage', () => {
     });
   });
 
-  it('renders all sections and criteria mode options', async () => {
+  it('renders general info section and criteria selection section', async () => {
     render(<CreateScholarshipTypePage />);
 
     expect(screen.getByText('สร้างประเภททุนการศึกษาใหม่')).toBeInTheDocument();
     expect(screen.getByText('1. ข้อมูลทั่วไปของประเภททุน')).toBeInTheDocument();
-    expect(screen.getByText('2. เกณฑ์การประเมินเริ่มต้น (Default Criteria)')).toBeInTheDocument();
+    expect(screen.getByText('2. ผูกเกณฑ์การประเมินเริ่มต้น (Default Criteria)')).toBeInTheDocument();
+    expect(screen.getByLabelText(/เลือกชุดเกณฑ์การประเมิน/)).toBeInTheDocument();
 
-    // Mode options
-    expect(screen.getByText('เลือกจากเกณฑ์ที่มีในระบบ')).toBeInTheDocument();
-    expect(screen.getByText('สร้างเกณฑ์ใหม่สำหรับประเภทนี้')).toBeInTheDocument();
-    expect(screen.getByText('ยังไม่กำหนดเกณฑ์ในตอนนี้')).toBeInTheDocument();
-
-    // Wait for criteria to load
+    // Wait for criteria to load and render preview
     await waitFor(() => {
-      expect(screen.getByText(/พรีวิวเกณฑ์: เกณฑ์มาตรฐานทุนเรียนดีเด่น/)).toBeInTheDocument();
+      expect(screen.getByText(/พรีวิวเกณฑ์ที่ผูก: เกณฑ์มาตรฐานทุนเรียนดีเด่น/)).toBeInTheDocument();
     });
   });
 
@@ -79,7 +75,7 @@ describe('CreateScholarshipTypePage', () => {
     expect(screen.getByText('กรุณาระบุชื่อประเภททุนการศึกษา')).toBeInTheDocument();
   });
 
-  it('submits successfully with existing criteria mode', async () => {
+  it('submits successfully with selected criteria and displays success view', async () => {
     const createSpy = vi.spyOn(scholarshipTypesService, 'createScholarshipType').mockResolvedValue({
       success: true,
       statusCode: 201,
@@ -130,102 +126,18 @@ describe('CreateScholarshipTypePage', () => {
     });
   });
 
-  it('allows switching to new criteria mode and applies templates', async () => {
+  it('updates preview when a different criteria is selected from dropdown', async () => {
     render(<CreateScholarshipTypePage />);
-
-    const newModeRadio = screen.getByDisplayValue('NEW');
-    fireEvent.click(newModeRadio);
-
-    // Preset buttons should be present
-    expect(screen.getByText(/ทุนขาดแคลนทุนทรัพย์/)).toBeInTheDocument();
-    expect(screen.getByText(/ทุนเรียนดีเด่น/)).toBeInTheDocument();
-    expect(screen.getByText(/ทุนกิจกรรมจิตอาสา/)).toBeInTheDocument();
-    expect(screen.getByText(/คะแนนรวมข้อเดียว/)).toBeInTheDocument();
-
-    // Click single score preset
-    const singlePresetBtn = screen.getByText('คะแนนรวมข้อเดียว (100 คะแนน)');
-    fireEvent.click(singlePresetBtn);
-
-    // Check that CriteriaBuilder reflects the preset
-    expect(screen.getByDisplayValue('คะแนนการพิจารณารวมของคณะกรรมการ')).toBeInTheDocument();
-  });
-
-  it('submits successfully with new criteria mode', async () => {
-    const createSpy = vi.spyOn(scholarshipTypesService, 'createScholarshipType').mockResolvedValue({
-      success: true,
-      statusCode: 201,
-      data: {
-        id: 2,
-        name: 'ทุนผู้นำกิจกรรม',
-        description: undefined,
-        isActive: true,
-        roundsCount: 0,
-        defaultCriteriaId: 105,
-        defaultCriteria: {
-          id: 105,
-          name: 'เกณฑ์มาตรฐาน ทุนผู้นำกิจกรรม',
-        },
-        createdAt: '2026-01-01T00:00:00Z',
-        updatedAt: '2026-01-01T00:00:00Z',
-      },
-    });
-
-    render(<CreateScholarshipTypePage />);
-
-    const nameInput = screen.getByPlaceholderText(/เช่น ทุนเรียนดีเด่น/);
-    fireEvent.change(nameInput, { target: { value: 'ทุนผู้นำกิจกรรม' } });
-
-    const newModeRadio = screen.getByDisplayValue('NEW');
-    fireEvent.click(newModeRadio);
-
-    const submitBtn = screen.getByRole('button', { name: /สร้างประเภททุนการศึกษา/ });
-    fireEvent.click(submitBtn);
 
     await waitFor(() => {
-      expect(createSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'ทุนผู้นำกิจกรรม',
-          criteria: expect.objectContaining({
-            targetScore: 100,
-            subCriteria: expect.any(Array),
-          }),
-        }),
-      );
-    });
-  });
-
-  it('submits successfully with none mode (no criteria)', async () => {
-    const createSpy = vi.spyOn(scholarshipTypesService, 'createScholarshipType').mockResolvedValue({
-      success: true,
-      statusCode: 201,
-      data: {
-        id: 3,
-        name: 'ทุนทั่วไป',
-        description: undefined,
-        isActive: true,
-        roundsCount: 0,
-        defaultCriteriaId: null,
-        createdAt: '2026-01-01T00:00:00Z',
-        updatedAt: '2026-01-01T00:00:00Z',
-      },
+      expect(screen.getByText(/พรีวิวเกณฑ์ที่ผูก: เกณฑ์มาตรฐานทุนเรียนดีเด่น/)).toBeInTheDocument();
     });
 
-    render(<CreateScholarshipTypePage />);
-
-    const nameInput = screen.getByPlaceholderText(/เช่น ทุนเรียนดีเด่น/);
-    fireEvent.change(nameInput, { target: { value: 'ทุนทั่วไป' } });
-
-    const noneModeRadio = screen.getByDisplayValue('NONE');
-    fireEvent.click(noneModeRadio);
-
-    const submitBtn = screen.getByRole('button', { name: /สร้างประเภททุนการศึกษา/ });
-    fireEvent.click(submitBtn);
+    const select = screen.getByLabelText(/เลือกชุดเกณฑ์การประเมิน/);
+    fireEvent.change(select, { target: { value: '102' } });
 
     await waitFor(() => {
-      expect(createSpy).toHaveBeenCalledWith({
-        name: 'ทุนทั่วไป',
-        description: undefined,
-      });
+      expect(screen.getByText(/พรีวิวเกณฑ์ที่ผูก: เกณฑ์มาตรฐานทุนขัดสน/)).toBeInTheDocument();
     });
   });
 });
