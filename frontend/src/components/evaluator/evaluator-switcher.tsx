@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * @deprecated Switcher ย้ายไปรวมอยู่ที่หน้า Home (Dual-Card Selector) แล้ว
+ * คง component นี้ไว้เพื่อ backward-compatibility หรือ standalone demo เท่านั้น
+ */
+
 import { useState, useSyncExternalStore } from "react";
 import { Users, Check } from "lucide-react";
 import {
