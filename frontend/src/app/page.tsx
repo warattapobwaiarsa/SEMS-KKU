@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -20,32 +20,60 @@ import {
   setEvaluatorId,
 } from "@/lib/mock-evaluator";
 
+const subscribeEvaluator = (onStoreChange: () => void) => {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("sems_evaluator_changed", onStoreChange);
+  return () => {
+    window.removeEventListener("sems_evaluator_changed", onStoreChange);
+  };
+};
+
+const subscribeAdmin = (onStoreChange: () => void) => {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("sems_admin_changed", onStoreChange);
+  return () => {
+    window.removeEventListener("sems_admin_changed", onStoreChange);
+  };
+};
+
+const subscribeEmpty = () => () => {};
+
 export default function HomePage() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [selectedAdminId, setSelectedAdminId] = useState<string>("1");
-  const [selectedEvaluatorId, setSelectedEvaluatorId] = useState<string>("2");
+  const mounted = useSyncExternalStore(subscribeEmpty, () => true, () => false);
 
-  useEffect(() => {
-    setMounted(true);
-    setSelectedAdminId(getAdminId());
-    setSelectedEvaluatorId(getEvaluatorId());
-  }, []);
+  const storedAdminId = useSyncExternalStore(
+    subscribeAdmin,
+    () => getAdminId(),
+    () => "1",
+  );
+
+  const storedEvaluatorId = useSyncExternalStore(
+    subscribeEvaluator,
+    () => getEvaluatorId(),
+    () => "2",
+  );
+
+  const [selectedAdminId, setSelectedAdminId] = useState<string | null>(null);
+  const [selectedEvaluatorId, setSelectedEvaluatorId] = useState<string | null>(null);
+
+  const activeAdminId = selectedAdminId ?? (mounted ? storedAdminId : "1");
+  const activeEvaluatorId = selectedEvaluatorId ?? (mounted ? storedEvaluatorId : "2");
 
   const currentAdmin =
-    MOCK_ADMINS.find((ad) => ad.id === selectedAdminId) || MOCK_ADMINS[0];
+    MOCK_ADMINS.find((ad) => ad.id === activeAdminId) || MOCK_ADMINS[0];
 
   const currentEvaluator =
-    MOCK_EVALUATORS.find((ev) => ev.id === selectedEvaluatorId) ||
+    MOCK_EVALUATORS.find((ev) => ev.id === activeEvaluatorId) ||
     MOCK_EVALUATORS[0];
 
   const handleAdminLogin = () => {
-    setAdminId(selectedAdminId);
+    setAdminId(activeAdminId);
     router.push("/admin/scholarship-rounds");
   };
 
   const handleEvaluatorLogin = () => {
-    setEvaluatorId(selectedEvaluatorId);
+    setEvaluatorId(activeEvaluatorId);
     router.push("/evaluator/rounds");
   };
 
@@ -81,7 +109,7 @@ export default function HomePage() {
 
       {/* Main Choice Cards */}
       <main className="max-w-5xl mx-auto w-full my-6 sm:my-10 space-y-6">
-        <div className="text-center max-w-xl mx-auto space-y-2">          
+        <div className="text-center max-w-xl mx-auto space-y-2">
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             เข้าสู่ระบบตามบทบาทการทำงาน
           </h2>
@@ -122,7 +150,7 @@ export default function HomePage() {
                 <div className="relative">
                   <select
                     id="admin-account-select"
-                    value={mounted ? selectedAdminId : "1"}
+                    value={activeAdminId}
                     onChange={(e) => setSelectedAdminId(e.target.value)}
                     className="w-full text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all appearance-none pr-8 cursor-pointer font-medium"
                   >
@@ -196,7 +224,7 @@ export default function HomePage() {
                 <div className="relative">
                   <select
                     id="evaluator-account-select"
-                    value={mounted ? selectedEvaluatorId : "2"}
+                    value={activeEvaluatorId}
                     onChange={(e) => setSelectedEvaluatorId(e.target.value)}
                     className="w-full text-xs sm:text-sm bg-blue-50/50 border border-blue-300 rounded-xl px-3 py-2.5 text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all appearance-none pr-8 cursor-pointer font-medium"
                   >
