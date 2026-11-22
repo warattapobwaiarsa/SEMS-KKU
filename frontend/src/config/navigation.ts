@@ -75,12 +75,14 @@ export const EVALUATOR_NAV_ITEMS: NavItemConfig[] = [
     href: "/evaluator/rounds",
     iconName: "ClipboardList",
     description: "รายชื่อรอบทุนสถานะ Open และการบันทึกประเมินคะแนน",
+    group: "การประเมินทุน (Evaluation)",
   },
   {
     title: "ผลการประเมินของฉัน",
     href: "/evaluator/my-evaluations",
     iconName: "History",
     description: "ตรวจสอบประวัติผลการประเมินที่ส่งแล้วและฉบับร่าง",
+    group: "การประเมินทุน (Evaluation)",
   },
 ];
 

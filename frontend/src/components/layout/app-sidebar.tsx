@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { PanelLeftClose, PanelLeftOpen, LogOut } from "lucide-react";
 import { SYSTEM_CONFIG } from "@/config/navigation";
 import type { NavItemConfig, UserRole, UserProfile } from "@/types/navigation";
-import { EvaluatorSwitcher } from "@/components/evaluator/evaluator-switcher";
 import { NavItem } from "./nav-item";
 
 interface AppSidebarProps {
@@ -148,46 +147,38 @@ export function AppSidebar({
             <LogOut className="w-4 h-4" aria-hidden="true" />
           </button>
         ) : (
-          <div className="space-y-2">
-            {role === "evaluator" && (
-              <div className="flex items-center justify-between gap-2 pb-1">
-                <span className="text-[11px] font-medium text-slate-500">สลับบัญชี:</span>
-                <EvaluatorSwitcher />
-              </div>
-            )}
-            <div className="flex items-center justify-between gap-2 bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-2xs">
-              <div className="min-w-0 flex-1 truncate">
-                <p className="text-xs font-semibold text-slate-800 truncate leading-tight">
-                  {user?.name || "ผู้ใช้งาน"}
-                </p>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span
-                    className={`inline-block px-1.5 py-0.2 text-[10px] font-medium rounded border ${
-                      role === "evaluator"
-                        ? "border-blue-200 bg-blue-50 text-blue-700"
-                        : "border-slate-200 bg-slate-100 text-slate-700"
-                    }`}
-                  >
-                    {role === "evaluator" ? "Evaluator" : "Admin"}
+          <div className="flex items-center justify-between gap-2 bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-2xs">
+            <div className="min-w-0 flex-1 truncate">
+              <p className="text-xs font-semibold text-slate-800 truncate leading-tight">
+                {user?.name || "ผู้ใช้งาน"}
+              </p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span
+                  className={`inline-block px-1.5 py-0.2 text-[10px] font-medium rounded border ${
+                    role === "evaluator"
+                      ? "border-blue-200 bg-blue-50 text-blue-700"
+                      : "border-slate-200 bg-slate-100 text-slate-700"
+                  }`}
+                >
+                  {role === "evaluator" ? "Evaluator" : "Admin"}
+                </span>
+                {user?.expiresAt && role === "evaluator" && (
+                  <span className="text-[10px] text-slate-400 truncate">
+                    {user.expiresAt}
                   </span>
-                  {user?.expiresAt && role === "evaluator" && (
-                    <span className="text-[10px] text-slate-400 truncate">
-                      {user.expiresAt}
-                    </span>
-                  )}
-                </div>
+                )}
               </div>
-
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors shrink-0"
-                title="ออกจากระบบ"
-                aria-label="ออกจากระบบ"
-              >
-                <LogOut className="w-4 h-4" aria-hidden="true" />
-              </button>
             </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors shrink-0"
+              title="ออกจากระบบ"
+              aria-label="ออกจากระบบ"
+            >
+              <LogOut className="w-4 h-4" aria-hidden="true" />
+            </button>
           </div>
         )}
       </div>
