@@ -5,6 +5,11 @@ import {
   getCurrentEvaluatorProfile,
   EVALUATOR_STORAGE_KEY,
   MOCK_EVALUATORS,
+  getAdminId,
+  setAdminId,
+  getCurrentAdminProfile,
+  ADMIN_STORAGE_KEY,
+  MOCK_ADMINS,
 } from './mock-evaluator';
 
 describe('mock-evaluator utility', () => {
@@ -50,4 +55,29 @@ describe('mock-evaluator utility', () => {
     expect(profile.name).toContain('ID: 99');
     expect(profile.email).toBe('evaluator99@kku.ac.th');
   });
+
+  it('should return fallback Admin ID "1" when localStorage is empty and env is unset', () => {
+    const id = getAdminId();
+    expect(id).toBe('1');
+  });
+
+  it('setAdminId should update localStorage and dispatch custom event', () => {
+    const eventSpy = vi.fn();
+    window.addEventListener('sems_admin_changed', eventSpy);
+
+    setAdminId('1');
+
+    expect(localStorage.getItem(ADMIN_STORAGE_KEY)).toBe('1');
+    expect(eventSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('getCurrentAdminProfile should return correct profile for known admin', () => {
+    setAdminId('1');
+    const profile = getCurrentAdminProfile();
+
+    expect(profile.id).toBe('1');
+    expect(profile.name).toBe(MOCK_ADMINS[0].name);
+    expect(profile.email).toBe('admin@kku.ac.th');
+  });
 });
+
