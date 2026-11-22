@@ -45,7 +45,16 @@ export async function apiClient<T>(
       await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
       return apiClient<T>(endpoint, options, retries - 1, retryDelayMs * 1.5);
     }
-    throw networkError;
+    if (networkError instanceof ApiError) {
+      throw networkError;
+    }
+    const message = networkError instanceof Error ? networkError.message : 'Failed to fetch';
+    throw new ApiError(
+      `ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ Backend ได้ (${message}) กรุณาตรวจสอบว่าเซิร์ฟเวอร์ (พอร์ต 4000) กำลังทำงานอยู่`,
+      0,
+      'NETWORK_ERROR',
+      { originalError: message, url },
+    );
   }
 
   if (!res.ok) {
