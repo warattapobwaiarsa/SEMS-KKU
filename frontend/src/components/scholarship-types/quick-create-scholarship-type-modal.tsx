@@ -124,7 +124,7 @@ export function QuickCreateScholarshipTypeModal({
       <form onSubmit={handleSubmit}>
         <ModalHeader
           title="สร้างประเภททุนการศึกษาใหม่แบบด่วน"
-          description="สร้างประเภททุนพร้อมกำหนดเกณฑ์การประเมินเริ่มต้นในหน้าต่างเดียว"
+          subtitle="สร้างประเภททุนพร้อมกำหนดเกณฑ์การประเมินเริ่มต้นในหน้าต่างเดียว"
         />
 
         <ModalBody className="space-y-4">

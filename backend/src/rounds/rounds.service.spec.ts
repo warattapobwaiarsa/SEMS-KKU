@@ -22,6 +22,7 @@ describe('RoundsService', () => {
       delete: jest.fn(),
     },
     applicant: {
+      findMany: jest.fn().mockResolvedValue([]),
       deleteMany: jest.fn(),
     },
     applicantContact: {
@@ -56,6 +57,7 @@ describe('RoundsService', () => {
       deleteMany: jest.fn(),
     },
     allocation: {
+      findMany: jest.fn().mockResolvedValue([]),
       upsert: jest.fn(),
       deleteMany: jest.fn(),
     },
@@ -923,6 +925,7 @@ describe('RoundsService', () => {
           status: 'EDITING',
         },
       });
+      mockPrismaService.applicant.findMany.mockResolvedValueOnce([{ id: 101 }]);
 
       await expect(
         service.saveAllocations(1, {

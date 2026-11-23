@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CriteriaController } from './criteria.controller';
 import { CriteriaService } from './criteria.service';
 import { SubCriteriaType } from '@prisma/client';
+import { RoleDispatchGuard } from '../common/guards/role-dispatch.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
 
 describe('CriteriaController', () => {
   let controller: CriteriaController;
@@ -22,7 +24,12 @@ describe('CriteriaController', () => {
           useValue: mockCriteriaService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(RoleDispatchGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(RolesGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<CriteriaController>(CriteriaController);
     jest.clearAllMocks();

@@ -3,6 +3,7 @@ import { RoundsController } from './rounds.controller';
 import { RoundsService } from './rounds.service';
 import { RoundStatus } from '@prisma/client';
 import { RoleDispatchGuard } from '../common/guards/role-dispatch.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
 import { EvaluationReadService } from '../evaluation/evaluation-read.service';
 import { RequestWithResolvedRole } from '../common/guards/role-dispatch.guard';
 
@@ -46,6 +47,8 @@ describe('RoundsController', () => {
     })
       .overrideGuard(RoleDispatchGuard)
       .useValue(mockRoleDispatchGuard)
+      .overrideGuard(RolesGuard)
+      .useValue({ canActivate: () => true })
       .compile();
 
     controller = module.get<RoundsController>(RoundsController);
