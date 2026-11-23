@@ -89,7 +89,6 @@ function EvaluatorRoundsContent() {
     <div className="flex-1 flex flex-col space-y-6">
       <PageHeader
         title="รอบทุนการศึกษาที่เปิดประเมิน"
-        description="เลือกรอบทุนการศึกษาที่เปิดรับการประเมินเพื่อเข้าสู่การตรวจรายชื่อและให้คะแนนผู้สมัคร"
       />
 
       {/* Search Bar */}

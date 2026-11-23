@@ -19,6 +19,26 @@ describe('RoundsService', () => {
       findUnique: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      delete: jest.fn(),
+    },
+    applicant: {
+      findMany: jest.fn().mockResolvedValue([]),
+      deleteMany: jest.fn(),
+    },
+    applicantContact: {
+      deleteMany: jest.fn(),
+    },
+    applicantSupportingInfo: {
+      deleteMany: jest.fn(),
+    },
+    evaluation: {
+      deleteMany: jest.fn(),
+    },
+    evaluationItem: {
+      deleteMany: jest.fn(),
+    },
+    importBatch: {
+      deleteMany: jest.fn(),
     },
     criteria: {
       findUnique: jest.fn(),
@@ -28,6 +48,21 @@ describe('RoundsService', () => {
     },
     auditLog: {
       create: jest.fn(),
+    },
+    allocationSummary: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      upsert: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+    allocation: {
+      findMany: jest.fn().mockResolvedValue([]),
+      upsert: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+    user: {
+      findUnique: jest.fn(),
     },
     $transaction: jest.fn((cb: (tx: unknown) => unknown) =>
       cb(mockPrismaService),
@@ -822,6 +857,169 @@ describe('RoundsService', () => {
         }),
       );
       expect(result.status).toBe(RoundStatus.CLOSED);
+    });
+  });
+
+  describe('Scholarship Allocation Methods', () => {
+    it('should throw NotFoundException if round not found for getAllocationSummary', async () => {
+      mockPrismaService.scholarshipRound.findUnique.mockResolvedValueOnce(null);
+
+      await expect(service.getAllocationSummary(999)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should calculate allocation summary and applicant ranks correctly', async () => {
+      mockPrismaService.scholarshipRound.findUnique.mockResolvedValueOnce({
+        id: 1,
+        name: 'รอบที่ 1',
+        status: RoundStatus.CLOSED,
+        allocation: {
+          id: 10,
+          roundId: 1,
+          totalBudget: 100000,
+          status: 'EDITING',
+          statusChangedAt: new Date(),
+          allocations: [{ applicantId: 101, isAwarded: true, amount: 20000 }],
+        },
+        applicants: [
+          {
+            id: 101,
+            studentCode: '663040001-2',
+            titlePrefix: 'นาย',
+            firstName: 'สมชาย',
+            lastName: 'เรียนดี',
+            faculty: 'วิศวกรรมศาสตร์',
+            major: 'คอมพิวเตอร์',
+            studyYear: 3,
+            gpa: 3.5,
+            evaluations: [{ totalScore: 85 }],
+            contact: { citizenIdMasked: '1-4099-XXXXX-XX-4' },
+          },
+        ],
+      });
+
+      const res = await service.getAllocationSummary(1);
+      expect(res.success).toBe(true);
+      expect(res.data.totalBudget).toBe(100000);
+      expect(res.data.allocatedAmount).toBe(20000);
+      expect(res.data.remainingBudget).toBe(80000);
+      expect(res.data.recipientsCount).toBe(1);
+      expect(res.data.allocations[0].isAwarded).toBe(true);
+      expect(res.data.allocations[0].rank).toBe(1);
+    });
+
+    it('should reject budget < 0 in setRoundBudget', async () => {
+      await expect(
+        service.setRoundBudget(1, { totalBudget: -500 }),
+      ).rejects.toThrow(BusinessException);
+    });
+
+    it('should reject saveAllocations when allocated amount exceeds total budget', async () => {
+      mockPrismaService.scholarshipRound.findUnique.mockResolvedValueOnce({
+        id: 1,
+        allocation: {
+          id: 10,
+          roundId: 1,
+          totalBudget: 10000,
+          status: 'EDITING',
+        },
+      });
+      mockPrismaService.applicant.findMany.mockResolvedValueOnce([{ id: 101 }]);
+
+      await expect(
+        service.saveAllocations(1, {
+          allocations: [
+            { applicantId: 101, isAwarded: true, amount: 20000 }, // 20,000 > 10,000
+          ],
+        }),
+      ).rejects.toThrow(BusinessException);
+    });
+  });
+
+  describe('deleteDraftRound', () => {
+    it('should throw NotFoundException if round does not exist', async () => {
+      mockPrismaService.scholarshipRound.findUnique.mockResolvedValueOnce(null);
+
+      await expect(service.deleteDraftRound(999)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw BusinessException if round is OPEN', async () => {
+      mockPrismaService.scholarshipRound.findUnique.mockResolvedValueOnce({
+        id: 1,
+        status: RoundStatus.OPEN,
+        _count: { applicants: 5 },
+      });
+
+      await expect(service.deleteDraftRound(1)).rejects.toThrow(
+        BusinessException,
+      );
+    });
+
+    it('should throw BusinessException if round is CLOSED', async () => {
+      mockPrismaService.scholarshipRound.findUnique.mockResolvedValueOnce({
+        id: 1,
+        status: RoundStatus.CLOSED,
+        _count: { applicants: 5 },
+      });
+
+      await expect(service.deleteDraftRound(1)).rejects.toThrow(
+        BusinessException,
+      );
+    });
+
+    it('should successfully delete DRAFT round and cascade its relations', async () => {
+      mockPrismaService.scholarshipRound.findUnique.mockResolvedValueOnce({
+        id: 1,
+        name: 'รอบทดสอบ',
+        academicYear: 2569,
+        semester: 1,
+        status: RoundStatus.DRAFT,
+        _count: { applicants: 2 },
+      });
+      mockPrismaService.user.findUnique.mockResolvedValueOnce({
+        id: 99,
+      });
+
+      const res = await service.deleteDraftRound(1, 99);
+
+      expect(res.success).toBe(true);
+      expect(mockPrismaService.evaluationItem.deleteMany).toHaveBeenCalledWith({
+        where: { evaluation: { applicant: { roundId: 1 } } },
+      });
+      expect(mockPrismaService.evaluation.deleteMany).toHaveBeenCalledWith({
+        where: { applicant: { roundId: 1 } },
+      });
+      expect(
+        mockPrismaService.applicantContact.deleteMany,
+      ).toHaveBeenCalledWith({
+        where: { applicant: { roundId: 1 } },
+      });
+      expect(
+        mockPrismaService.applicantSupportingInfo.deleteMany,
+      ).toHaveBeenCalledWith({
+        where: { applicant: { roundId: 1 } },
+      });
+      expect(mockPrismaService.applicant.deleteMany).toHaveBeenCalledWith({
+        where: { roundId: 1 },
+      });
+      expect(mockPrismaService.importBatch.deleteMany).toHaveBeenCalledWith({
+        where: { roundId: 1 },
+      });
+      expect(mockPrismaService.scholarshipRound.delete).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
+      expect(mockPrismaService.auditLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            actorId: 99,
+            action: 'ROUND_STATUS_CHANGE',
+            detail: expect.objectContaining({ action: 'DELETE_DRAFT_ROUND' }),
+          }),
+        }),
+      );
     });
   });
 });

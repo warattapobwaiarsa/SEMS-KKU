@@ -59,3 +59,11 @@ export async function toggleScholarshipTypeActive(
     body: JSON.stringify({ isActive }),
   });
 }
+
+export async function deleteScholarshipType(
+  id: number,
+): Promise<ApiResponse<ScholarshipTypeDetail>> {
+  return apiClient<ApiResponse<ScholarshipTypeDetail>>(`/scholarship-types/${id}`, {
+    method: 'DELETE',
+  });
+}

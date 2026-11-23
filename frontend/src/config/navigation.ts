@@ -9,7 +9,7 @@ export const SYSTEM_CONFIG = {
 } as const;
 
 export const ADMIN_NAV_ITEMS: NavItemConfig[] = [
-  // ศูนย์ปฏิบัติการรอบทุน (Operations)
+  // กระบวนการดำเนินงานรอบทุน (Operations Pipeline)
   {
     title: "รอบทุนการศึกษา",
     href: "/admin/scholarship-rounds",
@@ -38,7 +38,21 @@ export const ADMIN_NAV_ITEMS: NavItemConfig[] = [
     description: "กำหนดงบประมาณและบันทึกผลการจัดสรรทุน",
     group: "การดำเนินงาน (Operations)",
   },
-  // การตั้งค่าระบบและเกณฑ์ (Settings)
+  {
+    title: "รายงานและสถิติ",
+    href: "/admin/reports",
+    iconName: "BarChart3",
+    description: "ส่งออกรายงานสรุปผลและรายงานการจัดสรรทุนพร้อมรหัสผ่าน",
+    group: "การดำเนินงาน (Operations)",
+  },
+  // การตั้งค่าระบบและเกณฑ์ (Settings & Master Data)
+  {
+    title: "ประเภททุนการศึกษา",
+    href: "/admin/scholarship-types",
+    iconName: "Award",
+    description: "จัดการประเภททุนการศึกษาและตั้งค่าเกณฑ์เริ่มต้น",
+    group: "การตั้งค่าระบบ (Settings)",
+  },
   {
     title: "เกณฑ์การประเมิน",
     href: "/admin/evaluation-criteria",
@@ -47,26 +61,11 @@ export const ADMIN_NAV_ITEMS: NavItemConfig[] = [
     group: "การตั้งค่าระบบ (Settings)",
   },
   {
-    title: "ประเภททุนการศึกษา",
-    href: "/admin/scholarship-types",
-    iconName: "Award",
-    description: "จัดการประเภททุนและกำหนดเกณฑ์การประเมินเริ่มต้น",
-    group: "การตั้งค่าระบบ (Settings)",
-  },
-  {
-    title: "ผู้ใช้งาน",
+    title: "ผู้ใช้งานและสิทธิ์",
     href: "/admin/users",
     iconName: "Users",
     description: "จัดการบัญชีผู้ใช้งานและกำหนดอายุบัญชีผู้ประเมิน",
     group: "การตั้งค่าระบบ (Settings)",
-  },
-  // รายงาน (Reports)
-  {
-    title: "รายงาน",
-    href: "/admin/reports",
-    iconName: "BarChart3",
-    description: "ส่งออกรายงานสรุปผลและรายงานการจัดสรรทุนพร้อมรหัสผ่าน",
-    group: "รายงานและการส่งออก (Reports)",
   },
 ];
 
@@ -76,12 +75,14 @@ export const EVALUATOR_NAV_ITEMS: NavItemConfig[] = [
     href: "/evaluator/rounds",
     iconName: "ClipboardList",
     description: "รายชื่อรอบทุนสถานะ Open และการบันทึกประเมินคะแนน",
+    group: "การประเมินทุน (Evaluation)",
   },
   {
     title: "ผลการประเมินของฉัน",
     href: "/evaluator/my-evaluations",
     iconName: "History",
     description: "ตรวจสอบประวัติผลการประเมินที่ส่งแล้วและฉบับร่าง",
+    group: "การประเมินทุน (Evaluation)",
   },
 ];
 

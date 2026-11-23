@@ -15,8 +15,9 @@ import {
   Save, 
   MessageSquare,
   Calculator,
-  ShieldCheck,
+  Sliders,
 } from 'lucide-react';
+import { Button } from '@/components/ui';
 
 interface SubCriteriaRow {
   tempId: string;
@@ -203,7 +204,7 @@ export default function CreateCriteriaPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-24 md:pb-16">
+    <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto pb-24 md:pb-16">
       {/* Top Breadcrumb & Status */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/70 pb-4">
         <Link
@@ -235,9 +236,6 @@ export default function CreateCriteriaPage() {
         <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl flex items-center gap-2">
           สร้างเกณฑ์การประเมินทุนใหม่
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          กำหนดหัวข้อเกณฑ์ย่อย สัดส่วนคะแนน และหัวข้อความคิดเห็นสำหรับคณะกรรมการผู้ประเมิน
-        </p>
       </div>
 
       {errorMessage && (
@@ -251,9 +249,9 @@ export default function CreateCriteriaPage() {
       )}
 
       {/* Main Grid: Form Builder (Left) + Live Score Card (Right) */}
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <form onSubmit={handleSubmit} className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column (8 cols on lg) */}
-        <div className="lg:col-span-8 flex flex-col gap-6">
+        <div className="w-full lg:col-span-8 flex flex-col gap-6">
           {/* Card 1: General Info */}
           <div className="bg-card border border-border/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
@@ -267,7 +265,7 @@ export default function CreateCriteriaPage() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="เช่น เกณฑ์การพิจารณาทุนเรียนดีและขาดแคลนทุนทรัพย์ ประจำปี 2569"
+                  placeholder="เช่น เกณฑ์การพิจารณาทุนเรียนดีและขาดแคลนทุนทรัพย์"
                   className="w-full px-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
                 />
               </div>
@@ -294,46 +292,45 @@ export default function CreateCriteriaPage() {
                 </div>
               </div>
             </div>
-
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-              กำหนดคะแนนรวมเป้าหมายได้ตั้งแต่ 1 ถึง 1,000 คะแนน (ผลรวมเกณฑ์ย่อยแบบมีคะแนนต้องเท่ากับเป้าหมายนี้)
-            </p>
           </div>
 
           {/* Card 2: Sub-Criteria Items */}
           <div className="bg-card border border-border/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-border/70">
-              <div>
-                <h3 className="text-base font-semibold text-foreground">รายการเกณฑ์ย่อย</h3>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border/80">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Sliders className="h-4 w-4 text-primary" />
+                  <h3 className="text-base font-bold text-foreground">รายการเกณฑ์ย่อย</h3>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   ทั้งหมด {subCriteria.length} ข้อ (แบบคำนวณคะแนน {scoredCount} ข้อ)
                 </p>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <button
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <Button
                   type="button"
+                  size="sm"
                   onClick={handleAddScoredRow}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] transition shadow-xs cursor-pointer"
+                  leftIcon={<Plus className="h-4 w-4" />}
                 >
-                  <Plus className="h-3.5 w-3.5" />
                   เพิ่มข้อแบบมีคะแนน
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={handleAddTextRow}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-muted hover:bg-muted/80 text-foreground hover:scale-[1.02] active:scale-[0.98] transition cursor-pointer"
+                  leftIcon={<MessageSquare className="h-4 w-4" />}
                 >
-                  <MessageSquare className="h-3.5 w-3.5" />
                   เพิ่มข้อความคิดเห็น
-                </button>
+                </Button>
               </div>
             </div>
 
             {/* List Rows */}
             <div className="space-y-3">
               {subCriteria.length === 0 ? (
-                <div className="text-center py-12 px-4 border-2 border-dashed border-border/70 rounded-2xl bg-muted/10 flex flex-col items-center justify-center">
+                <div className="w-full text-center py-12 px-4 border-2 border-dashed border-border/70 rounded-2xl bg-muted/10 flex flex-col items-center justify-center">
                   <div className="p-3 rounded-2xl bg-muted/50 text-muted-foreground mb-3">
                     <Plus className="h-6 w-6" />
                   </div>
@@ -484,7 +481,7 @@ export default function CreateCriteriaPage() {
 
             {/* Bottom Action Area: Add Sub-Criteria & Quick Save */}
             {subCriteria.length > 0 && (
-              <div className="pt-4 border-t border-border/70 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-muted/20 p-4 rounded-xl border border-dashed border-border/80">
+              <div className="pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-muted/20 p-4 rounded-xl border border-dashed border-border/80">
                 <div className="flex items-center gap-2 flex-wrap">
                   <button
                     type="button"
@@ -555,37 +552,6 @@ export default function CreateCriteriaPage() {
                   </span>
                 )}
               </div>
-            </div>
-
-            {/* Quality Checklist */}
-            <div className="space-y-2 text-xs bg-muted/30 p-3.5 rounded-xl border border-border/60">
-              <div className="font-semibold text-foreground">เงื่อนไขความสมบูรณ์ของชุดเกณฑ์:</div>
-              <ul className="space-y-1.5 text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <span className={name.trim().length > 0 ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
-                  ระบุชื่อชุดเกณฑ์การประเมิน
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className={isTargetScoreValid ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
-                  กำหนดคะแนนรวมเป้าหมาย (1–1,000)
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className={hasAllTitles ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
-                  ระบุชื่อหัวข้อเกณฑ์ย่อยครบทุกข้อ
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className={hasAtLeastOneScored ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
-                  มีเกณฑ์คำนวณคะแนนอย่างน้อย 1 ข้อ
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className={hasValidMaxScores ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
-                  คะแนนเต็มแต่ละข้ออยู่ในช่วง 1–{targetScore}
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className={isScoreValid ? 'text-emerald-600 font-bold' : 'text-zinc-400'}>✓</span>
-                  ผลรวมคะแนนเท่ากับ {targetScore} คะแนนพอดี
-                </li>
-              </ul>
             </div>
 
             {/* Action Buttons */}

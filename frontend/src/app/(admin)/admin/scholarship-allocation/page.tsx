@@ -206,7 +206,8 @@ export default function ScholarshipAllocationPage() {
   // จัดการเปลี่ยนจำนวนเงิน
   const handleAmountChange = (applicantId: number, valStr: string) => {
     if (isFinalized) return;
-    const cleanNum = parseFloat(valStr.replace(/,/g, '')) || 0;
+    const rawParsed = parseFloat(valStr.replace(/,/g, '')) || 0;
+    const cleanNum = Math.max(0, rawParsed);
     setItems((prev) =>
       prev.map((item) => {
         if (item.applicantId === applicantId) {
@@ -294,10 +295,7 @@ export default function ScholarshipAllocationPage() {
     <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-12">
       {/* ส่วนหัวหน้าจอ */}
       <PageHeader
-        moduleBadge="การเงินและการจัดสรร"
-        moduleBadgeIcon={Banknote}
         title="การจัดสรรทุนการศึกษา"
-        description="บริหารจัดการงบประมาณรวมและบันทึกผลการจัดสรรทุนการศึกษาตามมติคณะกรรมการ"
         action={
           <div className="flex items-center gap-2">
             <Link

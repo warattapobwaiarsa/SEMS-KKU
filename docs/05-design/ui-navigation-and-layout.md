@@ -17,7 +17,7 @@ flowchart TD
 
     AdminShell --> A1["/admin/users (ผู้ใช้งาน)"]
     AdminShell --> A2["/admin/scholarship-rounds (รอบทุนการศึกษา)"]
-    AdminShell --> A3["/admin/evaluation-criteria (เกณฑ์การประเมิน)"]
+    AdminShell --> A3["/admin/scholarship-types (ประเภททุน)"]
     AdminShell --> A4["/admin/applicants (ผู้สมัคร)"]
     AdminShell --> A5["/admin/evaluation-results (ผลการประเมินและอันดับ)"]
     AdminShell --> A6["/admin/scholarship-allocation (การจัดสรรทุน)"]
@@ -36,7 +36,7 @@ flowchart TD
 |---|---|---|---|
 | **ผู้ใช้งาน** | `/admin/users` | `Users` | จัดการบัญชีผู้ใช้ สิทธิ์ และอายุการใช้งาน Evaluator (ไม่มีปุ่มลบตาม FR-USR-15) |
 | **รอบทุนการศึกษา** | `/admin/scholarship-rounds` | `Calendar` | ควบคุมวงจรรอบทุน Draft → Open → Closed (ไม่มีปุ่มลบตาม FR-RND-06) |
-| **เกณฑ์การประเมิน** | `/admin/evaluation-criteria` | `CheckSquare` | จัดการเกณฑ์ 100 คะแนนเต็มและเกณฑ์ย่อย |
+| **ประเภททุน** | `/admin/scholarship-types` | `Award` | จัดการประเภททุนและกำหนดโครงสร้างเกณฑ์การประเมินเริ่มต้น (Flow สร้างประเภททุนก่อนแล้วกำหนดเกณฑ์ โดยกำหนดเพดาน MaxScore และผลรวม 100 คะแนนเต็ม) |
 | **ผู้สมัคร** | `/admin/applicants` | `UserCheck` | นำเข้า Excel (.xlsx) และตรวจสอบรายชื่อผู้สมัคร (ไม่แสดงเลขบัตร/เบอร์/อีเมลตาม PDPA) |
 | **ผลการประเมินและอันดับ** | `/admin/evaluation-results` | `ListOrdered` | อันดับคะแนนเฉลี่ย Tie-breaker แบบเรียลไทม์ |
 | **การจัดสรรทุน** | `/admin/scholarship-allocation` | `Banknote` | กำหนดงบประมาณรอบ Closed และบันทึกผลการจัดสรรรายคน |

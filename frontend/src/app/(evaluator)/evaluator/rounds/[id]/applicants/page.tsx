@@ -248,14 +248,7 @@ export default function EvaluatorApplicantsPage({
     <div className="flex-1 flex flex-col space-y-6 max-w-7xl mx-auto pb-12 w-full">
       {/* Page Header */}
       <PageHeader
-        moduleBadge="ระบบประเมินทุนการศึกษา"
-        moduleBadgeIcon={Award}
         title={roundDetail?.name || `รอบการประเมินที่ #${roundId}`}
-        description={
-          roundDetail
-            ? `ปีการศึกษา ${roundDetail.academicYear} ภาคเรียนที่ ${roundDetail.semester} • ชุดเกณฑ์: ${roundDetail.criteriaName || 'เกณฑ์มาตรฐาน'}`
-            : `เลือกลำดับผู้สมัครเพื่อเข้าสู่หน้าจอประเมินคะแนนแบบแบ่งจอ (Split-Screen)`
-        }
         backHref="/evaluator/rounds"
         backLabel="กลับหน้ารอบทุนที่เปิดประเมิน"
       />

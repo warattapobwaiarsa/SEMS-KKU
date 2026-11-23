@@ -153,4 +153,74 @@ describe('ExcelParserService', () => {
     expect(first).toBeDefined();
     expect(first?.studentCode).toBe('663040001-2');
   });
+
+  it('should accept studyYear up to 6 (supporting 5-6 year KKU programs)', async () => {
+    const filePath = path.resolve(
+      __dirname,
+      '../../../docs/06-data/import-data-sample.xlsx',
+    );
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(filePath);
+    const sheet = wb.getWorksheet('Data');
+    expect(sheet).toBeDefined();
+
+    if (sheet) {
+      sheet.getRow(3).getCell(8).value = 6; // Medicine/Pharmacy 6th year
+    }
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const result = await service.parseBuffer(Buffer.from(buffer));
+    const app = result.validApplicants.find((a) => a.rowNumber === 3);
+    expect(app).toBeDefined();
+    expect(app?.studyYear).toBe(6);
+  });
+
+  it('should accept 9-digit landline phone numbers (e.g. Khon Kaen 043-xxx-xxx)', async () => {
+    const filePath = path.resolve(
+      __dirname,
+      '../../../docs/06-data/import-data-sample.xlsx',
+    );
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(filePath);
+    const sheet = wb.getWorksheet('Data');
+    expect(sheet).toBeDefined();
+
+    if (sheet) {
+      sheet.getRow(3).getCell(11).value = '043202123'; // 9 digits Khon Kaen landline
+    }
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const result = await service.parseBuffer(Buffer.from(buffer));
+    const app = result.validApplicants.find((a) => a.rowNumber === 3);
+    expect(app).toBeDefined();
+    expect(app?.phone).toBe('043202123');
+  });
+
+  it('should mask citizen ID in error message when checksum fails (PDPA compliance)', async () => {
+    const filePath = path.resolve(
+      __dirname,
+      '../../../docs/06-data/import-data-sample.xlsx',
+    );
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(filePath);
+    const sheet = wb.getWorksheet('Data');
+    expect(sheet).toBeDefined();
+
+    if (sheet) {
+      sheet.getRow(3).getCell(38).value = '1409900123459'; // Bad checksum, ends with 459
+    }
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const result = await service.parseBuffer(Buffer.from(buffer));
+    expect(result.invalidRows).toBeGreaterThanOrEqual(1);
+
+    const detail = result.invalidRowsDetails.find((d) => d.rowNumber === 3);
+    expect(detail).toBeDefined();
+    const citizenError = detail?.errors.find((e) =>
+      e.includes('เลขบัตรประชาชนไม่ถูกต้อง'),
+    );
+    expect(citizenError).toBeDefined();
+    expect(citizenError).toContain('xxxx-xxxx-3459');
+    expect(citizenError).not.toContain('1409900123459');
+  });
 });

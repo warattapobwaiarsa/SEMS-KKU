@@ -165,18 +165,43 @@ export class LocationRoutingService {
       return { ...fromMapUrl, title: addressText || undefined };
     }
 
-    // กรณีเป็น short link (เช่น maps.app.goo.gl) ให้ลอง resolve redirect
-    if (mapUrl && (mapUrl.includes('goo.gl') || mapUrl.includes('maps.app'))) {
+    // กรณีเป็น short link (เช่น maps.app.goo.gl) ให้ลอง resolve redirect อย่างปลอดภัย (กัน SSRF)
+    if (mapUrl) {
       try {
-        const response = await fetch(mapUrl, {
-          method: 'HEAD',
-          redirect: 'follow',
-          signal: AbortSignal.timeout(3000),
-        });
-        const finalUrl = response.url;
-        const fromRedirect = this.extractCoordinates(finalUrl);
-        if (fromRedirect) {
-          return { ...fromRedirect, title: addressText || undefined };
+        const parsed = new URL(mapUrl);
+        const allowedHosts = [
+          'maps.app.goo.gl',
+          'goo.gl',
+          'maps.google.com',
+          'www.google.com',
+          'google.com',
+        ];
+        if (
+          parsed.protocol === 'https:' &&
+          allowedHosts.includes(parsed.hostname.toLowerCase())
+        ) {
+          const response = await fetch(mapUrl, {
+            method: 'HEAD',
+            redirect: 'manual',
+            signal: AbortSignal.timeout(3000),
+          });
+          const redirectLocation = response.headers.get('location');
+          if (redirectLocation) {
+            const redirectUrl = new URL(redirectLocation, mapUrl);
+            const redirectHost = redirectUrl.hostname.toLowerCase();
+            if (
+              redirectUrl.protocol === 'https:' &&
+              (allowedHosts.includes(redirectHost) ||
+                redirectHost.endsWith('.google.com'))
+            ) {
+              const fromRedirect = this.extractCoordinates(
+                redirectUrl.toString(),
+              );
+              if (fromRedirect) {
+                return { ...fromRedirect, title: addressText || undefined };
+              }
+            }
+          }
         }
       } catch (err) {
         this.logger.debug(`Could not follow redirect for ${mapUrl}: ${err}`);

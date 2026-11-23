@@ -100,10 +100,7 @@ export default function ReportsPage() {
     <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-12">
       {/* ส่วนหัวหน้าจอ */}
       <PageHeader
-        moduleBadge="ศูนย์รายงานและข้อมูล"
-        moduleBadgeIcon={FileSpreadsheet}
         title="รายงานและส่งออกข้อมูล"
-        description="ส่งออกรายงานสรุปผลการประเมินและรายงานการจัดสรรทุนการศึกษาในรูปแบบไฟล์ Excel (.xlsx) ที่เข้ารหัสผ่านตามมาตรฐาน PDPA"
         action={
           <div className="flex items-center gap-2">
             <Link

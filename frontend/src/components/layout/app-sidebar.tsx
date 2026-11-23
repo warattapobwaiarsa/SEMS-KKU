@@ -2,29 +2,45 @@
 
 import React from "react";
 import Link from "next/link";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { PanelLeftClose, PanelLeftOpen, LogOut } from "lucide-react";
 import { SYSTEM_CONFIG } from "@/config/navigation";
-import type { NavItemConfig, UserRole } from "@/types/navigation";
+import type { NavItemConfig, UserRole, UserProfile } from "@/types/navigation";
 import { NavItem } from "./nav-item";
 
 interface AppSidebarProps {
   items: NavItemConfig[];
   role: UserRole;
+  user?: UserProfile;
   className?: string;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   onItemClick?: () => void;
+  onLogout?: () => void;
 }
 
 export function AppSidebar({
   items,
   role,
+  user,
   className = "",
   isCollapsed = false,
   onToggleCollapse,
   onItemClick,
+  onLogout,
 }: AppSidebarProps) {
+  const router = useRouter();
   const homeHref = role === "admin" ? "/admin/scholarship-rounds" : "/evaluator/rounds";
+
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+      return;
+    }
+    if (confirm("คุณต้องการออกจากระบบหรือไม่?")) {
+      router.push("/");
+    }
+  };
 
   return (
     <aside
@@ -43,18 +59,15 @@ export function AppSidebar({
           <Link
             href={homeHref}
             className={`flex items-center gap-3 group ${isCollapsed ? "justify-center" : "min-w-0"}`}
-            title={isCollapsed ? `${SYSTEM_CONFIG.name} - ${SYSTEM_CONFIG.fullName}` : undefined}
+            title={SYSTEM_CONFIG.name}
           >
             <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-xs group-hover:bg-blue-700 transition-colors shrink-0">
               S
             </div>
             {!isCollapsed && (
-              <div className="min-w-0 truncate">
+              <div className="min-w-0">
                 <span className="font-bold text-lg text-slate-900 tracking-tight block leading-tight">
                   {SYSTEM_CONFIG.name}
-                </span>
-                <span className="text-xs text-slate-500 truncate block">
-                  {SYSTEM_CONFIG.fullName}
                 </span>
               </div>
             )}
@@ -117,23 +130,55 @@ export function AppSidebar({
         </nav>
       </div>
 
-      {/* Sidebar Footer */}
+      {/* Sidebar Footer with User Profile and Logout */}
       <div
-        className={`border-t border-slate-200 bg-slate-50/50 ${
-          isCollapsed ? "p-3 text-center" : "p-4"
+        className={`border-t border-slate-200 bg-slate-50/60 ${
+          isCollapsed ? "p-2.5 flex justify-center" : "p-3"
         }`}
       >
         {isCollapsed ? (
-          <span
-            className="text-xs font-bold text-slate-400 font-mono"
-            title={`${SYSTEM_CONFIG.faculty} ${SYSTEM_CONFIG.university}`}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center"
+            title={`ออกจากระบบ (${user?.name || "ผู้ใช้งาน"})`}
+            aria-label="ออกจากระบบ"
           >
-            EN
-          </span>
+            <LogOut className="w-4 h-4" aria-hidden="true" />
+          </button>
         ) : (
-          <div className="text-xs text-slate-500 leading-relaxed truncate">
-            <p className="font-medium text-slate-700 truncate">{SYSTEM_CONFIG.faculty}</p>
-            <p className="truncate">{SYSTEM_CONFIG.university}</p>
+          <div className="flex items-center justify-between gap-2 bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-2xs">
+            <div className="min-w-0 flex-1 truncate">
+              <p className="text-xs font-semibold text-slate-800 truncate leading-tight">
+                {user?.name || "ผู้ใช้งาน"}
+              </p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span
+                  className={`inline-block px-1.5 py-0.2 text-[10px] font-medium rounded border ${
+                    role === "evaluator"
+                      ? "border-blue-200 bg-blue-50 text-blue-700"
+                      : "border-slate-200 bg-slate-100 text-slate-700"
+                  }`}
+                >
+                  {role === "evaluator" ? "Evaluator" : "Admin"}
+                </span>
+                {user?.expiresAt && role === "evaluator" && (
+                  <span className="text-[10px] text-slate-400 truncate">
+                    {user.expiresAt}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors shrink-0"
+              title="ออกจากระบบ"
+              aria-label="ออกจากระบบ"
+            >
+              <LogOut className="w-4 h-4" aria-hidden="true" />
+            </button>
           </div>
         )}
       </div>

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { X } from "lucide-react";
-import type { NavItemConfig, UserRole } from "@/types/navigation";
+import type { NavItemConfig, UserRole, UserProfile } from "@/types/navigation";
 import { AppSidebar } from "./app-sidebar";
 
 interface MobileSidebarProps {
@@ -10,6 +10,7 @@ interface MobileSidebarProps {
   onClose: () => void;
   items: NavItemConfig[];
   role: UserRole;
+  user?: UserProfile;
 }
 
 export function MobileSidebar({
@@ -17,6 +18,7 @@ export function MobileSidebar({
   onClose,
   items,
   role,
+  user,
 }: MobileSidebarProps) {
   // Close drawer on Escape key press
   useEffect(() => {
@@ -68,6 +70,7 @@ export function MobileSidebar({
         <AppSidebar
           items={items}
           role={role}
+          user={user}
           isCollapsed={false}
           onItemClick={onClose}
           className="w-full border-r-0"

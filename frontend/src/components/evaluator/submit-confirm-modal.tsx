@@ -216,8 +216,7 @@ export function SubmitConfirmModal({
                           >
                             {isUnfilled ? '-' : val.score}
                             <span className="text-xs font-normal text-muted-foreground">
-                              {' '}
-                              / {sub.maxScore ?? '-'}
+                              {sub.maxScore ? ` / ${sub.maxScore}` : ' คะแนน'}
                             </span>
                           </span>
                         ) : (

@@ -144,7 +144,7 @@ model SubCriteria {
   /// ชื่อหัวข้อซ้ำได้ (BR-CRT-12) — ไม่ใช้เป็นตัวระบุ
   title      String
   type       SubCriteriaType
-  /// เฉพาะ SCORED: จำนวนเต็ม 1-100 (BR-CRT-05) — CHECK ใน raw SQL
+  /// (ยกเลิกการบังคับ) รองรับ null หรือคะแนนประวัติเดิม ไม่จำกัดเพดานคะแนน
   maxScore   Int?
   /// เฉพาะ SCORED (BR-CRT-03)
   allowComment Boolean       @default(false)

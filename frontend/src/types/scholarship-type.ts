@@ -4,8 +4,11 @@ export interface ScholarshipTypeListItem {
   description?: string | null;
   defaultCriteriaId?: number | null;
   defaultCriteriaName?: string | null;
+  subCriteriaCount?: number;
   isActive: boolean;
   roundsCount: number;
+  canDelete?: boolean;
+  hasOpenOrClosedRounds?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -29,14 +32,32 @@ export interface ScholarshipTypeDetail {
   } | null;
   isActive: boolean;
   roundsCount: number;
+  canDelete?: boolean;
+  hasOpenOrClosedRounds?: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface NestedSubCriteriaItem {
+  id?: number;
+  title: string;
+  type: 'SCORED' | 'TEXT';
+  maxScore?: number | null;
+  allowComment?: boolean;
+  sortOrder?: number;
+}
+
+export interface NestedCriteriaPayload {
+  name?: string;
+  targetScore?: number;
+  subCriteria: NestedSubCriteriaItem[];
 }
 
 export interface CreateScholarshipTypePayload {
   name: string;
   description?: string;
   defaultCriteriaId?: number;
+  criteria?: NestedCriteriaPayload;
 }
 
 export interface UpdateScholarshipTypePayload {
@@ -44,4 +65,5 @@ export interface UpdateScholarshipTypePayload {
   description?: string;
   defaultCriteriaId?: number | null;
   isActive?: boolean;
+  criteria?: NestedCriteriaPayload;
 }

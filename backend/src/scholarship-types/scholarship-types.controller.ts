@@ -4,17 +4,18 @@ import {
   Post,
   Put,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
-  Headers,
   ParseIntPipe,
+  ParseBoolPipe,
   UsePipes,
   ValidationPipe,
   UseGuards,
   Req,
-  HttpStatus,
 } from '@nestjs/common';
+import { UserRole } from '@prisma/client';
 import { ScholarshipTypesService } from './scholarship-types.service';
 import { CreateScholarshipTypeDto } from './dto/create-scholarship-type.dto';
 import { UpdateScholarshipTypeDto } from './dto/update-scholarship-type.dto';
@@ -23,7 +24,8 @@ import {
   RoleDispatchGuard,
   type RequestWithResolvedRole,
 } from '../common/guards/role-dispatch.guard';
-import { BusinessException } from '../common/http-exception.filter';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller('scholarship-types')
 export class ScholarshipTypesController {
@@ -42,66 +44,46 @@ export class ScholarshipTypesController {
   }
 
   @Post()
-  @UseGuards(RoleDispatchGuard)
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async create(
     @Body() dto: CreateScholarshipTypeDto,
-    @Headers('x-user-role') roleHeader?: string,
-    @Query('userRole') roleQuery?: string,
     @Req() request?: RequestWithResolvedRole,
   ) {
-    const role = request?.resolvedRole || roleHeader || roleQuery;
-    if (role && role !== 'ADMIN') {
-      throw new BusinessException({
-        errorCode: 'FORBIDDEN',
-        statusCode: HttpStatus.FORBIDDEN,
-        message: 'เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถสร้างประเภททุนได้',
-      });
-    }
     const actorId = request?.user?.id ?? null;
     return this.scholarshipTypesService.create(dto, actorId);
   }
 
   @Put(':id')
-  @UseGuards(RoleDispatchGuard)
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateScholarshipTypeDto,
-    @Headers('x-user-role') roleHeader?: string,
-    @Query('userRole') roleQuery?: string,
     @Req() request?: RequestWithResolvedRole,
   ) {
-    const role = request?.resolvedRole || roleHeader || roleQuery;
-    if (role && role !== 'ADMIN') {
-      throw new BusinessException({
-        errorCode: 'FORBIDDEN',
-        statusCode: HttpStatus.FORBIDDEN,
-        message: 'เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถแก้ไขประเภททุนได้',
-      });
-    }
     const actorId = request?.user?.id ?? null;
     return this.scholarshipTypesService.update(id, dto, actorId);
   }
 
   @Patch(':id/toggle-active')
-  @UseGuards(RoleDispatchGuard)
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async toggleActive(
     @Param('id', ParseIntPipe) id: number,
-    @Body('isActive') isActive: boolean,
-    @Headers('x-user-role') roleHeader?: string,
-    @Query('userRole') roleQuery?: string,
+    @Body('isActive', ParseBoolPipe) isActive: boolean,
     @Req() request?: RequestWithResolvedRole,
   ) {
-    const role = request?.resolvedRole || roleHeader || roleQuery;
-    if (role && role !== 'ADMIN') {
-      throw new BusinessException({
-        errorCode: 'FORBIDDEN',
-        statusCode: HttpStatus.FORBIDDEN,
-        message: 'เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถเปลี่ยนสถานะประเภททุนได้',
-      });
-    }
     const actorId = request?.user?.id ?? null;
     return this.scholarshipTypesService.toggleActive(id, isActive, actorId);
+  }
+
+  @Delete(':id')
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    return this.scholarshipTypesService.delete(id);
   }
 }

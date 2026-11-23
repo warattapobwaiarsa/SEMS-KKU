@@ -124,19 +124,18 @@ export function RoundLifecycleStepper({
       </div>
 
       {/* Stepper Steps Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 relative">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 relative">
         {steps.map((st) => {
           const Icon = st.icon;
           const isCompleted = currentStep > st.number;
           const isCurrent = currentStep === st.number;
-          const isUpcoming = currentStep < st.number;
 
           return (
             <div
               key={st.number}
               onClick={() => onStepClick?.(st.number)}
-              className={`p-3 rounded-xl border transition-all flex flex-col justify-between ${
-                onStepClick ? 'cursor-pointer hover:border-primary/60 hover:shadow-sm' : ''
+              className={`p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                onStepClick ? 'cursor-pointer hover:border-primary/60 hover:shadow-xs' : ''
               } ${
                 isCurrent
                   ? 'bg-primary/5 border-primary ring-1 ring-primary/20 shadow-2xs'
@@ -145,9 +144,9 @@ export function RoundLifecycleStepper({
                   : 'bg-muted/10 border-border/40 opacity-60'
               }`}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2.5 min-w-0">
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono ${
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono shrink-0 ${
                     isCurrent
                       ? 'bg-primary text-primary-foreground shadow-2xs'
                       : isCompleted
@@ -158,30 +157,25 @@ export function RoundLifecycleStepper({
                   {isCompleted ? '✓' : st.number}
                 </div>
 
-                <div
-                  className={`p-1 rounded-md ${
-                    isCurrent
-                      ? 'text-primary'
-                      : isCompleted
-                      ? 'text-emerald-600'
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                </div>
-              </div>
-
-              <div>
                 <h4
-                  className={`text-xs font-bold leading-tight ${
+                  className={`text-xs font-bold truncate ${
                     isCurrent ? 'text-foreground' : 'text-muted-foreground'
                   }`}
                 >
                   {st.title}
                 </h4>
-                <p className="text-xs text-muted-foreground/80 mt-1 line-clamp-2 leading-relaxed">
-                  {st.description}
-                </p>
+              </div>
+
+              <div
+                className={`p-1 rounded-md shrink-0 ${
+                  isCurrent
+                    ? 'text-primary'
+                    : isCompleted
+                    ? 'text-emerald-600'
+                    : 'text-muted-foreground'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
               </div>
             </div>
           );
