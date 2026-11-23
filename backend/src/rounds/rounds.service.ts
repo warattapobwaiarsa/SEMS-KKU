@@ -986,10 +986,50 @@ export class RoundsService {
       }
     }
 
+    // Validate that all applicants belong to this round
+    if (dto.allocations.length > 0) {
+      const applicantIds = dto.allocations.map((it) => it.applicantId);
+      const validApplicants = await this.prisma.applicant.findMany({
+        where: {
+          id: { in: applicantIds },
+          roundId,
+        },
+        select: { id: true },
+      });
+      if (validApplicants.length !== applicantIds.length) {
+        throw new BusinessException({
+          errorCode: 'INVALID_APPLICANT',
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'มีผู้สมัครบางรายไม่ได้อยู่ในรอบทุนนี้',
+        });
+      }
+    }
+
     const currentTotalBudget = Number(summary.totalBudget);
-    const totalAllocated = dto.allocations
-      .filter((it) => it.isAwarded)
-      .reduce((sum, it) => sum + it.amount, 0);
+
+    // คำนวณยอดจัดสรรรวมจริง โดยนำข้อมูลเดิมใน DB มารวมกับ payload ใหม่
+    const existingAllocations = await this.prisma.allocation.findMany({
+      where: { summaryId: summary.id },
+    });
+    const amountMap = new Map<number, { isAwarded: boolean; amount: number }>();
+    for (const alloc of existingAllocations) {
+      amountMap.set(alloc.applicantId, {
+        isAwarded: alloc.isAwarded,
+        amount: Number(alloc.amount),
+      });
+    }
+    for (const item of dto.allocations) {
+      amountMap.set(item.applicantId, {
+        isAwarded: item.isAwarded,
+        amount: item.amount,
+      });
+    }
+    let totalAllocated = 0;
+    for (const val of amountMap.values()) {
+      if (val.isAwarded) {
+        totalAllocated += val.amount;
+      }
+    }
 
     if (currentTotalBudget > 0 && totalAllocated > currentTotalBudget) {
       throw new BusinessException({

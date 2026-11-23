@@ -31,7 +31,9 @@ import {
   LocationRoutingService,
   TravelDistanceResponse,
 } from './location-routing.service';
-import { User } from '@prisma/client';
+import { User, UserRole } from '@prisma/client';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller()
 export class ApplicantsController {
@@ -43,6 +45,8 @@ export class ApplicantsController {
   ) {}
 
   @Post('scholarship-rounds/:roundId/applicants/preview-excel')
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UseInterceptors(
     FileInterceptor('file', {
       limits: {
@@ -74,19 +78,23 @@ export class ApplicantsController {
   }
 
   @Post('scholarship-rounds/:roundId/applicants/import')
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async confirmImport(
     @Param('roundId', ParseIntPipe) roundId: number,
     @Body() dto: ConfirmImportDto,
-    @Headers('x-user-id') userIdHeader?: string,
+    @Req() request?: RequestWithResolvedRole,
   ) {
-    const actorId = userIdHeader ? parseInt(userIdHeader, 10) : undefined;
+    const actorId = request?.user?.id;
     return this.applicantsService.confirmImport(roundId, dto, actorId);
   }
 
   @Delete(
     'scholarship-rounds/:roundId/applicants/import-previews/:previewToken',
   )
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   cancelPreview(
     @Param('roundId', ParseIntPipe) roundId: number,
     @Param('previewToken') previewToken: string,
@@ -128,6 +136,8 @@ export class ApplicantsController {
   }
 
   @Get('scholarship-rounds/:roundId/applicants/imports')
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async getImportHistory(@Param('roundId', ParseIntPipe) roundId: number) {
     return this.applicantsService.getImportHistory(roundId);
   }
@@ -166,22 +176,12 @@ export class ApplicantsController {
   }
 
   @Get('applicants/history/:studentCode')
-  @UseGuards(RoleDispatchGuard)
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async getApplicantHistory(
     @Param('studentCode') studentCode: string,
-    @Headers('x-user-role') roleHeader?: string,
-    @Query('userRole') roleQuery?: string,
     @Req() request?: RequestWithResolvedRole,
   ) {
-    const role = request?.resolvedRole || roleHeader || roleQuery;
-    if (role && role !== 'ADMIN') {
-      throw new BusinessException({
-        errorCode: 'FORBIDDEN',
-        statusCode: HttpStatus.FORBIDDEN,
-        message:
-          'เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถดูประวัติการสมัครเต็มรูปแบบได้',
-      });
-    }
     const actorId = request?.user?.id ?? null;
     return this.applicantsService.getApplicantCrossRoundHistory(
       studentCode,
@@ -190,25 +190,20 @@ export class ApplicantsController {
   }
 
   @Post('applicants/:id/reveal-citizen-id')
-  @UseGuards(RoleDispatchGuard)
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async revealCitizenId(
     @Param('id', ParseIntPipe) id: number,
-    @Headers('x-user-role') roleHeader?: string,
-    @Query('userRole') roleQuery?: string,
-    @Headers('x-user-id') userIdHeader?: string,
     @Req() request?: RequestWithResolvedRole,
   ) {
-    const role = request?.resolvedRole || roleHeader || roleQuery;
-    if (role && role !== 'ADMIN') {
+    const actorId = request?.user?.id;
+    if (!actorId) {
       throw new BusinessException({
-        errorCode: 'FORBIDDEN',
-        statusCode: HttpStatus.FORBIDDEN,
-        message: 'เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถดูเลขบัตรประชาชนเต็มได้',
+        errorCode: 'UNAUTHORIZED',
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: 'กรุณาเข้าสู่ระบบก่อนดูข้อมูลบัตรประชาชน',
       });
     }
-    const actorId =
-      request?.user?.id ??
-      (userIdHeader ? parseInt(userIdHeader, 10) : undefined);
     return this.applicantsService.revealCitizenId(id, actorId);
   }
 }

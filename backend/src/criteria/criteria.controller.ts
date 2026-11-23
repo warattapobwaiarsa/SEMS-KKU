@@ -11,16 +11,22 @@ import {
   ParseIntPipe,
   UsePipes,
   ValidationPipe,
+  UseGuards,
 } from '@nestjs/common';
+import { UserRole } from '@prisma/client';
 import { CriteriaService } from './criteria.service';
 import { CreateCriteriaDto } from './dto/create-criteria.dto';
 import { UpdateCriteriaDto } from './dto/update-criteria.dto';
+import { RoleDispatchGuard } from '../common/guards/role-dispatch.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller('criteria')
 export class CriteriaController {
   constructor(private readonly criteriaService: CriteriaService) {}
 
   @Get()
+  @UseGuards(RoleDispatchGuard)
   async findAll(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
@@ -31,6 +37,7 @@ export class CriteriaController {
   }
 
   @Get(':id')
+  @UseGuards(RoleDispatchGuard)
   async findOne(
     @Param('id', ParseIntPipe) id: number,
     @Headers('x-user-role') roleHeader?: string,
@@ -41,12 +48,16 @@ export class CriteriaController {
   }
 
   @Post()
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async create(@Body() createCriteriaDto: CreateCriteriaDto) {
     return this.criteriaService.create(createCriteriaDto);
   }
 
   @Put(':id')
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -56,6 +67,8 @@ export class CriteriaController {
   }
 
   @Delete(':id')
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async delete(@Param('id', ParseIntPipe) id: number) {
     return this.criteriaService.delete(id);
   }

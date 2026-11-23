@@ -4,8 +4,18 @@ const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12; // 96 bits recommended for AES-GCM
 
 function getEncryptionKey(): Buffer {
-  const secret =
-    process.env.AES_CITIZEN_ID_KEY || 'default-secret-key-for-development-32b';
+  const secret = process.env.AES_CITIZEN_ID_KEY;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'FATAL: AES_CITIZEN_ID_KEY environment variable is required in production',
+      );
+    }
+    return crypto
+      .createHash('sha256')
+      .update('default-secret-key-for-development-32b')
+      .digest();
+  }
   // Derive a guaranteed 32-byte (256-bit) key using SHA-256
   return crypto.createHash('sha256').update(secret).digest();
 }
