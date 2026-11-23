@@ -22,17 +22,8 @@ async function bootstrap() {
         return callback(null, true);
       }
 
-      // Allow configured origins or wildcard
-      if (
-        defaultOrigins.includes(origin) ||
-        envOrigins.includes(origin) ||
-        envOrigins.includes('*')
-      ) {
-        return callback(null, true);
-      }
-
-      // Automatically allow all Vercel deployments (*.vercel.app)
-      if (/^https:\/\/([a-zA-Z0-9-]+\.)*vercel\.app$/.test(origin)) {
+      // Allow configured origins
+      if (defaultOrigins.includes(origin) || envOrigins.includes(origin)) {
         return callback(null, true);
       }
 
@@ -44,7 +35,6 @@ async function bootstrap() {
       'Content-Type',
       'Authorization',
       'X-Requested-With',
-      'x-user-role',
       'X-User-Id',
       'x-user-id',
     ],

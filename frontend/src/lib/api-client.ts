@@ -1,5 +1,6 @@
 import { config } from './config';
 import { formatErrorMessage } from './error-messages';
+import { getAdminId, getEvaluatorId } from './mock-evaluator';
 
 export class ApiError extends Error {
   public readonly statusCode?: number;
@@ -29,6 +30,19 @@ export async function apiClient<T>(
   }
   if (!headers.has('X-Requested-With')) {
     headers.set('X-Requested-With', 'XMLHttpRequest');
+  }
+
+  // Auto-inject Mock Auth Identity (X-User-Id) เพื่อความปลอดภัยและไม่ให้กระทบ Service อื่นๆ
+  if (!headers.has('X-User-Id') && !headers.has('x-user-id')) {
+    const roleHeader = headers.get('x-user-role');
+    if (roleHeader === 'ADMIN') {
+      headers.set('X-User-Id', getAdminId());
+    } else if (roleHeader === 'EVALUATOR') {
+      headers.set('X-User-Id', getEvaluatorId());
+    } else if (typeof window !== 'undefined') {
+      const isAdminRoute = window.location.pathname.startsWith('/admin');
+      headers.set('X-User-Id', isAdminRoute ? getAdminId() : getEvaluatorId());
+    }
   }
 
   const method = (options.method || 'GET').toUpperCase();

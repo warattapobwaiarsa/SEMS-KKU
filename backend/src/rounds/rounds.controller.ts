@@ -23,11 +23,13 @@ import {
   CloseRoundDto,
 } from './dto/round.dto';
 import { SetBudgetDto, SaveAllocationsDto } from './dto/allocation.dto';
-import { RoundStatus } from '@prisma/client';
+import { RoundStatus, UserRole } from '@prisma/client';
 import {
   RoleDispatchGuard,
   type RequestWithResolvedRole,
 } from '../common/guards/role-dispatch.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 import { EvaluationReadService } from '../evaluation/evaluation-read.service';
 
 @Controller('scholarship-rounds')
@@ -64,6 +66,8 @@ export class RoundsController {
   }
 
   @Post()
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async create(@Body() dto: CreateScholarshipRoundDto) {
     return this.roundsService.create(dto);
@@ -88,6 +92,8 @@ export class RoundsController {
   }
 
   @Patch(':id')
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -97,6 +103,8 @@ export class RoundsController {
   }
 
   @Patch(':id/criteria')
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async linkCriteria(
     @Param('id', ParseIntPipe) id: number,
@@ -106,21 +114,29 @@ export class RoundsController {
   }
 
   @Get(':id/open-check')
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async checkOpenReadiness(@Param('id', ParseIntPipe) id: number) {
     return this.roundsService.checkOpenReadiness(id);
   }
 
   @Post(':id/open')
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async openRound(@Param('id', ParseIntPipe) id: number) {
     return this.roundsService.openRound(id);
   }
 
   @Get(':id/close-check')
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async checkCloseStatus(@Param('id', ParseIntPipe) id: number) {
     return this.roundsService.checkCloseStatus(id);
   }
 
   @Post(':id/close')
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async closeRound(
     @Param('id', ParseIntPipe) id: number,
@@ -130,65 +146,68 @@ export class RoundsController {
   }
 
   @Get(':id/allocation')
-  @UseGuards(RoleDispatchGuard)
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async getAllocation(@Param('id', ParseIntPipe) id: number) {
     return this.roundsService.getAllocationSummary(id);
   }
 
   @Post(':id/allocation/budget')
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
-  @UseGuards(RoleDispatchGuard)
   async setBudget(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: SetBudgetDto,
-    @Headers('x-user-id') userIdHeader?: string,
+    @Req() request?: RequestWithResolvedRole,
   ) {
-    const actorId = userIdHeader ? parseInt(userIdHeader, 10) : undefined;
+    const actorId = request?.user?.id;
     return this.roundsService.setRoundBudget(id, dto, actorId);
   }
 
   @Put(':id/allocation/items')
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
-  @UseGuards(RoleDispatchGuard)
   async saveAllocations(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: SaveAllocationsDto,
-    @Headers('x-user-id') userIdHeader?: string,
+    @Req() request?: RequestWithResolvedRole,
   ) {
-    const actorId = userIdHeader ? parseInt(userIdHeader, 10) : undefined;
+    const actorId = request?.user?.id;
     return this.roundsService.saveAllocations(id, dto, actorId);
   }
 
   @Post(':id/allocation/finalize')
-  @UseGuards(RoleDispatchGuard)
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async finalizeAllocation(
     @Param('id', ParseIntPipe) id: number,
-    @Headers('x-user-id') userIdHeader?: string,
+    @Req() request?: RequestWithResolvedRole,
   ) {
-    const actorId = userIdHeader ? parseInt(userIdHeader, 10) : undefined;
+    const actorId = request?.user?.id;
     return this.roundsService.finalizeAllocation(id, actorId);
   }
 
   @Post(':id/allocation/reopen')
-  @UseGuards(RoleDispatchGuard)
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async reopenAllocation(
     @Param('id', ParseIntPipe) id: number,
-    @Headers('x-user-id') userIdHeader?: string,
+    @Req() request?: RequestWithResolvedRole,
   ) {
-    const actorId = userIdHeader ? parseInt(userIdHeader, 10) : undefined;
+    const actorId = request?.user?.id;
     return this.roundsService.reopenAllocation(id, actorId);
   }
 
   @Delete(':id')
-  @UseGuards(RoleDispatchGuard)
+  @UseGuards(RoleDispatchGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async deleteRound(
     @Param('id', ParseIntPipe) id: number,
-    @Headers('x-user-id') userIdHeader?: string,
     @Req() request?: RequestWithResolvedRole,
   ) {
-    const actorId =
-      request?.user?.id ??
-      (userIdHeader ? parseInt(userIdHeader, 10) : undefined);
+    const actorId = request?.user?.id;
     return this.roundsService.deleteDraftRound(id, actorId);
   }
 }
