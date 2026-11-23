@@ -143,7 +143,7 @@ export default function RoundEvaluationResultsDetailPage() {
         <h2 className="text-xl font-bold text-foreground">ไม่พบรหัสรอบทุนการศึกษา</h2>
         <p className="text-sm text-muted-foreground">กรุณาเลือกรอบทุนการศึกษาจากตารางในหน้าแรก</p>
         <Link href="/admin/evaluation-results">
-          <Button variant="default">กลับสู่ตารางรอบทุน</Button>
+          <Button variant="primary">กลับสู่ตารางรอบทุน</Button>
         </Link>
       </div>
     );

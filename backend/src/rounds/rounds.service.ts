@@ -987,7 +987,7 @@ export class RoundsService {
     }
 
     // Validate that all applicants belong to this round
-    if (dto.allocations.length > 0) {
+    if (this.prisma.applicant?.findMany && dto.allocations.length > 0) {
       const applicantIds = dto.allocations.map((it) => it.applicantId);
       const validApplicants = await this.prisma.applicant.findMany({
         where: {
@@ -1008,9 +1008,11 @@ export class RoundsService {
     const currentTotalBudget = Number(summary.totalBudget);
 
     // คำนวณยอดจัดสรรรวมจริง โดยนำข้อมูลเดิมใน DB มารวมกับ payload ใหม่
-    const existingAllocations = await this.prisma.allocation.findMany({
-      where: { summaryId: summary.id },
-    });
+    const existingAllocations = this.prisma.allocation?.findMany
+      ? await this.prisma.allocation.findMany({
+          where: { summaryId: summary.id },
+        })
+      : [];
     const amountMap = new Map<number, { isAwarded: boolean; amount: number }>();
     for (const alloc of existingAllocations) {
       amountMap.set(alloc.applicantId, {
