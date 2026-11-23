@@ -19,7 +19,7 @@ export function PlaceholderPage({
   relatedLinks,
 }: PlaceholderPageProps) {
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-12">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
       {/* Page Title & Action Area */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>

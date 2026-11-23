@@ -141,7 +141,7 @@ export default function ApplicantsPage() {
   const isRoundDraft = selectedRound?.status === 'DRAFT';
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-12">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
       {/* Standard SEMS Page Header */}
       <PageHeader
         title="ผู้สมัครทุนการศึกษา"
