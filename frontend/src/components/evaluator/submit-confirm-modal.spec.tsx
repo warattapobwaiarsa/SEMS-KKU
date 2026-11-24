@@ -126,4 +126,31 @@ describe('SubmitConfirmModal Component', () => {
 
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
   });
+
+  it('warns about invalid score exceeding maxScore and disables submit button', () => {
+    // ข้อ 1 คะแนน 55 เกิน maxScore (50)
+    const valuesWithOverflow: ScoreFormValues = {
+      1: { score: '55', comment: '', textValue: '' },
+      2: { score: '45', comment: '', textValue: '' },
+    };
+
+    render(
+      <SubmitConfirmModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onConfirm={vi.fn()}
+        applicantName="นายสมชาย ใจดี"
+        studentCode="643020001-1"
+        totalScore={100}
+        maxTotal={100}
+        submitting={false}
+        items={mockItems}
+        values={valuesWithOverflow}
+      />,
+    );
+
+    expect(screen.getByText(/พบคะแนนไม่ถูกต้องหรือเกินเกณฑ์ย่อย 1 ข้อ/i)).toBeInTheDocument();
+    const submitBtn = screen.getByRole('button', { name: /ยืนยันส่งผลการประเมิน/i });
+    expect(submitBtn).toBeDisabled();
+  });
 });
