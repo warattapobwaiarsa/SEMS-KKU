@@ -24,6 +24,12 @@ import {
   Alert,
   EmptyState,
   Card,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
 } from '@/components/ui';
 import { RoundStageIndicator } from '@/components/rounds/round-stage-indicator';
 import { fetchRoundById } from '@/services/rounds.service';
@@ -413,71 +419,75 @@ export default function RoundApplicantsDetailPage() {
             </div>
 
             {/* Desktop View: Main Table (>= md) */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-muted/40 border-b border-border/80">
-                  <tr>
-                    <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider w-20 text-center">
+            <div className="hidden md:block overflow-x-auto flex-1">
+              <Table className="table-fixed min-w-[960px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16 text-center whitespace-nowrap">
                       ลำดับ
-                    </th>
-                    <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider w-40">
+                    </TableHead>
+                    <TableHead className="w-36 whitespace-nowrap">
                       รหัสนักศึกษา
-                    </th>
-                    <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="w-[24%] min-w-[170px] whitespace-nowrap">
                       ชื่อ - สกุล
-                    </th>
-                    <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="w-[24%] min-w-[190px] whitespace-nowrap">
                       คณะ / สาขาวิชา
-                    </th>
-                    <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-center w-24">
+                    </TableHead>
+                    <TableHead className="w-20 text-center whitespace-nowrap">
                       ชั้นปี
-                    </th>
-                    <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-center w-28">
+                    </TableHead>
+                    <TableHead className="w-24 text-center whitespace-nowrap">
                       GPA
-                    </th>
-                    <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right w-32">
+                    </TableHead>
+                    <TableHead className="w-44 text-center whitespace-nowrap">
                       ประวัติข้ามรอบ
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/60">
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {applicants.map((app) => (
-                    <tr key={app.id} className="hover:bg-muted/20 transition-colors group">
-                      <td className="px-6 py-4 text-center font-mono text-xs text-muted-foreground">
+                    <TableRow key={app.id} className="hover:bg-muted/30 transition-colors group">
+                      <TableCell className="text-center font-mono text-xs text-muted-foreground">
                         {app.legacySeq ?? '-'}
-                      </td>
-                      <td className="px-6 py-4 font-mono font-bold text-foreground text-xs">
+                      </TableCell>
+                      <TableCell className="font-mono font-bold text-foreground text-xs whitespace-nowrap">
                         {app.studentCode}
-                      </td>
-                      <td className="px-6 py-4 font-medium text-foreground">
-                        {app.titlePrefix}{app.firstName} {app.lastName}
-                      </td>
-                      <td className="px-6 py-4 text-xs text-muted-foreground">
-                        <span className="font-medium text-foreground block">{app.faculty}</span>
-                        <span className="text-muted-foreground/80 block">{app.major}</span>
-                      </td>
-                      <td className="px-6 py-4 text-center text-xs font-mono font-semibold text-foreground">
-                        ปี {app.studyYear}
-                      </td>
-                      <td className="px-6 py-4 text-center font-mono font-bold text-foreground text-sm">
+                      </TableCell>
+                      <TableCell className="font-medium text-foreground">
+                        <span className="block truncate">
+                          {app.titlePrefix}{app.firstName} {app.lastName}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground block truncate">{app.faculty}</span>
+                        <span className="text-muted-foreground/80 block truncate">{app.major}</span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-xs font-mono font-medium bg-muted text-foreground border border-border/60">
+                          ปี {app.studyYear}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center font-mono font-bold text-foreground text-sm">
                         {app.gpa.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 text-right">
+                      </TableCell>
+                      <TableCell className="text-center whitespace-nowrap">
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
-                          className="bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-white"
+                          className="bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-white transition-all shadow-2xs"
                           onClick={() => handleOpenStudentHistory(app.studentCode)}
                           leftIcon={<History className="h-3.5 w-3.5" />}
                         >
-                          ดูประวัติ
+                          ดูประวัติข้ามรอบ
                         </Button>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
 
             {/* Standard SEMS Pagination Bar */}
