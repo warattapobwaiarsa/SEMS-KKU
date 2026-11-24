@@ -25,6 +25,7 @@
     "test:cov": "npm run test:cov --workspace=backend",
     "prisma:generate": "npm run --workspace=backend prisma generate",
     "prisma:migrate": "npm run --workspace=backend prisma migrate dev",
+    "prisma:deploy": "npm run --workspace=backend prisma migrate deploy",
     "prisma:seed": "npm run --workspace=backend prisma db seed",
     "prepare": "node -e \"if (!process.env.CI) { require('child_process').spawnSync('husky', { stdio: 'inherit', shell: true }) }\""
   },
