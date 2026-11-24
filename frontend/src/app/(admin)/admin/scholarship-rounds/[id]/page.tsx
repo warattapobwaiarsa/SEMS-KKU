@@ -414,7 +414,7 @@ export default function RoundDetailPage() {
                 นำเข้าไฟล์ Excel เพิ่มเติม
               </Button>
             )}
-            <Link href="/admin/applicants">
+            <Link href={`/admin/applicants/${id}`}>
               <Button size="sm" leftIcon={<Users className="h-3.5 w-3.5" />}>
                 เปิดหน้ารายชื่อผู้สมัคร
               </Button>

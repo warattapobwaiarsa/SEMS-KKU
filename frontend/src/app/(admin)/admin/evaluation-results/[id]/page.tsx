@@ -274,7 +274,7 @@ export default function RoundEvaluationResultsDetailPage() {
               จัดการรอบทุนนี้
             </Button>
           </Link>
-          <Link href="/admin/applicants">
+          <Link href={`/admin/applicants/${roundId}`}>
             <Button
               type="button"
               variant="secondary"

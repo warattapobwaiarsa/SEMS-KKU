@@ -114,7 +114,7 @@ export default function EvaluationResultsRoundsPage() {
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
       {/* 1. Page Header (Standard SEMS Design) */}
       <PageHeader
-        title="ผลการประเมินและอันดับ"
+        title="ผลการประเมิน"
       />
 
       {/* 2. Filter and Search Bar with Segmented Tabs (หน้ารอบทุน Style) */}
