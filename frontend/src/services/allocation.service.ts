@@ -3,6 +3,7 @@
  * [Scope 1.3.2.9] [Scope 1.3.2.10]
  */
 import { apiClient } from '@/lib/api-client';
+import { getAdminId } from '@/lib/mock-evaluator';
 import type {
   AllocationSummaryData,
   SaveAllocationItemPayload,
@@ -16,7 +17,7 @@ export async function fetchAllocationSummary(
       `/scholarship-rounds/${roundId}/allocation`,
       {
         method: 'GET',
-        headers: { 'x-user-role': 'ADMIN' },
+        headers: { 'X-User-Id': getAdminId() },
       },
     );
     return res;
@@ -48,7 +49,7 @@ export async function setRoundBudget(
     `/scholarship-rounds/${roundId}/allocation/budget`,
     {
       method: 'POST',
-      headers: { 'x-user-role': 'ADMIN', 'Content-Type': 'application/json' },
+      headers: { 'X-User-Id': getAdminId(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ totalBudget }),
     },
   );
@@ -62,7 +63,7 @@ export async function saveAllocations(
     `/scholarship-rounds/${roundId}/allocation/items`,
     {
       method: 'PUT',
-      headers: { 'x-user-role': 'ADMIN', 'Content-Type': 'application/json' },
+      headers: { 'X-User-Id': getAdminId(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ allocations: items }),
     },
   );
@@ -75,7 +76,7 @@ export async function finalizeAllocation(
     `/scholarship-rounds/${roundId}/allocation/finalize`,
     {
       method: 'POST',
-      headers: { 'x-user-role': 'ADMIN' },
+      headers: { 'X-User-Id': getAdminId() },
     },
   );
 }
@@ -87,7 +88,7 @@ export async function reopenAllocation(
     `/scholarship-rounds/${roundId}/allocation/reopen`,
     {
       method: 'POST',
-      headers: { 'x-user-role': 'ADMIN' },
+      headers: { 'X-User-Id': getAdminId() },
     },
   );
 }
@@ -99,7 +100,7 @@ export async function revealApplicantCitizenId(
     `/applicants/${applicantId}/reveal-citizen-id`,
     {
       method: 'POST',
-      headers: { 'x-user-role': 'ADMIN' },
+      headers: { 'X-User-Id': getAdminId() },
     },
   );
 }

@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/api-client';
+import { getAdminId } from '@/lib/mock-evaluator';
 import {
   ExcelPreviewResponse,
   ConfirmImportPayload,
@@ -78,7 +79,7 @@ export async function fetchApplicants(
   return apiClient<ApplicantsListResponse>(endpoint, {
     method: 'GET',
     headers: {
-      'x-user-role': 'ADMIN',
+      'X-User-Id': getAdminId(),
     },
   });
 }
@@ -91,7 +92,7 @@ export async function fetchImportHistory(
     {
       method: 'GET',
       headers: {
-        'x-user-role': 'ADMIN',
+        'X-User-Id': getAdminId(),
       },
     },
   );
@@ -107,7 +108,7 @@ export async function fetchApplicantCrossRoundHistory(
     {
       method: 'GET',
       headers: {
-        'x-user-role': 'ADMIN',
+        'X-User-Id': getAdminId(),
       },
     },
   );

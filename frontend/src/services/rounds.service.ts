@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/api-client';
+import { getAdminId } from '@/lib/mock-evaluator';
 import { ApiResponse } from '@/types/criteria';
 import {
   ScholarshipRoundListItem,
@@ -86,7 +87,7 @@ export async function deleteRound(id: number): Promise<{ success: boolean; messa
   return apiClient<{ success: boolean; message: string }>(`/scholarship-rounds/${id}`, {
     method: 'DELETE',
     headers: {
-      'x-user-role': 'ADMIN',
+      'X-User-Id': getAdminId(),
     },
   });
 }
