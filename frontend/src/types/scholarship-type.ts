@@ -21,6 +21,7 @@ export interface ScholarshipTypeDetail {
   defaultCriteria?: {
     id: number;
     name: string;
+    targetScore?: number;
     subCriteria?: {
       id: number;
       title: string;

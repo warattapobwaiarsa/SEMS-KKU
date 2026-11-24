@@ -177,7 +177,7 @@ export function ApplicantProfilePanel({ detail }: ApplicantProfilePanelProps) {
                     className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium text-xs cursor-help"
                   >
                     <Car className="w-3.5 h-3.5" />
-                    <span className="font-bold font-mono">{travelInfo.distanceKm} กม.</span>
+                    <span className="font-bold"><span className="font-mono">{travelInfo.distanceKm}</span> กม.</span>
                     <span className="text-muted-foreground/60">•</span>
                     <span>~{travelInfo.durationMinutes} นาที จาก มข.</span>
                   </span>

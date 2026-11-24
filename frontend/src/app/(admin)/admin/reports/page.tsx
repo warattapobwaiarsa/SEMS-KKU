@@ -9,7 +9,7 @@ export default function ReportsPage() {
       searchPlaceholder="ค้นหาชื่อรอบทุนการศึกษา..."
       relatedLinks={[
         { label: "การจัดสรรทุน", href: "/admin/scholarship-allocation" },
-        { label: "ผลการประเมินและอันดับ", href: "/admin/evaluation-results" },
+        { label: "ผลการประเมิน", href: "/admin/evaluation-results" },
       ]}
     />
   );

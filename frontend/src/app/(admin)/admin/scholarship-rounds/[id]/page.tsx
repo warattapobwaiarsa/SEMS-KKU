@@ -414,7 +414,7 @@ export default function RoundDetailPage() {
                 นำเข้าไฟล์ Excel เพิ่มเติม
               </Button>
             )}
-            <Link href="/admin/applicants">
+            <Link href={`/admin/applicants/${roundId}`}>
               <Button size="sm" leftIcon={<Users className="h-3.5 w-3.5" />}>
                 เปิดหน้ารายชื่อผู้สมัคร
               </Button>
@@ -853,7 +853,7 @@ export default function RoundDetailPage() {
                     ?.subCriteria?.map((sub, idx) => (
                       <div key={sub.id || idx} className="flex justify-between text-muted-foreground">
                         <span>{idx + 1}. {sub.title}</span>
-                        <span className="font-mono font-medium">{sub.type === 'TEXT' ? 'ข้อความ' : `${sub.maxScore ?? '-'} คะแนน`}</span>
+                        <span className="font-medium">{sub.type === 'TEXT' ? 'ข้อความ' : <><span className="font-mono">{sub.maxScore ?? '-'}</span> คะแนน</>}</span>
                       </div>
                     ))}
                 </div>

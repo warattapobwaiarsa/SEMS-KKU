@@ -60,7 +60,20 @@ export function SubmitConfirmModal({
     });
   }, [items, values]);
 
+  // ตรวจสอบข้อที่มีคะแนนไม่ถูกต้อง (เช่น ค่าเกินเต็ม หรือติดลบ หรือไม่ใช่จำนวนเต็ม)
+  const invalidItems = useMemo(() => {
+    return items.filter((item) => {
+      if (item.subCriteria.type !== 'SCORED') return false;
+      const val = values[item.subCriteriaId];
+      if (!val || val.score.trim() === '') return false;
+      const num = Number(val.score);
+      const max = item.subCriteria.maxScore;
+      return !Number.isInteger(num) || num < 0 || (max !== null && max !== undefined && num > max);
+    });
+  }, [items, values]);
+
   const hasUnfilled = unfilledItems.length > 0;
+  const hasInvalid = invalidItems.length > 0;
 
   const handleJump = (subCriteriaId: number) => {
     onClose();
@@ -132,6 +145,28 @@ export function SubmitConfirmModal({
                 ))}
               </div>
             </div>
+          ) : hasInvalid ? (
+            <div className="p-4 bg-red-50 dark:bg-red-950/40 border-2 border-red-400 dark:border-red-700 rounded-2xl space-y-2.5 text-red-800 dark:text-red-200 shadow-sm animate-spring-pop">
+              <div className="flex items-center gap-2 font-bold text-sm text-red-700 dark:text-red-300">
+                <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
+                <span>
+                  พบคะแนนไม่ถูกต้องหรือเกินเกณฑ์ย่อย {invalidItems.length} ข้อ (กรุณาแก้ไขก่อนส่งผล)
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-0.5">
+                {invalidItems.map((item) => (
+                  <button
+                    key={item.subCriteriaId}
+                    type="button"
+                    onClick={() => handleJump(item.subCriteriaId)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-red-600 text-white hover:bg-red-700 active:scale-95 shadow-xs transition cursor-pointer"
+                  >
+                    <span>{item.subCriteria.title}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                ))}
+              </div>
+            </div>
           ) : (
             <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center gap-2.5 text-xs sm:text-sm text-emerald-800 dark:text-emerald-300 font-medium">
               <CheckCircle2 className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -191,7 +226,7 @@ export function SubmitConfirmModal({
                                 style={{ width: `${pct}%` }}
                               />
                             </div>
-                            <span className="font-mono text-[11px] font-medium">{pct.toFixed(0)}%</span>
+                            <span className="font-mono text-xs font-medium">{pct.toFixed(0)}%</span>
                           </div>
                           {val?.comment?.trim() && (
                             <p className="text-xs text-muted-foreground/90 italic truncate">
@@ -264,7 +299,7 @@ export function SubmitConfirmModal({
           <button
             type="button"
             onClick={onConfirm}
-            disabled={submitting || hasUnfilled}
+            disabled={submitting || hasUnfilled || hasInvalid}
             className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary-hover shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed btn-interactive"
           >
             {submitting ? 'กำลังส่งผลการประเมิน...' : 'ยืนยันส่งผลการประเมิน'}

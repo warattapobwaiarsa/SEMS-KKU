@@ -45,6 +45,10 @@ export async function apiClient<T>(
     }
   }
 
+  // ป้องกัน Header Spoofing และ CORS Preflight Block โดยลบ legacy role headers ออกเสมอ
+  headers.delete('x-user-role');
+  headers.delete('X-User-Role');
+
   const method = (options.method || 'GET').toUpperCase();
   const isIdempotent = method === 'GET' || method === 'HEAD';
 

@@ -499,7 +499,7 @@ export function ImportApplicantModal({
                     />
                     <div>
                       <div className="font-semibold text-foreground">นำเข้าเพิ่มเติม (Append) - แนะนำ</div>
-                      <div className="text-[11px] text-muted-foreground">
+                      <div className="text-xs text-muted-foreground">
                         เก็บข้อมูลผู้สมัครเดิมในรอบไว้ นำเข้าเฉพาะรายชื่อใหม่ (หากรหัสซ้ำจะอัปเดตข้อมูล)
                       </div>
                     </div>
@@ -522,7 +522,7 @@ export function ImportApplicantModal({
                     />
                     <div>
                       <div className="font-semibold text-rose-700 dark:text-rose-400">เขียนทับทั้งหมด (Overwrite)</div>
-                      <div className="text-[11px] text-muted-foreground">
+                      <div className="text-xs text-muted-foreground">
                         ลบรายชื่อผู้สมัครเดิมทั้งหมดในรอบนี้ และแทนที่ด้วยข้อมูลจากไฟล์ใหม่นี้เท่านั้น
                       </div>
                     </div>

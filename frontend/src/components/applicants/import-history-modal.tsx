@@ -148,7 +148,7 @@ export function ImportHistoryModal({
                     <div className="max-h-24 overflow-y-auto space-y-1 text-xs text-muted-foreground bg-muted/30 p-2.5 rounded-xl border border-border/40">
                       {batch.errorDetails.slice(0, 5).map((err, i) => (
                         <div key={i} className="flex gap-2">
-                          <span className="font-mono text-muted-foreground/80 shrink-0">แถว {err.rowNumber}:</span>
+                          <span className="text-muted-foreground/80 shrink-0">แถว <span className="font-mono">{err.rowNumber}</span>:</span>
                           <span className="text-rose-700 dark:text-rose-400">{err.errors?.join(', ')}</span>
                         </div>
                       ))}

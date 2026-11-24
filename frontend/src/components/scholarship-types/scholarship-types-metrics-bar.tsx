@@ -100,7 +100,7 @@ export function ScholarshipTypesMetricsBar({ types = [], counts }: ScholarshipTy
               <p className="text-xs text-muted-foreground truncate mr-2">
                 {m.description}
               </p>
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${m.theme.badgeBg}`}>
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${m.theme.badgeBg}`}>
                 {m.badge}
               </span>
             </div>

@@ -274,7 +274,7 @@ export default function RoundEvaluationResultsDetailPage() {
               จัดการรอบทุนนี้
             </Button>
           </Link>
-          <Link href="/admin/applicants">
+          <Link href={`/admin/applicants/${roundId}`}>
             <Button
               type="button"
               variant="secondary"
@@ -629,7 +629,7 @@ export default function RoundEvaluationResultsDetailPage() {
                       <div className="font-mono font-bold text-base text-primary">
                         {item.finalScore.display}
                       </div>
-                      <span className="text-[10px] text-muted-foreground block font-mono">GPAX {item.gpa.toFixed(2)}</span>
+                      <span className="text-xs text-muted-foreground block font-mono">GPAX {item.gpa.toFixed(2)}</span>
                     </div>
                   </div>
 

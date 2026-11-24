@@ -219,12 +219,12 @@ export function RoundEvaluationTab({
                       <span className="text-xs text-muted-foreground">{item.major}</span>
                     </td>
                     <td className="py-3.5 px-4 text-center">
-                      <span className="text-foreground font-mono block">ปี {item.studyYear}</span>
-                      <span className="text-xs text-muted-foreground font-mono">GPA {item.gpa.toFixed(2)}</span>
+                      <span className="text-foreground block">ปี <span className="font-mono">{item.studyYear}</span></span>
+                      <span className="text-xs text-muted-foreground"><span className="font-mono">GPA {item.gpa.toFixed(2)}</span></span>
                     </td>
-                    <td className="py-3.5 px-4 text-center font-mono">
+                    <td className="py-3.5 px-4 text-center">
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-muted text-foreground border border-border/80">
-                        {item.submittedCount} ท่าน
+                        <span className="font-mono font-medium">{item.submittedCount}</span> ท่าน
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">

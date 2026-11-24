@@ -114,7 +114,7 @@ export default function EvaluationResultsRoundsPage() {
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
       {/* 1. Page Header (Standard SEMS Design) */}
       <PageHeader
-        title="ผลการประเมินและอันดับ"
+        title="ผลการประเมิน"
       />
 
       {/* 2. Filter and Search Bar with Segmented Tabs (หน้ารอบทุน Style) */}
@@ -215,7 +215,7 @@ export default function EvaluationResultsRoundsPage() {
                 <div key={round.id} className="p-4 space-y-3 hover:bg-muted/10 transition">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h4 className="font-bold text-foreground text-sm leading-snug">
+                        <h4 className="font-bold text-foreground text-base leading-snug">
                           {round.name}
                         </h4>
                         <div className="text-xs text-primary font-medium mt-0.5">
@@ -229,11 +229,11 @@ export default function EvaluationResultsRoundsPage() {
 
                     <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground bg-muted/30 p-2.5 rounded-xl border border-border/40">
                       <div>
-                        <span className="block text-[11px] text-muted-foreground/80">ปี/ภาคเรียน</span>
+                        <span className="block text-xs text-muted-foreground">ปี/ภาคเรียน</span>
                         <span className="font-mono font-medium text-foreground">{round.academicYear}/{round.semester}</span>
                       </div>
                       <div>
-                        <span className="block text-[11px] text-muted-foreground/80">ผู้สมัคร</span>
+                        <span className="block text-xs text-muted-foreground">ผู้สมัคร</span>
                         <span className="font-mono font-bold text-foreground flex items-center gap-1">
                           <Users className="h-3 w-3 text-blue-600" /> {round.applicantCount} คน
                         </span>

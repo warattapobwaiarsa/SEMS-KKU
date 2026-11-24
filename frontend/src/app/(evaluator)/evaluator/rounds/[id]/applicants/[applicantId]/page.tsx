@@ -20,31 +20,29 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { Alert } from '@/components/ui/alert';
 import { ApplicantProfilePanel } from '@/components/evaluator/applicant-profile-panel';
 import { ScoreFormPanel } from '@/components/evaluator/score-form-panel';
 import type {
   ScoreFormValue,
   ScoreFormValues,
 } from '@/components/evaluator/score-input-row';
-import { Save, Send, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Send, ArrowLeft } from 'lucide-react';
 import {
   SaveStatusIndicator,
   type SaveStatus,
 } from '@/components/evaluator/save-status-indicator';
 import { SubmitConfirmModal } from '@/components/evaluator/submit-confirm-modal';
 import { ResizableSplitPane } from '@/components/evaluator/resizable-split-pane';
-import { SequentialNavigationBar } from '@/components/evaluator/sequential-navigation-bar';
 import {
   fetchApplicantDetail,
   fetchMyEvaluation,
   saveMyEvaluation,
   submitMyEvaluation,
-  fetchEvaluatorApplicants,
 } from '@/services/evaluation.service';
 import { ApiError } from '@/lib/api-client';
 import { useDebounce } from '@/lib/use-debounce';
 import type {
-  EvaluatorApplicant,
   EvaluatorApplicantDetail,
   MyEvaluationItem,
   MyEvaluationView,
@@ -71,19 +69,42 @@ function buildInitialValues(items: MyEvaluationItem[]): ScoreFormValues {
   return result;
 }
 
-// ตรวจค่าคะแนนทุกข้อ: ต้องเป็นจำนวนเต็ม >= 0 (ทศนิยมไม่ได้ตาม backend) [FR-EVL-05] [BR-EVL-03]
+// ตรวจค่าคะแนนทุกข้อ: ต้องเป็นจำนวนเต็ม 0 ถึง maxScore (ทศนิยมไม่ได้ตาม backend) [FR-EVL-05] [BR-EVL-03]
 function validateScores(
   values: ScoreFormValues,
   items: MyEvaluationItem[],
+  requireFilled = false,
 ): Record<number, string> {
   const errors: Record<number, string> = {};
   for (const item of items) {
-    if (item.subCriteria.type !== 'SCORED') continue;
-    const raw = values[item.subCriteriaId]?.score ?? '';
-    if (raw === '') continue; // ยังไม่กรอก = ยังไม่ผิด แต่ส่งผลไม่ได้
-    const numberValue = Number(raw);
-    if (!Number.isInteger(numberValue) || numberValue < 0) {
-      errors[item.subCriteriaId] = 'คะแนนต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป';
+    const isScored = item.subCriteria.type === 'SCORED';
+    const val = values[item.subCriteriaId];
+
+    if (isScored) {
+      const raw = val?.score ?? '';
+      const max = item.subCriteria.maxScore;
+
+      if (raw.trim() === '') {
+        if (requireFilled) {
+          errors[item.subCriteriaId] =
+            max !== null && max !== undefined
+              ? `กรุณากรอกคะแนนในข้อนี้ (เต็ม ${max} คะแนน)`
+              : 'กรุณากรอกคะแนนในข้อนี้';
+        }
+        continue;
+      }
+
+      const numberValue = Number(raw);
+      if (!Number.isInteger(numberValue) || numberValue < 0) {
+        errors[item.subCriteriaId] = 'คะแนนต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป';
+      } else if (max !== null && max !== undefined && numberValue > max) {
+        errors[item.subCriteriaId] = `คะแนนต้องไม่เกิน ${max} คะแนน`;
+      }
+    } else {
+      const text = val?.textValue ?? '';
+      if (requireFilled && text.trim() === '') {
+        errors[item.subCriteriaId] = 'กรุณากรอกข้อความสรุปการประเมินในข้อนี้';
+      }
     }
   }
   return errors;
@@ -172,9 +193,6 @@ export default function EvaluatorScoringPage({
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
 
-  // รายชื่อผู้สมัครทั้งหมดในรอบนี้ (สำหรับ Sequential Navigation)
-  const [roundApplicants, setRoundApplicants] = useState<EvaluatorApplicant[]>([]);
-
   // สถานะบันทึกอัตโนมัติ
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -186,6 +204,8 @@ export default function EvaluatorScoringPage({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [missingItems, setMissingItems] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [navigationWarning, setNavigationWarning] = useState(false);
+  const [attemptedSave, setAttemptedSave] = useState(false);
 
   // refs สำหรับ auto-save
   const dirtyRef = useRef(false);
@@ -194,23 +214,6 @@ export default function EvaluatorScoringPage({
 
   // ค่าที่ debounce 3 วินาที -> ใช้เป็นตัวกระตุ้น auto-save [FR-EVL-08]
   const debouncedValues = useDebounce(values, 3000);
-
-  // โหลดรายชื่อผู้สมัครทั้งรอบ (ทำครั้งเดียวเมื่อ roundId พร้อม)
-  useEffect(() => {
-    let cancelled = false;
-    fetchEvaluatorApplicants(roundId, { limit: 100 })
-      .then((res) => {
-        if (!cancelled && res.data) {
-          setRoundApplicants(res.data);
-        }
-      })
-      .catch((err) => {
-        console.warn('Cannot load applicant list for sequential navigation:', err);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [roundId]);
 
   // ค่าที่โหลดมาเริ่มต้นของ applicant คนนี้
   useEffect(() => {
@@ -221,6 +224,7 @@ export default function EvaluatorScoringPage({
     setSubmitError(null);
     setMissingItems([]);
     setSuccessMessage(null);
+    setAttemptedSave(false);
 
     Promise.all([fetchApplicantDetail(applicantId), fetchMyEvaluation(applicantId)])
       .then(([applicantDetail, myEvaluation]) => {
@@ -246,14 +250,49 @@ export default function EvaluatorScoringPage({
   // โหมดอ่านอย่างเดียว: ส่งผลแล้ว หรือ Draft ในรอบที่ปิดแล้ว
   const readOnly = evaluation !== null && (evaluation.status === 'SUBMITTED' || evaluation.isLocked);
   const items = useMemo(() => evaluation?.items ?? [], [evaluation]);
-  const scoreErrors = validateScores(values, items);
+  const scoreErrors = useMemo(
+    () => validateScores(values, items, attemptedSave),
+    [values, items, attemptedSave],
+  );
   const hasErrors = Object.keys(scoreErrors).length > 0;
   const { total: totalScore, maxTotal } = calcTotal(values, items);
+
+  // เลื่อนหน้าจอไปยังข้อที่มีข้อผิดพลาดหรือยังไม่ได้กรอกข้อแรก พร้อม focus
+  const scrollToFirstError = useCallback(
+    (currentErrors: Record<number, string>) => {
+      const errorIds = Object.keys(currentErrors).map(Number);
+      if (errorIds.length === 0) return;
+      const firstErrorItem = items.find((it) => errorIds.includes(it.subCriteriaId));
+      if (!firstErrorItem) return;
+
+      const subId = firstErrorItem.subCriteriaId;
+      const rowEl = document.getElementById(`criteria-row-${subId}`);
+      if (rowEl) {
+        rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        rowEl.classList.add('ring-2', 'ring-destructive', 'bg-destructive/10');
+        setTimeout(() => {
+          rowEl.classList.remove('ring-2', 'ring-destructive', 'bg-destructive/10');
+        }, 2500);
+      }
+      const inputEl =
+        (document.getElementById(`score-input-${subId}`) as HTMLInputElement | null) ||
+        (document.getElementById(`text-input-${subId}`) as HTMLTextAreaElement | null);
+      if (inputEl) {
+        inputEl.focus();
+      }
+    },
+    [items],
+  );
 
   // บันทึก (PUT) — คืน true ถ้าผ่าน (รวมกรณีไม่ต้องบันทึก)
   const doSave = useCallback(async (): Promise<boolean> => {
     if (readOnly || !dirtyRef.current) return true;
-    if (hasErrors) return true;
+    const formatErrors = validateScores(valuesRef.current, items, false);
+    if (Object.keys(formatErrors).length > 0) {
+      setSaveStatus('error');
+      setSaveError('คะแนนในบางข้อไม่ถูกต้อง กรุณาแก้ไขก่อนบันทึกข้อมูล');
+      return false;
+    }
 
     const snapshot = valuesRef.current;
     setSaveStatus('saving');
@@ -276,7 +315,7 @@ export default function EvaluatorScoringPage({
       setSaveError(toThaiError(error));
       return false;
     }
-  }, [applicantId, items, readOnly, hasErrors]);
+  }, [applicantId, items, readOnly]);
 
   useEffect(() => {
     saveFnRef.current = doSave;
@@ -320,22 +359,20 @@ export default function EvaluatorScoringPage({
     setSuccessMessage(null);
   };
 
-  // ปุ่ม "บันทึกร่าง" — บันทึกทันที
-  const handleSaveNow = () => {
-    void saveFnRef.current();
-  };
-
   // ปุ่ม "ส่งผลการประเมิน"
   const handleSubmitClick = async () => {
-    setSubmitError(null);
+    setAttemptedSave(true);
     setMissingItems([]);
-    if (hasErrors) {
-      setSubmitError('กรอกคะแนนไม่ถูกต้อง กรุณาแก้ไขก่อนส่งผลการประเมิน');
+    const validationErrors = validateScores(values, items, true);
+    if (Object.keys(validationErrors).length > 0) {
+      scrollToFirstError(validationErrors);
       return;
     }
     if (dirtyRef.current) {
       const saved = await doSave();
-      if (!saved) return;
+      if (!saved) {
+        return;
+      }
     }
     setModalOpen(true);
   };
@@ -365,26 +402,6 @@ export default function EvaluatorScoringPage({
       setSubmitting(false);
     }
   };
-
-  // สลับไปยังผู้สมัครเป้าหมาย พร้อม Unsaved Guard [FR-EVL-08]
-  const handleNavigateApplicant = useCallback(
-    async (targetId: number): Promise<boolean> => {
-      if (hasErrors) {
-        setSubmitError('คะแนนในข้อที่ระบุไม่ถูกต้อง กรุณาแก้ไขก่อนเปลี่ยนหน้าผู้สมัคร');
-        return false;
-      }
-      if (dirtyRef.current) {
-        const saved = await doSave();
-        if (!saved) {
-          setSubmitError('ไม่สามารถบันทึกร่างข้อมูลได้ กรุณาลองใหม่อีกครั้งก่อนเปลี่ยนหน้า');
-          return false;
-        }
-      }
-      router.push(`/evaluator/rounds/${roundId}/applicants/${targetId}`);
-      return true;
-    },
-    [doSave, hasErrors, roundId, router],
-  );
 
   // ป้ายสถานะของฉันบนหัวหน้าจอ
   const statusBadge = !evaluation
@@ -444,9 +461,6 @@ export default function EvaluatorScoringPage({
   }
 
   const fullName = `${detail.titlePrefix}${detail.firstName} ${detail.lastName}`.trim();
-  const currIdx = roundApplicants.findIndex((a) => a.id === applicantId);
-  const nextApplicant =
-    currIdx >= 0 && currIdx < roundApplicants.length - 1 ? roundApplicants[currIdx + 1] : null;
 
   return (
     <div className="flex-1 min-h-0 flex flex-col space-y-2 select-none">
@@ -461,8 +475,8 @@ export default function EvaluatorScoringPage({
                 if (dirtyRef.current) {
                   const saved = await doSave();
                   if (!saved) {
-                    const leave = window.confirm('การบันทึกร่างยังไม่สำเร็จ ต้องการกลับหน้ารายชื่อหรือไม่?');
-                    if (!leave) return;
+                    setNavigationWarning(true);
+                    return;
                   }
                 }
                 router.push(`/evaluator/rounds/${roundId}/applicants`);
@@ -478,7 +492,7 @@ export default function EvaluatorScoringPage({
 
             <div className="min-w-0 truncate">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-sm sm:text-base font-bold text-foreground truncate">
+                <h1 className="text-base sm:text-lg font-bold text-foreground truncate">
                   {fullName}
                 </h1>
                 <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border/60">
@@ -522,99 +536,76 @@ export default function EvaluatorScoringPage({
           </div>
         </div>
 
-        {/* แถบนำทางต่อเนื่องระหว่างผู้สมัคร (Sequential Navigation Bar) */}
-        <SequentialNavigationBar
-          roundId={roundId}
-          currentApplicantId={applicantId}
-          applicants={roundApplicants}
-          onNavigate={handleNavigateApplicant}
-          isSaving={saveStatus === 'saving'}
-        />
+        {/* แบนเนอร์แจ้งเตือนสถานะต่าง ๆ แบบ Inline Alert (ไม่เด้ง Popup) */}
+        {navigationWarning && (
+          <Alert
+            variant="warning"
+            title="มีข้อมูลที่ยังไม่ได้บันทึก"
+            onClose={() => setNavigationWarning(false)}
+          >
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <span>การบันทึกร่างยังไม่สำเร็จ หากออกจากหน้านี้ ข้อมูลล่าสุดอาจไม่ได้รับการบันทึก</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setNavigationWarning(false)}
+                  className="px-3 py-1 text-xs font-medium rounded-lg border border-amber-300 bg-white hover:bg-amber-50 text-amber-900 transition cursor-pointer"
+                >
+                  แก้ไขต่อ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/evaluator/rounds/${roundId}/applicants`)}
+                  className="px-3 py-1 text-xs font-medium rounded-lg bg-amber-600 hover:bg-amber-700 text-white transition cursor-pointer"
+                >
+                  ยืนยันกลับหน้ารายชื่อ
+                </button>
+              </div>
+            </div>
+          </Alert>
+        )}
 
-        {/* แบนเนอร์แจ้งเตือนสถานะต่าง ๆ */}
         {successMessage && (
-          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs sm:text-sm text-emerald-800 flex items-center justify-between gap-3 flex-wrap animate-spring-pop">
+          <Alert variant="success" onClose={() => setSuccessMessage(null)}>
             <div className="space-y-0.5">
-              <span className="font-semibold">✓ {successMessage}</span>
+              <span className="font-semibold">{successMessage}</span>
               {evaluation.submittedAt && (
-                <span className="block text-xs text-emerald-600">
+                <span className="block text-xs opacity-80">
                   ส่งผลเมื่อ {new Date(evaluation.submittedAt).toLocaleString('th-TH')}
                 </span>
               )}
             </div>
-            {nextApplicant && (
-              <button
-                type="button"
-                onClick={() => void handleNavigateApplicant(nextApplicant.id)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs transition shadow-2xs cursor-pointer btn-interactive"
-              >
-                <span>ประเมินคนถัดไป: {nextApplicant.firstName}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+          </Alert>
         )}
 
         {readOnly && evaluation.status === 'SUBMITTED' && (
-          <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-300 text-xs sm:text-sm text-slate-700">
+          <Alert variant="info">
             🔒 ส่งผลการประเมินแล้ว
             {evaluation.submittedAt &&
               ` เมื่อ ${new Date(evaluation.submittedAt).toLocaleString('th-TH')}`}{' '}
             ไม่สามารถแก้ไขได้
-          </div>
+          </Alert>
         )}
 
         {readOnly && evaluation.isLocked && (
-          <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs sm:text-sm text-amber-800">
-            ⚠ รอบทุนนี้ปิดการประเมินแล้ว ไม่สามารถแก้ไขหรือส่งผลการประเมินเพิ่มเติมได้
-          </div>
+          <Alert variant="warning">
+            รอบทุนนี้ปิดการประเมินแล้ว ไม่สามารถแก้ไขหรือส่งผลการประเมินเพิ่มเติมได้
+          </Alert>
         )}
 
         {saveError && saveStatus === 'error' && (
-          <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs sm:text-sm text-rose-700">
-            บันทึกไม่สำเร็จ: {saveError}
-          </div>
-        )}
-
-        {submitError && (
-          <div className="p-3.5 rounded-2xl bg-red-50 dark:bg-red-950/40 border-2 border-red-400 dark:border-red-700 text-xs sm:text-sm text-red-800 dark:text-red-200 space-y-2 shadow-xs animate-spring-pop">
-            <p className="font-bold text-red-700 dark:text-red-300 flex items-center gap-1.5">
-              <span>⚠</span> {submitError}
-            </p>
-            {missingItems.length > 0 && (
-              <div className="space-y-1.5">
-                <span className="text-xs text-red-600/90 dark:text-red-300/90 font-medium block">
-                  คลิกที่ปุ่มเพื่อเลื่อนไปยังข้อที่ยังไม่ได้กรอก:
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {missingItems.map((title) => {
-                    const matchedItem = items.find((it) => it.subCriteria.title === title);
-                    return (
-                      <button
-                        key={title}
-                        type="button"
-                        onClick={() => {
-                          if (matchedItem) {
-                            const el = document.getElementById(`criteria-row-${matchedItem.subCriteriaId}`);
-                            if (el) {
-                              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                              el.classList.add('ring-2', 'ring-red-500', 'bg-red-50/60');
-                              setTimeout(() => {
-                                el.classList.remove('ring-2', 'ring-red-500', 'bg-red-50/60');
-                              }, 2500);
-                            }
-                          }
-                        }}
-                        className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-700 text-white shadow-2xs transition cursor-pointer"
-                      >
-                        • {title}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
+          <Alert
+            variant="destructive"
+            title="บันทึกข้อมูลไม่สำเร็จ"
+            onClose={() => setSaveError(null)}
+          >
+            <div className="flex flex-col gap-1">
+              <span>{saveError}</span>
+              <span className="text-xs opacity-80">
+                ระบบจะพยายามบันทึกใหม่อีกครั้งอัตโนมัติเมื่อท่านแก้ไขข้อมูลให้ถูกต้อง
+              </span>
+            </div>
+          </Alert>
         )}
       </div>
 
@@ -649,33 +640,19 @@ export default function EvaluatorScoringPage({
                 )}
               </div>
 
-              {/* แถบปุ่มบันทึก/ส่งผล (ตรึงล่างฝั่งขวา) */}
+              {/* แถบปุ่มส่งผล (ตรึงล่างฝั่งขวา) */}
               {!readOnly && (
                 <div className="shrink-0 pt-2.5">
-                  <div className="p-3 bg-card/95 backdrop-blur-md border border-border/80 rounded-2xl shadow-sm flex items-center justify-between gap-3">
-                    <span className="text-xs text-muted-foreground hidden sm:inline">
-                      ระบบบันทึกร่างให้อัตโนมัติทุก 3 วินาที หรือคลิกปุ่มเพื่อดำเนินการ
-                    </span>
-                    <div className="flex items-center gap-2.5 ml-auto">
-                      <button
-                        type="button"
-                        onClick={handleSaveNow}
-                        disabled={saveStatus === 'saving'}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl border border-border bg-background hover:bg-muted text-foreground transition disabled:opacity-50 cursor-pointer shadow-2xs btn-interactive"
-                      >
-                        <Save className="w-3.5 h-3.5 text-muted-foreground" />
-                        <span>บันทึกร่างทันที</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleSubmitClick}
-                        disabled={submitting || saveStatus === 'saving'}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer btn-interactive"
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        <span>ส่งผลการประเมิน</span>
-                      </button>
-                    </div>
+                  <div className="p-3 bg-card/95 backdrop-blur-md border border-border/80 rounded-2xl shadow-sm flex items-center justify-end">
+                    <button
+                      type="button"
+                      onClick={handleSubmitClick}
+                      disabled={submitting || saveStatus === 'saving'}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer btn-interactive"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>ส่งผลการประเมิน</span>
+                    </button>
                   </div>
                 </div>
               )}

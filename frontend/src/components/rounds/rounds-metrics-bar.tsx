@@ -100,10 +100,10 @@ export function RoundsMetricsBar({ rounds = [], counts }: RoundsMetricsBarProps)
             </div>
 
             <div className="mt-3 pt-2.5 border-t border-border/40 flex items-center justify-between text-xs">
-              <span className="text-muted-foreground/90 truncate mr-2 text-[11px]">
+              <span className="text-muted-foreground/90 truncate mr-2 text-xs">
                 {m.description}
               </span>
-              <span className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-semibold shrink-0 ${m.theme.badgeBg}`}>
+              <span className={`px-2 py-0.5 rounded-full font-mono text-xs font-semibold shrink-0 ${m.theme.badgeBg}`}>
                 {m.badge}
               </span>
             </div>

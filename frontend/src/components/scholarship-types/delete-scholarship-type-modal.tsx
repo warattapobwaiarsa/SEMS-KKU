@@ -93,12 +93,12 @@ export function DeleteScholarshipTypeModal({
           <div className="p-3.5 bg-muted/40 border border-border rounded-xl space-y-1.5 text-xs">
             <div className="text-muted-foreground">ประเภททุนที่จะลบ:</div>
             <div className="font-bold text-sm text-foreground">{typeName}</div>
-            <div className="flex items-center gap-2 text-muted-foreground font-mono">
-              <span>รหัสประเภททุน #{typeId}</span>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span>รหัสประเภททุน <span className="font-mono font-medium">#{typeId}</span></span>
               {roundsCount > 0 && (
                 <>
                   <span>•</span>
-                  <span>รอบแบบร่างที่ผูกไว้ {roundsCount} รอบ</span>
+                  <span>รอบแบบร่างที่ผูกไว้ <span className="font-mono font-medium">{roundsCount}</span> รอบ</span>
                 </>
               )}
             </div>

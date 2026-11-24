@@ -5,30 +5,42 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
-  Award,
-  Users,
   Calendar,
   Layers,
   ArrowRight,
   Search,
-  AlertCircle,
-  Inbox,
+  Users,
+  CheckCircle2,
   RefreshCw,
+  X,
+  Sliders,
 } from 'lucide-react';
-import { PageHeader } from '@/components/ui/page-header';
-import { StatusBadge } from '@/components/ui/status-badge';
-import { Pagination } from '@/components/ui/pagination';
+import {
+  PageHeader,
+  Pagination,
+  Button,
+  Input,
+  Alert,
+  EmptyState,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui';
 import { useDebounce } from '@/lib/use-debounce';
 import { ApiError } from '@/lib/api-client';
 import { fetchEvaluatorRounds } from '@/services/evaluation.service';
 import type { EvaluatorRound, PaginationMeta } from '@/types/evaluation';
+import { RoundStageIndicator } from '@/components/rounds/round-stage-indicator';
 
 function EvaluatorRoundsContent() {
   const searchParams = useSearchParams();
   const [rounds, setRounds] = useState<EvaluatorRound[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta>({
     page: 1,
-    limit: 12,
+    limit: 10,
     total: 0,
     totalPages: 1,
   });
@@ -43,13 +55,16 @@ function EvaluatorRoundsContent() {
     setError(null);
     try {
       const res = await fetchEvaluatorRounds({
-        search: debouncedSearch,
         page: pagination.page,
         limit: pagination.limit,
+        search: debouncedSearch.trim() || undefined,
       });
+
       setRounds(res.data);
-      setPagination(res.meta);
-    } catch (err) {
+      if (res.meta) {
+        setPagination(res.meta);
+      }
+    } catch (err: unknown) {
       if (err instanceof ApiError) {
         setError(err.message);
       } else if (
@@ -59,10 +74,10 @@ function EvaluatorRoundsContent() {
           err.name === 'TypeError')
       ) {
         setError(
-          'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ Failed to fetch (เซิร์ฟเวอร์ Backend อาจกำลังเริ่มต้นระบบ กรุณารอสักครู่แล้วลองใหม่)',
+          'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ (Failed to fetch) กรุณาตรวจสอบการเชื่อมต่อแล้วลองใหม่อีกครั้ง'
         );
       } else {
-        setError('เกิดข้อผิดพลาดในการโหลดรายการรอบทุนการศึกษา');
+        setError('เกิดข้อผิดพลาดในการโหลดรายการรอบทุน');
       }
       setRounds([]);
     } finally {
@@ -86,161 +101,274 @@ function EvaluatorRoundsContent() {
   };
 
   return (
-    <div className="flex-1 flex flex-col space-y-6">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
+      {/* Standard Admin Page Header */}
       <PageHeader
         title="รอบทุนการศึกษาที่เปิดประเมิน"
       />
 
-      {/* Search Bar */}
-      <div className="flex items-center gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
+      {/* Search Bar - Exactly matching Admin Scholarship Rounds */}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-card border border-border/80 rounded-2xl p-3 shadow-xs">
+        <div className="relative flex-1 max-w-md w-full">
+          <Input
+            leftIcon={<Search className="h-4 w-4" />}
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="ค้นหาชื่อรอบทุนการศึกษา..."
-            className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
+            placeholder="ค้นหาชื่อรอบทุน"
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => handleSearchChange('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground rounded-md transition"
+              title="ล้างข้อความค้นหา"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Error Alert */}
+      {/* Error Alert with Retry */}
       {error && (
-        <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-sm text-destructive flex items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-center gap-2.5">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <span>{error}</span>
+        <Alert
+          variant="destructive"
+          title="ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-1">
+            <p className="text-xs text-destructive/90">{error} (เซิร์ฟเวอร์ Backend อาจกำลังเริ่มต้นระบบ กรุณารอสักครู่แล้วลองใหม่)</p>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => void loadRounds()}
+              leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
+              className="shrink-0 self-end sm:self-auto"
+            >
+              ลองใหม่อีกครั้ง
+            </Button>
           </div>
-          <button
-            onClick={() => void loadRounds()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-destructive text-destructive-foreground rounded-xl hover:bg-destructive/90 transition cursor-pointer shrink-0"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            ลองใหม่
-          </button>
-        </div>
+        </Alert>
       )}
 
-      {/* Loading Skeleton */}
-      {loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 animate-pulse shadow-xs"
-            >
-              <div className="flex justify-between items-start">
-                <div className="h-6 w-3/4 bg-slate-200 rounded-lg" />
-                <div className="h-5 w-16 bg-slate-200 rounded-full" />
-              </div>
-              <div className="space-y-2 pt-2">
-                <div className="h-4 w-1/2 bg-slate-100 rounded" />
-                <div className="h-4 w-2/3 bg-slate-100 rounded" />
-              </div>
-              <div className="pt-4 border-t border-slate-100">
-                <div className="h-9 w-full bg-slate-200 rounded-xl" />
-              </div>
+      {/* Main Table / Data View (Admin Scholarship Rounds Style) */}
+      <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs w-full min-h-[460px] flex flex-col justify-between">
+        {/* Mobile View: Responsive Cards (< md) */}
+        <div className="block md:hidden">
+          {loading ? (
+            <div className="p-16 text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em]" />
+              <p className="mt-4 text-sm text-muted-foreground animate-pulse">กำลังโหลดรายการรอบทุน...</p>
             </div>
-          ))}
-        </div>
-      )}
+          ) : rounds.length === 0 ? (
+            <div className="p-8 text-center">
+              <EmptyState
+                icon={Calendar}
+                title={search ? 'ไม่พบรอบทุนตามเงื่อนไข' : 'ยังไม่มีรอบทุนที่เปิดรับประเมิน'}
+                description={
+                  search
+                    ? `ไม่พบข้อมูลที่ตรงกับ "${search}" กรุณาลองค้นหาด้วยคำอื่น หรือกดล้างการค้นหา`
+                    : 'รอบทุนการศึกษาจะต้องเปิดรับการประเมิน (สถานะ OPEN) โดยผู้ดูแลระบบ จึงจะปรากฏในหน้านี้'
+                }
+              >
+                {search && (
+                  <Button variant="secondary" onClick={() => handleSearchChange('')}>
+                    ล้างการค้นหา
+                  </Button>
+                )}
+              </EmptyState>
+            </div>
+          ) : (
+            <div className="divide-y divide-border/60">
+              {rounds.map((round) => (
+                <div key={round.id} className="p-4 space-y-3 hover:bg-muted/10 transition">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h4 className="font-bold text-foreground text-base leading-snug">
+                        {round.name}
+                      </h4>
+                    </div>
+                    <div className="shrink-0">
+                      <RoundStageIndicator status={round.status} />
+                    </div>
+                  </div>
 
-      {/* Empty State */}
-      {!loading && rounds.length === 0 && !error && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center space-y-3 shadow-xs">
-          <div className="mx-auto w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
-            <Inbox className="h-6 w-6" />
-          </div>
-          <h3 className="text-base font-bold text-slate-800">
-            ยังไม่มีรอบทุนที่เปิดรับการประเมิน
-          </h3>
-          <p className="text-sm text-slate-500 max-w-md mx-auto">
-            {search
-              ? 'ไม่พบข้อมูลรอบทุนที่ตรงกับคำค้นหา ลองตรวจสอบคำค้นหาใหม่อีกครั้ง'
-              : 'รอบทุนการศึกษาจะต้องเปิดรับการประเมิน (สถานะ OPEN) โดยผู้ดูแลระบบ จึงจะปรากฏในหน้านี้'}
-          </p>
-        </div>
-      )}
-
-      {/* Rounds Grid */}
-      {!loading && rounds.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {rounds.map((round) => (
-            <div
-              key={round.id}
-              className="bg-white border border-slate-200 hover:border-primary/40 rounded-2xl p-6 shadow-xs hover:shadow-md transition flex flex-col justify-between group"
-            >
-              <div className="space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-2.5 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
-                      <Award className="h-5 w-5" />
+                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground bg-muted/30 p-2.5 rounded-xl border border-border/40">
+                    <div>
+                      <span className="block text-xs text-muted-foreground">ปี/ภาคเรียน</span>
+                      <span className="font-mono font-medium text-foreground">{round.academicYear}/{round.semester}</span>
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-slate-900 group-hover:text-primary transition line-clamp-1">
-                        {round.name}
-                      </h3>
-                      <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5 font-medium">
-                        <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                        ปีการศึกษา {round.academicYear} • ภาคเรียนที่ {round.semester}
-                      </p>
+                      <span className="block text-xs text-muted-foreground">ผู้สมัคร</span>
+                      <span className="font-mono font-bold text-foreground flex items-center gap-1">
+                        <Users className="h-3 w-3 text-blue-600" /> {round.applicantCount} คน
+                      </span>
+                    </div>
+                    <div className="col-span-2 border-t border-border/40 pt-1.5 mt-0.5">
+                      <span className="block text-xs text-muted-foreground mb-0.5">ชุดเกณฑ์ที่ผูก</span>
+                      {round.criteriaName ? (
+                        <span className="font-medium text-foreground flex items-center gap-1 truncate">
+                          <CheckCircle2 className="h-3 w-3 text-emerald-600 shrink-0" />
+                          <span className="truncate">{round.criteriaName}</span>
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground italic">เกณฑ์มาตรฐาน</span>
+                      )}
                     </div>
                   </div>
-                  <StatusBadge label="เปิดประเมิน" variant="success" />
-                </div>
 
-                {/* Details Meta */}
-                <div className="space-y-2 py-3 border-y border-slate-100 text-xs text-slate-600">
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-slate-500">
-                      <Layers className="h-3.5 w-3.5 text-slate-400" />
-                      เกณฑ์การประเมิน
-                    </span>
-                    <span className="font-semibold text-slate-800 truncate max-w-[160px]">
-                      {round.criteriaName ?? 'เกณฑ์มาตรฐาน'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-slate-500">
-                      <Users className="h-3.5 w-3.5 text-slate-400" />
-                      จำนวนผู้สมัคร
-                    </span>
-                    <span className="font-bold text-slate-900">
-                      {round.applicantCount.toLocaleString('th-TH')} คน
-                    </span>
+                  <div className="pt-1 flex items-center gap-2">
+                    <Link
+                      href={`/evaluator/rounds/${round.id}/applicants`}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-primary py-2.5 px-3 rounded-xl bg-primary/10 hover:bg-primary hover:text-primary-foreground transition shadow-2xs"
+                    >
+                      <Sliders className="h-3.5 w-3.5" />
+                      <span>เข้าสู่การประเมินผู้สมัคร</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
                   </div>
                 </div>
-              </div>
-
-              {/* Action Link */}
-              <div className="pt-4 mt-2">
-                <Link
-                  href={`/evaluator/rounds/${round.id}/applicants`}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.99] transition shadow-xs"
-                >
-                  <span>เข้าสู่การประเมินผู้สมัคร</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-      )}
 
-      {/* Pagination */}
-      {!loading && pagination.totalPages > 1 && (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-          <Pagination
-            page={pagination.page}
-            totalPages={pagination.totalPages}
-            total={pagination.total}
-            limit={pagination.limit}
-            onPageChange={handlePageChange}
-            disabled={loading}
-          />
+        {/* Desktop View: Full Data Table (>= md) Matching Admin Round Style */}
+        <div className="hidden md:block overflow-x-auto flex-1">
+          <Table className="table-fixed min-w-[980px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-1/6">ชื่อรอบทุนการศึกษา</TableHead>
+                <TableHead className="w-1/6 text-center">ปี/ภาคเรียน</TableHead>
+                <TableHead className="w-1/6">เกณฑ์การประเมิน</TableHead>
+                <TableHead className="w-1/6 text-center">ผู้สมัคร</TableHead>
+                <TableHead className="w-1/6 text-center">สถานะ</TableHead>
+                <TableHead className="w-1/6 text-center">ดำเนินการ</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="py-24 text-center">
+                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em]" />
+                    <p className="mt-4 text-sm text-muted-foreground animate-pulse">กำลังโหลดรายการรอบทุน...</p>
+                  </TableCell>
+                </TableRow>
+              ) : rounds.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="py-20 px-4 text-center">
+                    <div className="max-w-md mx-auto">
+                      <EmptyState
+                        icon={Calendar}
+                        title={search ? 'ไม่พบรอบทุนตามเงื่อนไข' : 'ยังไม่มีรอบทุนที่เปิดรับประเมิน'}
+                        description={
+                          search
+                            ? `ไม่พบข้อมูลที่ตรงกับ "${search}" กรุณาลองค้นหาด้วยคำอื่น หรือกดล้างการค้นหา`
+                            : 'รอบทุนการศึกษาจะต้องเปิดรับการประเมิน (สถานะ OPEN) โดยผู้ดูแลระบบ จึงจะปรากฏในหน้านี้'
+                        }
+                      >
+                        {search && (
+                          <Button variant="secondary" onClick={() => handleSearchChange('')}>
+                            ล้างการค้นหา
+                          </Button>
+                        )}
+                      </EmptyState>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                rounds.map((round) => (
+                  <TableRow key={round.id} className="group">
+                    {/* Name & Type */}
+                    <TableCell className="font-medium">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-foreground group-hover:text-primary transition-colors text-sm">
+                            {round.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>รหัสรอบ #{round.id}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+
+                    {/* Year & Semester */}
+                    <TableCell className="text-center">
+                      <span className="inline-flex items-center font-mono font-bold px-2.5 py-1 rounded-lg bg-muted text-xs text-foreground border border-border/60">
+                        {round.academicYear}/{round.semester}
+                      </span>
+                    </TableCell>
+
+                    {/* Criteria */}
+                    <TableCell>
+                      {round.criteriaName ? (
+                        <div className="flex flex-col gap-0.5 max-w-full">
+                          <span className="text-xs font-semibold text-foreground flex items-center gap-1.5 min-w-0">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                            <span className="truncate block" title={round.criteriaName}>
+                              {round.criteriaName}
+                            </span>
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">
+                          เกณฑ์มาตรฐาน
+                        </span>
+                      )}
+                    </TableCell>
+
+                    {/* Applicant Count */}
+                    <TableCell className="text-center">
+                      <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-foreground px-2.5 py-1 rounded-lg bg-muted/60 border border-border/40">
+                        <Users className="h-3.5 w-3.5 text-blue-600" />
+                        {round.applicantCount} คน
+                      </span>
+                    </TableCell>
+
+                    {/* Status */}
+                    <TableCell className="text-center">
+                      <div className="flex justify-center">
+                        <RoundStageIndicator status={round.status} />
+                      </div>
+                    </TableCell>
+
+                    {/* Contextual Action Button */}
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <Link href={`/evaluator/rounds/${round.id}/applicants`}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="min-w-[130px] justify-center whitespace-nowrap bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-white hover:border-transparent font-medium shrink-0 text-xs px-2.5"
+                            rightIcon={<ArrowRight className="h-3 w-3 shrink-0" />}
+                            leftIcon={<Sliders className="h-3.5 w-3.5 shrink-0" />}
+                          >
+                            ประเมินผู้สมัคร
+                          </Button>
+                        </Link>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </div>
-      )}
+
+        {/* Pagination matching Admin Rounds */}
+        {!loading && pagination.totalPages > 1 && (
+          <div className="border-t border-border/60 p-3 bg-muted/10">
+            <Pagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              total={pagination.total}
+              limit={pagination.limit}
+              onPageChange={handlePageChange}
+              disabled={loading}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -249,14 +377,10 @@ export default function EvaluatorRoundsPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex-1 flex flex-col space-y-6 animate-pulse">
-          <div className="h-10 w-64 bg-slate-200 rounded-xl" />
-          <div className="h-14 w-full bg-slate-100 rounded-2xl" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-48 bg-slate-100 rounded-2xl" />
-            ))}
-          </div>
+        <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12 animate-pulse">
+          <div className="h-10 w-64 bg-muted rounded-xl" />
+          <div className="h-14 w-full bg-muted/40 rounded-2xl" />
+          <div className="h-96 w-full bg-muted/20 rounded-2xl" />
         </div>
       }
     >
