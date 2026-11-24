@@ -179,7 +179,7 @@ export function QuickCreateScholarshipTypeModal({
               <option value="activity">เกณฑ์ทุนกิจกรรมและผู้นำ (ผู้นำ 40 / จิตอาสา 40 / สัมภาษณ์ 20 = 100 คะแนน)</option>
               <option value="single">เกณฑ์พิจารณารวมแบบองค์รวม (คะแนนรวมของกรรมการ 100 คะแนนเต็ม)</option>
             </Select>
-            <p className="text-[11px] text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               ระบบจะสร้างประเภททุนพร้อมผูกเกณฑ์แม่แบบ 100 คะแนนเต็มให้อัตโนมัติ สามารถนำไปปรับแต่งเฉพาะรอบได้ภายหลัง
             </p>
           </div>

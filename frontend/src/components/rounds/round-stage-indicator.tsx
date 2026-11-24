@@ -21,7 +21,7 @@ export function RoundStageIndicator({ status }: RoundStageIndicatorProps) {
       >
         {/* Step 1: Draft */}
         <span
-          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-colors ${
+          className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-colors ${
             isDraft
               ? 'bg-amber-100 text-amber-800 border-2 border-amber-500 shadow-2xs'
               : 'bg-emerald-100 text-emerald-700 border border-emerald-300'
@@ -40,7 +40,7 @@ export function RoundStageIndicator({ status }: RoundStageIndicatorProps) {
 
         {/* Step 2: Open */}
         <span
-          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-colors ${
+          className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-colors ${
             isOpen
               ? 'bg-emerald-100 text-emerald-800 border-2 border-emerald-500 ring-2 ring-emerald-500/20 shadow-2xs'
               : isClosed
@@ -61,7 +61,7 @@ export function RoundStageIndicator({ status }: RoundStageIndicatorProps) {
 
         {/* Step 3: Closed */}
         <span
-          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-colors ${
+          className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-colors ${
             isClosed
               ? 'bg-slate-700 text-white border-2 border-slate-800 shadow-2xs'
               : 'bg-slate-100 text-slate-400 border border-slate-200'

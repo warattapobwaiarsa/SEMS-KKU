@@ -517,7 +517,7 @@ export default function CreateCriteriaPage() {
                 <Calculator className="h-4 w-4 text-primary" />
                 คะแนนรวมทั้งหมด
               </h3>
-              <span className="text-xs font-mono text-muted-foreground">เป้าหมาย {targetScore}</span>
+              <span className="text-xs text-muted-foreground">เป้าหมาย <span className="font-mono font-bold">{targetScore}</span></span>
             </div>
 
             {/* Score Highlight Box */}

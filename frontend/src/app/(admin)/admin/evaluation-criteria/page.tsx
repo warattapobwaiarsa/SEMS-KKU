@@ -227,7 +227,7 @@ export default function EvaluationCriteriaPage() {
                 <div key={criteria.id} className="p-4 space-y-3 hover:bg-muted/10 transition">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h4 className="font-bold text-foreground text-sm leading-snug">
+                      <h4 className="font-bold text-foreground text-base leading-snug">
                         {criteria.name}
                       </h4>
                       {criteria.createdAt && (
@@ -243,14 +243,14 @@ export default function EvaluationCriteriaPage() {
 
                   <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground bg-muted/30 p-2.5 rounded-xl border border-border/40">
                     <div>
-                      <span className="block text-[11px] text-muted-foreground/80">คะแนนเต็ม</span>
+                      <span className="block text-xs text-muted-foreground">คะแนนเต็ม</span>
                       <span className="inline-flex items-center gap-1 font-mono font-bold text-emerald-700 dark:text-emerald-400">
                         <CheckCircle2 className="h-3 w-3" />
                         {criteria.totalScore} คะแนน
                       </span>
                     </div>
                     <div>
-                      <span className="block text-[11px] text-muted-foreground/80">เกณฑ์ย่อย</span>
+                      <span className="block text-xs text-muted-foreground">เกณฑ์ย่อย</span>
                       <span className="font-mono font-bold text-foreground flex items-center gap-1">
                         <Layers className="h-3 w-3 text-primary" />
                         {criteria.subCriteria.length} ข้อ
@@ -258,7 +258,7 @@ export default function EvaluationCriteriaPage() {
                     </div>
                     {criteria.usedByRounds && criteria.usedByRounds.length > 0 && (
                       <div className="col-span-2 border-t border-border/40 pt-1.5 mt-0.5">
-                        <span className="block text-[11px] text-muted-foreground/80 mb-0.5">รอบทุนที่นำไปใช้</span>
+                        <span className="block text-xs text-muted-foreground mb-0.5">รอบทุนที่นำไปใช้</span>
                         <RoundBadges rounds={criteria.usedByRounds} compact={true} maxVisible={2} />
                       </div>
                     )}

@@ -169,11 +169,11 @@ export default function HomePage() {
                     <span className="font-semibold text-slate-900 block truncate">
                       {currentAdmin.name}
                     </span>
-                    <span className="text-[11px] text-slate-500 truncate block">
+                    <span className="text-xs text-slate-500 truncate block">
                       {currentAdmin.email} • ID: {currentAdmin.id}
                     </span>
                   </div>
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-200 text-slate-800 shrink-0">
+                  <span className="px-2 py-0.5 text-xs font-bold rounded bg-slate-200 text-slate-800 shrink-0">
                     FULL ACCESS
                   </span>
                 </div>
@@ -243,11 +243,11 @@ export default function HomePage() {
                     <span className="font-semibold text-blue-950 block truncate">
                       {currentEvaluator.name}
                     </span>
-                    <span className="text-[11px] text-blue-700 truncate block">
+                    <span className="text-xs text-blue-700 truncate block">
                       {currentEvaluator.email} • ID: {currentEvaluator.id}
                     </span>
                   </div>
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-blue-200/80 text-blue-800 shrink-0 inline-flex items-center gap-1">
+                  <span className="px-2 py-0.5 text-xs font-bold rounded bg-blue-200/80 text-blue-800 shrink-0 inline-flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3 text-blue-700" />
                     ACTIVE
                   </span>
@@ -273,7 +273,7 @@ export default function HomePage() {
           ระบบบริหารจัดการการประเมินทุนการศึกษา (SEMS) - คณะวิศวกรรมศาสตร์
           มหาวิทยาลัยขอนแก่น
         </p>
-        <span className="text-[11px] text-slate-400 font-mono">
+        <span className="text-xs text-slate-400 font-mono">
           KKU SSO Roadmap [FR-AUTH-01]
         </span>
       </footer>

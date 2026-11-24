@@ -800,7 +800,7 @@ export default function CreateScholarshipRoundPage() {
                       className="text-primary focus:ring-primary"
                     />
                   </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     ดึงเกณฑ์แม่แบบเริ่มต้นที่ผูกไว้กับประเภททุนมาใช้งานทันที
                   </p>
                 </div>
@@ -826,7 +826,7 @@ export default function CreateScholarshipRoundPage() {
                       className="text-primary focus:ring-primary"
                     />
                   </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     ปรับคะแนนเต็มเป้าหมาย สลับข้อความ/มีคะแนน หรือแก้ไขเกณฑ์ย่อยเฉพาะรอบนี้
                   </p>
                 </div>
@@ -950,7 +950,7 @@ export default function CreateScholarshipRoundPage() {
                       <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
                       <span>ประเภททุนนี้ยังไม่มีเกณฑ์แม่แบบเริ่มต้น</span>
                     </div>
-                    <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
+                    <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
                       กรุณาเลือก &ldquo;ปรับแต่งเฉพาะรอบนี้&rdquo; เพื่อกำหนดเกณฑ์การประเมินสำหรับรอบทุนนี้
                     </p>
                   </div>
@@ -972,7 +972,7 @@ export default function CreateScholarshipRoundPage() {
                         )}
                       </span>
                     </div>
-                    <p className="text-[11px]">
+                    <p className="text-xs text-muted-foreground">
                       เมื่อบันทึกรอบทุน เกณฑ์การประเมินจะถูกผูกกับรอบนี้ทันทีโดยไม่ต้องตั้งค่าเพิ่มเติม
                     </p>
                   </>
@@ -1129,7 +1129,7 @@ export default function CreateScholarshipRoundPage() {
                   <p className="text-xs font-semibold text-foreground">
                     คลิกเพื่อเลือกไฟล์ หรือลากไฟล์รายชื่อผู้สมัคร (.xlsx) มาวางที่นี่
                   </p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     ขนาดไฟล์ไม่เกิน 50 MB
                   </p>
                 </div>

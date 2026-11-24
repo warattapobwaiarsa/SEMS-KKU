@@ -318,7 +318,7 @@ export default function CreateScholarshipTypePage() {
                     <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
                     ยังไม่มีชุดเกณฑ์การประเมินในระบบ
                   </p>
-                  <p className="text-[11px] text-amber-700">
+                  <p className="text-xs text-amber-700">
                     กรุณาสร้างชุดเกณฑ์การประเมินในหน้าระบบจัดการเกณฑ์ก่อน จึงจะสามารถสร้างประเภททุนและผูกเกณฑ์ได้
                   </p>
                   <Link href="/admin/criteria">
@@ -367,7 +367,7 @@ export default function CreateScholarshipTypePage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <span className="text-[11px] text-muted-foreground font-medium block">
+                  <span className="text-xs text-muted-foreground font-medium block">
                     หัวข้อเกณฑ์ย่อย ({selectedCriteria.subCriteria?.length || 0} ข้อ):
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
@@ -380,12 +380,12 @@ export default function CreateScholarshipTypePage() {
                           {idx + 1}. {sub.title}
                         </span>
                         {sub.type === 'SCORED' ? (
-                          <Badge variant="secondary" className="text-[10px] shrink-0 font-mono">
+                          <Badge variant="secondary" className="text-xs shrink-0 font-mono">
                             <Target className="h-3 w-3 mr-1 text-primary" />
                             {sub.maxScore} คะแนน
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[10px] shrink-0 text-muted-foreground">
+                          <Badge variant="outline" className="text-xs shrink-0 text-muted-foreground">
                             <FileText className="h-3 w-3 mr-1" />
                             ข้อความ
                           </Badge>

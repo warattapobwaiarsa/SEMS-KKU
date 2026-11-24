@@ -125,7 +125,7 @@ export function AppSidebar({
                       } ${isCollapsed ? "px-1 text-center" : "px-3 mb-1.5"}`}
                     >
                       {!isCollapsed && (
-                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
                           {item.group}
                         </span>
                       )}
@@ -160,7 +160,7 @@ export function AppSidebar({
                   </p>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span
-                      className={`inline-block px-1.5 py-0.2 text-[10px] font-semibold rounded border ${
+                      className={`inline-block px-1.5 py-0.5 text-xs font-semibold rounded border ${
                         role === "evaluator"
                           ? "border-blue-200 bg-blue-50 text-blue-700"
                           : "border-slate-200 bg-slate-100 text-slate-700"
@@ -168,7 +168,7 @@ export function AppSidebar({
                     >
                       {role === "evaluator" ? "Evaluator" : "Admin"}
                     </span>
-                    <span className="text-[10px] text-slate-400 truncate">
+                    <span className="text-xs text-slate-400 truncate">
                       {user?.department || "มหาวิทยาลัยขอนแก่น"}
                     </span>
                   </div>

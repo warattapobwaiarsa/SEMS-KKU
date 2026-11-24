@@ -340,7 +340,7 @@ export function CriteriaBuilder({
                 / {targetScore}
               </span>
             </div>
-            <div className="text-[11px] text-muted-foreground">คะแนนเต็มเป้าหมาย</div>
+            <div className="text-xs text-muted-foreground">คะแนนเต็มเป้าหมาย</div>
           </div>
 
           {/* Status Alert Badge */}

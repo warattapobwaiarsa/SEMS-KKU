@@ -492,7 +492,7 @@ export default function EvaluatorScoringPage({
 
             <div className="min-w-0 truncate">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-sm sm:text-base font-bold text-foreground truncate">
+                <h1 className="text-base sm:text-lg font-bold text-foreground truncate">
                   {fullName}
                 </h1>
                 <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border/60">

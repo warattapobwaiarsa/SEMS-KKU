@@ -374,7 +374,7 @@ export default function RoundApplicantsDetailPage() {
                       <span className="text-xs font-mono font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
                         #{app.legacySeq ?? app.id}
                       </span>
-                      <h4 className="mt-1 font-semibold text-foreground text-sm leading-snug">
+                      <h4 className="mt-1 font-bold text-foreground text-base leading-snug">
                         {app.titlePrefix}{app.firstName} {app.lastName}
                       </h4>
                       <p className="font-mono text-xs text-muted-foreground mt-0.5">
@@ -400,7 +400,7 @@ export default function RoundApplicantsDetailPage() {
                     </div>
                     <div className="col-span-2 border-t border-border/40 pt-1.5 mt-0.5 flex justify-between items-center">
                       <span className="text-xs text-muted-foreground/80">ชั้นปีการศึกษา</span>
-                      <span className="font-mono font-semibold text-foreground">ปี {app.studyYear}</span>
+                      <span className="font-semibold text-foreground">ปี <span className="font-mono">{app.studyYear}</span></span>
                     </div>
                   </div>
 

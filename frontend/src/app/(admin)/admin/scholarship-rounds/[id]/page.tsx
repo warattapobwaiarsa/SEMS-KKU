@@ -853,7 +853,7 @@ export default function RoundDetailPage() {
                     ?.subCriteria?.map((sub, idx) => (
                       <div key={sub.id || idx} className="flex justify-between text-muted-foreground">
                         <span>{idx + 1}. {sub.title}</span>
-                        <span className="font-mono font-medium">{sub.type === 'TEXT' ? 'ข้อความ' : `${sub.maxScore ?? '-'} คะแนน`}</span>
+                        <span className="font-medium">{sub.type === 'TEXT' ? 'ข้อความ' : <><span className="font-mono">{sub.maxScore ?? '-'}</span> คะแนน</>}</span>
                       </div>
                     ))}
                 </div>
