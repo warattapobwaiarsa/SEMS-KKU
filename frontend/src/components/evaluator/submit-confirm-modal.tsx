@@ -226,7 +226,7 @@ export function SubmitConfirmModal({
                                 style={{ width: `${pct}%` }}
                               />
                             </div>
-                            <span className="font-mono text-[11px] font-medium">{pct.toFixed(0)}%</span>
+                            <span className="font-mono text-xs font-medium">{pct.toFixed(0)}%</span>
                           </div>
                           {val?.comment?.trim() && (
                             <p className="text-xs text-muted-foreground/90 italic truncate">

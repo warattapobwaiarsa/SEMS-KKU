@@ -200,7 +200,7 @@ export default function MyEvaluationsPage() {
                 <Layers className="h-3.5 w-3.5 shrink-0" />
                 <span>ทั้งหมด</span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-md font-mono text-[11px] font-bold ${
+                  className={`px-1.5 py-0.5 rounded-md font-mono text-xs font-bold ${
                     roundStatusFilter === 'ALL'
                       ? 'bg-primary-foreground/20 text-primary-foreground'
                       : 'bg-muted text-muted-foreground'
@@ -222,7 +222,7 @@ export default function MyEvaluationsPage() {
                 <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                 <span>เปิดรับประเมิน</span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-md font-mono text-[11px] font-bold ${
+                  className={`px-1.5 py-0.5 rounded-md font-mono text-xs font-bold ${
                     roundStatusFilter === 'OPEN'
                       ? 'bg-white/20 text-white'
                       : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200'
@@ -244,7 +244,7 @@ export default function MyEvaluationsPage() {
                 <Clock className="h-3.5 w-3.5 shrink-0" />
                 <span>ปิดรอบแล้ว</span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-md font-mono text-[11px] font-bold ${
+                  className={`px-1.5 py-0.5 rounded-md font-mono text-xs font-bold ${
                     roundStatusFilter === 'CLOSED'
                       ? 'bg-white/20 text-white'
                       : 'bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200'
@@ -309,7 +309,7 @@ export default function MyEvaluationsPage() {
                     <div key={round.id} className="p-4 space-y-3 hover:bg-muted/10 transition">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <h4 className="font-bold text-foreground text-sm leading-snug">
+                          <h4 className="font-bold text-foreground text-base leading-snug">
                             {round.name}
                           </h4>
                           <span className="text-xs text-muted-foreground">
@@ -471,7 +471,7 @@ export default function MyEvaluationsPage() {
                 <Layers className="h-3.5 w-3.5 shrink-0" />
                 <span>ทั้งหมด</span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-md font-mono text-[11px] font-bold ${
+                  className={`px-1.5 py-0.5 rounded-md font-mono text-xs font-bold ${
                     applicantStatusFilter === 'ALL'
                       ? 'bg-primary-foreground/20 text-primary-foreground'
                       : 'bg-muted text-muted-foreground'
@@ -493,7 +493,7 @@ export default function MyEvaluationsPage() {
                 <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                 <span>ส่งผลแล้ว</span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-md font-mono text-[11px] font-bold ${
+                  className={`px-1.5 py-0.5 rounded-md font-mono text-xs font-bold ${
                     applicantStatusFilter === 'SUBMITTED'
                       ? 'bg-white/20 text-white'
                       : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200'
@@ -515,7 +515,7 @@ export default function MyEvaluationsPage() {
                 <FileEdit className="h-3.5 w-3.5 shrink-0" />
                 <span>ฉบับร่าง</span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-md font-mono text-[11px] font-bold ${
+                  className={`px-1.5 py-0.5 rounded-md font-mono text-xs font-bold ${
                     applicantStatusFilter === 'DRAFT'
                       ? 'bg-white/20 text-white'
                       : 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200'
@@ -593,7 +593,7 @@ export default function MyEvaluationsPage() {
                             <span className="text-xs font-mono font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
                               {app.studentCode}
                             </span>
-                            <h4 className="mt-1 font-semibold text-foreground text-sm">
+                            <h4 className="mt-1 font-bold text-foreground text-base">
                               {fullName}
                             </h4>
                           </div>

@@ -65,7 +65,7 @@ export function CriteriaStatusFilterTabs({
             <Icon className="h-3.5 w-3.5 shrink-0" />
             <span>{tab.label}</span>
             <span
-              className={`px-1.5 py-0.2 rounded-md font-mono text-[11px] font-bold ${
+              className={`px-1.5 py-0.5 rounded-md font-mono text-xs font-bold ${
                 isActive ? 'bg-white/20 text-white' : tab.badgeColor
               }`}
             >

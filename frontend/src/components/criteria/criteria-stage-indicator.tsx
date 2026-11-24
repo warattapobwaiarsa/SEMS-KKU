@@ -17,7 +17,7 @@ export function CriteriaStageIndicator({ isLocked }: CriteriaStageIndicatorProps
       >
         {/* Step 1: แก้ไขได้ */}
         <span
-          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-colors ${
+          className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-colors ${
             !isLocked
               ? 'bg-emerald-100 text-emerald-800 border-2 border-emerald-500 ring-2 ring-emerald-500/20 shadow-2xs'
               : 'bg-emerald-100 text-emerald-700 border border-emerald-300'
@@ -36,7 +36,7 @@ export function CriteriaStageIndicator({ isLocked }: CriteriaStageIndicatorProps
 
         {/* Step 2: ล็อก */}
         <span
-          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-colors ${
+          className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-colors ${
             isLocked
               ? 'bg-slate-700 text-white border-2 border-slate-800 shadow-2xs'
               : 'bg-slate-100 text-slate-400 border border-slate-200 dark:bg-slate-800 dark:border-slate-700'

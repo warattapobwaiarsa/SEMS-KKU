@@ -582,7 +582,7 @@ export default function EditOrViewCriteriaPage() {
               <h3 className="text-base font-bold text-slate-900">
                 ผลรวมคะแนนเกณฑ์
               </h3>
-              <span className="text-xs font-mono text-muted-foreground">เป้าหมาย {targetScore}</span>
+              <span className="text-xs text-muted-foreground">เป้าหมาย <span className="font-mono font-bold">{targetScore}</span></span>
             </div>
 
             <div

@@ -230,7 +230,7 @@ export default function ScholarshipRoundsPage() {
                 <div key={round.id} className="p-4 space-y-3 hover:bg-muted/10 transition">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h4 className="font-bold text-foreground text-sm leading-snug">
+                      <h4 className="font-bold text-foreground text-base leading-snug">
                         {round.name}
                       </h4>
                     </div>
@@ -241,17 +241,17 @@ export default function ScholarshipRoundsPage() {
 
                   <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground bg-muted/30 p-2.5 rounded-xl border border-border/40">
                     <div>
-                      <span className="block text-[11px] text-muted-foreground/80">ปี/ภาคเรียน</span>
+                      <span className="block text-xs text-muted-foreground">ปี/ภาคเรียน</span>
                       <span className="font-mono font-medium text-foreground">{round.academicYear}/{round.semester}</span>
                     </div>
                     <div>
-                      <span className="block text-[11px] text-muted-foreground/80">ผู้สมัคร</span>
+                      <span className="block text-xs text-muted-foreground">ผู้สมัคร</span>
                       <span className="font-mono font-bold text-foreground flex items-center gap-1">
                         <Users className="h-3 w-3 text-blue-600" /> {round.applicantCount} คน
                       </span>
                     </div>
                     <div className="col-span-2 border-t border-border/40 pt-1.5 mt-0.5">
-                      <span className="block text-[11px] text-muted-foreground/80 mb-0.5">ชุดเกณฑ์ที่ผูก</span>
+                      <span className="block text-xs text-muted-foreground mb-0.5">ชุดเกณฑ์ที่ผูก</span>
                       {round.criteriaName ? (
                         <span className="font-medium text-foreground flex items-center gap-1 truncate">
                           <CheckCircle2 className="h-3 w-3 text-emerald-600 shrink-0" />
@@ -403,7 +403,7 @@ export default function ScholarshipRoundsPage() {
                           </span>
                         </div>
                       ) : (
-                        <span className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md italic">
+                        <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md italic">
                           ยังไม่ได้ผูกเกณฑ์
                         </span>
                       )}

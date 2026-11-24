@@ -53,9 +53,9 @@ export function LogoutModal({
         </p>
 
         {/* User Profile Context Box */}
-        <div className="p-3 bg-muted/40 rounded-xl border border-border/70 space-y-2">
+        <div className="p-3 bg-muted/40 rounded-xl border border-border/70 space-y-2 text-xs">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-muted-foreground text-[11px]">ผู้ใช้งาน:</span>
+            <span className="text-muted-foreground">ผู้ใช้งาน:</span>
             <span className="font-semibold text-foreground truncate max-w-[200px]">
               {user?.name || 'ผู้ใช้งาน'}
             </span>
@@ -63,7 +63,7 @@ export function LogoutModal({
 
           {user?.email && (
             <div className="flex items-center justify-between gap-2">
-              <span className="text-muted-foreground text-[11px]">อีเมล:</span>
+              <span className="text-muted-foreground">อีเมล:</span>
               <span className="font-mono text-muted-foreground truncate max-w-[200px]">
                 {user.email}
               </span>
@@ -71,15 +71,15 @@ export function LogoutModal({
           )}
 
           <div className="flex items-center justify-between gap-2">
-            <span className="text-muted-foreground text-[11px]">บทบาทในระบบ:</span>
-            <span className={`inline-block px-1.5 py-0.5 text-[10px] font-semibold rounded border ${roleBadgeClass}`}>
+            <span className="text-muted-foreground">บทบาทในระบบ:</span>
+            <span className={`inline-block px-1.5 py-0.5 text-xs font-semibold rounded border ${roleBadgeClass}`}>
               {roleLabel}
             </span>
           </div>
 
           {user?.department && (
             <div className="flex items-center justify-between gap-2">
-              <span className="text-muted-foreground text-[11px]">สังกัด / หน่วยงาน:</span>
+              <span className="text-muted-foreground">สังกัด / หน่วยงาน:</span>
               <span className="text-foreground truncate max-w-[200px]">
                 {user.department}
               </span>
@@ -88,7 +88,7 @@ export function LogoutModal({
         </div>
 
         {/* Informative Warning Note */}
-        <div className="flex items-start gap-2 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-800 dark:text-amber-300 text-[11px] leading-relaxed">
+        <div className="flex items-start gap-2 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-800 dark:text-amber-300 text-xs leading-relaxed">
           <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
           <span>
             หากมีข้อมูลการประเมินหรือแบบร่างที่ยังไม่ได้กดบันทึก ข้อมูลอาจสูญหายได้ โปรดตรวจสอบก่อนออกจากระบบ

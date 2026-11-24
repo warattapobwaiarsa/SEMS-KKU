@@ -163,7 +163,7 @@ export function RoundBadges({ rounds = [], maxVisible = 2, compact = false }: Ro
                 <div key={r.id} className="flex items-center justify-between text-xs py-1.5 px-2 rounded-lg bg-background border border-border/40">
                   <div className="truncate pr-2">
                     <span className="font-semibold text-foreground block truncate">{r.name}</span>
-                    <span className="text-xs text-muted-foreground font-mono">รอบ #{r.id}</span>
+                    <span className="text-xs text-muted-foreground">รอบ <span className="font-mono">#{r.id}</span></span>
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded-full border shrink-0 font-medium ${style.border} ${style.bg}`}>
                     {style.label}

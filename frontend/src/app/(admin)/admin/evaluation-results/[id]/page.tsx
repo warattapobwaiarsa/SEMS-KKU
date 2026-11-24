@@ -629,7 +629,7 @@ export default function RoundEvaluationResultsDetailPage() {
                       <div className="font-mono font-bold text-base text-primary">
                         {item.finalScore.display}
                       </div>
-                      <span className="text-[10px] text-muted-foreground block font-mono">GPAX {item.gpa.toFixed(2)}</span>
+                      <span className="text-xs text-muted-foreground block font-mono">GPAX {item.gpa.toFixed(2)}</span>
                     </div>
                   </div>
 

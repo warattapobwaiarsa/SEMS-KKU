@@ -314,7 +314,7 @@ export default function EvaluatorApplicantsPage({
             <Layers className="h-3.5 w-3.5 shrink-0" />
             <span>ทั้งหมด</span>
             <span
-              className={`px-1.5 py-0.5 rounded-md font-mono text-[11px] font-bold ${
+              className={`px-1.5 py-0.5 rounded-md font-mono text-xs font-bold ${
                 statusFilter === 'ALL'
                   ? 'bg-primary-foreground/20 text-primary-foreground'
                   : 'bg-muted text-muted-foreground'
@@ -336,7 +336,7 @@ export default function EvaluatorApplicantsPage({
             <Clock className="h-3.5 w-3.5 shrink-0" />
             <span>ยังไม่ประเมิน</span>
             <span
-              className={`px-1.5 py-0.5 rounded-md font-mono text-[11px] font-bold ${
+              className={`px-1.5 py-0.5 rounded-md font-mono text-xs font-bold ${
                 statusFilter === 'NOT_STARTED'
                   ? 'bg-white/20 text-white'
                   : 'bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200'
@@ -358,7 +358,7 @@ export default function EvaluatorApplicantsPage({
             <FileEdit className="h-3.5 w-3.5 shrink-0" />
             <span>ฉบับร่าง</span>
             <span
-              className={`px-1.5 py-0.5 rounded-md font-mono text-[11px] font-bold ${
+              className={`px-1.5 py-0.5 rounded-md font-mono text-xs font-bold ${
                 statusFilter === 'DRAFT'
                   ? 'bg-white/20 text-white'
                   : 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200'
@@ -380,7 +380,7 @@ export default function EvaluatorApplicantsPage({
             <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
             <span>ส่งผลแล้ว</span>
             <span
-              className={`px-1.5 py-0.5 rounded-md font-mono text-[11px] font-bold ${
+              className={`px-1.5 py-0.5 rounded-md font-mono text-xs font-bold ${
                 statusFilter === 'SUBMITTED'
                   ? 'bg-white/20 text-white'
                   : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200'
@@ -451,7 +451,7 @@ export default function EvaluatorApplicantsPage({
                         <span className="text-xs font-mono font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
                           #{String((pagination.page - 1) * pagination.limit + idx + 1).padStart(2, '0')} • {row.studentCode}
                         </span>
-                        <h4 className="mt-1 font-semibold text-foreground text-sm">
+                        <h4 className="mt-1 font-bold text-foreground text-base">
                           {`${row.titlePrefix}${row.firstName} ${row.lastName}`}
                         </h4>
                       </div>
@@ -460,7 +460,7 @@ export default function EvaluatorApplicantsPage({
 
                     <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground bg-muted/30 p-2.5 rounded-xl border border-border/40">
                       <div>
-                        <span className="block text-[11px] text-muted-foreground/80">ผู้ประเมินที่ส่งผลแล้ว</span>
+                        <span className="block text-xs text-muted-foreground">ผู้ประเมินที่ส่งผลแล้ว</span>
                         <span className="font-mono font-semibold text-foreground">
                           {row.submittedCount > 0 ? `${row.submittedCount} คน` : '0 คน'}
                         </span>
