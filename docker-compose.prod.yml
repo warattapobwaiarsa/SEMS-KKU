@@ -49,7 +49,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      NEXT_PUBLIC_API_URL: http://backend:4000
+      BACKEND_INTERNAL_URL: http://backend:4000
     ports:
       - "3000:3000"
     networks:
