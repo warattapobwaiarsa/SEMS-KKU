@@ -292,7 +292,7 @@ export default function ScholarshipAllocationPage() {
   }, [items, debouncedSearch, statusFilter]);
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-12">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
       {/* ส่วนหัวหน้าจอ */}
       <PageHeader
         title="การจัดสรรทุนการศึกษา"
