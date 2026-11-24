@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/api-client';
+import { getAdminId } from '@/lib/mock-evaluator';
 import type {
   EvaluationResultsQuery,
   RoundEvaluationResultsData,
@@ -26,7 +27,7 @@ export async function fetchRoundEvaluationResults(
   return apiClient<ApiResponse<RoundEvaluationResultsData>>(endpoint, {
     method: 'GET',
     headers: {
-      'x-user-role': 'ADMIN',
+      'X-User-Id': getAdminId(),
     },
   });
 }
@@ -44,7 +45,7 @@ export async function fetchApplicantEvaluationResults(
     {
       method: 'GET',
       headers: {
-        'x-user-role': 'ADMIN',
+        'X-User-Id': getAdminId(),
       },
     },
   );

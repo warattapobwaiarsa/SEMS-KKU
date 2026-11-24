@@ -103,6 +103,7 @@ export class ScholarshipTypesService {
           select: {
             id: true,
             name: true,
+            targetScore: true,
             subCriteria: {
               orderBy: { sortOrder: 'asc' },
               select: {
@@ -270,6 +271,18 @@ export class ScholarshipTypesService {
             select: {
               id: true,
               name: true,
+              targetScore: true,
+              subCriteria: {
+                orderBy: { sortOrder: 'asc' },
+                select: {
+                  id: true,
+                  title: true,
+                  type: true,
+                  maxScore: true,
+                  allowComment: true,
+                  sortOrder: true,
+                },
+              },
             },
           },
         },
@@ -503,6 +516,18 @@ export class ScholarshipTypesService {
             select: {
               id: true,
               name: true,
+              targetScore: true,
+              subCriteria: {
+                orderBy: { sortOrder: 'asc' },
+                select: {
+                  id: true,
+                  title: true,
+                  type: true,
+                  maxScore: true,
+                  allowComment: true,
+                  sortOrder: true,
+                },
+              },
             },
           },
         },

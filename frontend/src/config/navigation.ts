@@ -25,7 +25,7 @@ export const ADMIN_NAV_ITEMS: NavItemConfig[] = [
     group: "การดำเนินงาน (Operations)",
   },
   {
-    title: "ผลการประเมินและอันดับ",
+    title: "ผลการประเมิน",
     href: "/admin/evaluation-results",
     iconName: "ListOrdered",
     description: "ตรวจสอบคะแนนเฉลี่ยและการจัดอันดับผู้สมัคร",

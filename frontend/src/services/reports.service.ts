@@ -3,6 +3,7 @@
  * [Scope 1.3.2.11] [Scope 1.3.2.12]
  */
 import { apiClient } from '@/lib/api-client';
+import { getAdminId } from '@/lib/mock-evaluator';
 
 export async function exportEvaluationResultsReport(
   roundId: number,
@@ -15,7 +16,7 @@ export async function exportEvaluationResultsReport(
       }`,
       {
         headers: {
-          'x-user-role': 'ADMIN',
+          'X-User-Id': getAdminId(),
         },
       },
     );
@@ -48,7 +49,7 @@ export async function exportAllocationDisbursementReport(
       }`,
       {
         headers: {
-          'x-user-role': 'ADMIN',
+          'X-User-Id': getAdminId(),
         },
       },
     );
