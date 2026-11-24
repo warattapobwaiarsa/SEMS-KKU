@@ -6,7 +6,6 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   Calendar,
-  Layers,
   ArrowRight,
   Search,
   Users,
@@ -133,10 +132,19 @@ function EvaluatorRoundsContent() {
       {error && (
         <Alert
           variant="destructive"
-          title="ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้"
+          title={
+            error.includes('ไม่สามารถเชื่อมต่อ') || error.includes('Failed to fetch')
+              ? 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้'
+              : 'เกิดข้อผิดพลาดในการโหลดข้อมูล'
+          }
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-1">
-            <p className="text-xs text-destructive/90">{error} (เซิร์ฟเวอร์ Backend อาจกำลังเริ่มต้นระบบ กรุณารอสักครู่แล้วลองใหม่)</p>
+            <p className="text-xs text-destructive/90">
+              {error}
+              {error.includes('ไม่สามารถเชื่อมต่อ') || error.includes('Failed to fetch')
+                ? ' (เซิร์ฟเวอร์ Backend อาจกำลังเริ่มต้นระบบ กรุณารอสักครู่แล้วลองใหม่)'
+                : ''}
+            </p>
             <Button
               variant="destructive"
               size="sm"

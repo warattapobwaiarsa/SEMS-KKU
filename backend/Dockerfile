@@ -42,4 +42,4 @@ WORKDIR /app/backend
 
 EXPOSE 4000
 
-CMD ["node", "dist/main"]
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=prisma/schema.prisma && (node dist/src/main || node dist/main)"]

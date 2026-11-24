@@ -113,11 +113,24 @@ export class HttpExceptionFilter implements ExceptionFilter {
         errorCode = 'FOREIGN_KEY_CONSTRAINT_FAILED';
         message = 'ไม่สามารถดำเนินการได้เนื่องจากมีข้อมูลอื่นเชื่อมโยงอยู่';
         params = { field: exception.meta?.field_name };
+      } else if (exception.code === 'P2021' || exception.code === 'P2022') {
+        status = HttpStatus.SERVICE_UNAVAILABLE;
+        errorCode = 'DATABASE_MIGRATION_REQUIRED';
+        message =
+          'โครงสร้างฐานข้อมูลยังไม่พร้อมใช้งาน (กรุณาตรวจสอบการรัน Database Migration)';
+        params = { prismaCode: exception.code, meta: exception.meta };
       } else {
         status = HttpStatus.BAD_REQUEST;
         errorCode = `DB_ERROR_${exception.code}`;
         message = 'เกิดข้อผิดพลาดในการประมวลผลข้อมูลฐานข้อมูล';
+        params = { prismaCode: exception.code };
       }
+    } else if (exception instanceof Prisma.PrismaClientInitializationError) {
+      this.logger.error(`Prisma initialization error: ${exception.message}`);
+      status = HttpStatus.SERVICE_UNAVAILABLE;
+      errorCode = 'DATABASE_CONNECTION_ERROR';
+      message =
+        'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ (กรุณาตรวจสอบการตั้งค่า DATABASE_URL)';
     } else if (exception instanceof Error) {
       this.logger.error(
         `Unhandled error: ${exception.message}`,
