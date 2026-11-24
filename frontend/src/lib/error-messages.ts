@@ -61,6 +61,8 @@ export const ERROR_MESSAGES: Record<string, string> = {
   STALE_VERSION: 'ข้อมูลถูกเปลี่ยนแปลงโดยผู้ใช้อื่นแล้ว กรุณารีเฟรชหน้าจอ',
   UNIQUE_CONSTRAINT_FAILED: 'ข้อมูลซ้ำกับที่มีอยู่ในระบบ',
   FOREIGN_KEY_CONSTRAINT_FAILED: 'ไม่สามารถดำเนินการได้เนื่องจากมีข้อมูลอื่นเชื่อมโยงอยู่',
+  DATABASE_MIGRATION_REQUIRED: 'โครงสร้างฐานข้อมูลยังไม่พร้อมใช้งาน (กรุณาตรวจสอบการรัน Database Migration)',
+  DATABASE_CONNECTION_ERROR: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ (กรุณาตรวจสอบการตั้งค่า DATABASE_URL)',
 };
 
 /**
