@@ -4,7 +4,14 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createRound } from '@/services/rounds.service';
-import { fetchScholarshipTypes } from '@/services/scholarship-types.service';
+import {
+  fetchScholarshipTypes,
+  fetchScholarshipTypeById,
+} from '@/services/scholarship-types.service';
+import {
+  fetchCriteriaList,
+  fetchCriteriaById,
+} from '@/services/criteria.service';
 import {
   uploadAndPreviewExcel,
   confirmImportApplicants,
@@ -14,6 +21,7 @@ import {
   ScholarshipTypeDetail,
   NestedSubCriteriaItem,
 } from '@/types/scholarship-type';
+import { CriteriaDetail } from '@/types/criteria';
 import { CreateRoundPayload } from '@/types/rounds';
 import { ExcelPreviewResponse } from '@/types/applicants';
 import {
@@ -27,6 +35,8 @@ import {
   Sliders,
   Check,
   X,
+  RotateCcw,
+  FileText,
 } from 'lucide-react';
 import {
   Select,
@@ -72,11 +82,11 @@ export default function CreateScholarshipRoundPage() {
   const [customCriteriaName, setCustomCriteriaName] = useState('');
   const [customTargetScore, setCustomTargetScore] = useState<number>(100);
   const [customSubCriteria, setCustomSubCriteria] = useState<NestedSubCriteriaItem[]>([
-    { sortOrder: 1, title: 'รายได้เฉลี่ยต่อครอบครัวต่อปี', type: 'SCORED', maxScore: 40, allowComment: true },
-    { sortOrder: 2, title: 'ภาระหนี้สินและความจำเป็นเร่งด่วน', type: 'SCORED', maxScore: 30, allowComment: true },
-    { sortOrder: 3, title: 'ผลการเรียนเฉลี่ยและความประพฤติ', type: 'SCORED', maxScore: 30, allowComment: true },
-    { sortOrder: 4, title: 'ความคิดเห็นเพิ่มเติมของคณะกรรมการ', type: 'TEXT', maxScore: null, allowComment: false },
+    { sortOrder: 1, title: '', type: 'SCORED', maxScore: 100, allowComment: true },
   ]);
+  const [selectedTypeDetail, setSelectedTypeDetail] = useState<ScholarshipTypeDetail | null>(null);
+  const [loadingTypeDetail, setLoadingTypeDetail] = useState(false);
+  const [availableCriteriaList, setAvailableCriteriaList] = useState<CriteriaDetail[]>([]);
 
   // Modal State
   const [isQuickTypeModalOpen, setIsQuickTypeModalOpen] = useState(false);
@@ -197,40 +207,166 @@ export default function CreateScholarshipRoundPage() {
     };
   };
 
-  // Load initial scholarship types
-  const loadTypes = useCallback(async () => {
+  // Helper to map and apply criteria items into custom criteria state
+  const applyCriteriaToCustomState = useCallback(
+    (
+      criteriaNamePrefix: string,
+      targetScore: number,
+      subCriteria: Array<{
+        sortOrder?: number;
+        title: string;
+        type: string;
+        maxScore?: number | null;
+        allowComment?: boolean;
+      }>
+    ) => {
+      setCustomTargetScore(targetScore || 100);
+      setCustomCriteriaName(criteriaNamePrefix);
+      setCustomSubCriteria(
+        subCriteria.map((s, idx) => ({
+          sortOrder: s.sortOrder ?? idx + 1,
+          title: s.title,
+          type: s.type as 'SCORED' | 'TEXT',
+          maxScore: s.type === 'SCORED' ? (s.maxScore ?? null) : null,
+          allowComment: s.allowComment ?? true,
+        }))
+      );
+      clearFieldError('customCriteriaName');
+      clearFieldError('criteriaScoreSum');
+      clearFieldError('subCriteriaTitles');
+      setEmptyRowIndices([]);
+    },
+    []
+  );
+
+  // Load initial scholarship types and criteria list
+  const loadInitialData = useCallback(async () => {
     try {
-      const typesRes = await fetchScholarshipTypes({ activeOnly: true, limit: 100 });
+      const [typesRes, criteriaRes] = await Promise.all([
+        fetchScholarshipTypes({ activeOnly: true, limit: 100 }),
+        fetchCriteriaList({ limit: 100 }),
+      ]);
       setScholarshipTypes(typesRes.data || []);
+      setAvailableCriteriaList(criteriaRes.data || []);
     } catch (err: unknown) {
-      console.warn('Failed to load scholarship types:', err);
+      console.warn('Failed to load initial data:', err);
     }
   }, []);
 
   useEffect(() => {
-    void loadTypes();
-  }, [loadTypes]);
+    void loadInitialData();
+  }, [loadInitialData]);
 
-  // Selected scholarship type detail
+  // Selected scholarship type detail from list
   const selectedType = useMemo(() => {
     return scholarshipTypes.find((t) => t.id === scholarshipTypeId) ?? null;
   }, [scholarshipTypes, scholarshipTypeId]);
 
-  // Handle scholarship type change with smart auto-fill
-  const handleTypeChange = (selectedTypeId?: number) => {
+  // Handle scholarship type change with smart auto-fill & criteria auto-sync
+  const handleTypeChange = async (selectedTypeId?: number) => {
     setScholarshipTypeId(selectedTypeId);
     setErrorMessage(null);
+    clearFieldError('scholarshipTypeId');
 
-    if (selectedTypeId) {
-      const typeItem = scholarshipTypes.find((t) => t.id === selectedTypeId);
-      if (typeItem) {
-        // Auto-suggest round name if empty or default format
-        if (!name.trim() || name.includes('ประจำภาคเรียนที่')) {
-          setName(`${typeItem.name} ประจำภาคเรียนที่ ${semester}/${academicYear}`);
-        }
-        // Auto-name custom criteria
-        setCustomCriteriaName(`เกณฑ์เฉพาะรอบ ${typeItem.name} (${semester}/${academicYear})`);
+    if (!selectedTypeId) {
+      setSelectedTypeDetail(null);
+      setCustomCriteriaName('');
+      setCustomTargetScore(100);
+      setCustomSubCriteria([
+        { sortOrder: 1, title: '', type: 'SCORED', maxScore: 100, allowComment: true },
+      ]);
+      return;
+    }
+
+    const typeItem = scholarshipTypes.find((t) => t.id === selectedTypeId);
+    if (typeItem) {
+      // Auto-suggest round name if empty or default format
+      if (!name.trim() || name.includes('ประจำภาคเรียนที่')) {
+        setName(`${typeItem.name} ประจำภาคเรียนที่ ${semester}/${academicYear}`);
       }
+      setCustomCriteriaName(`เกณฑ์เฉพาะรอบ ${typeItem.name} (${semester}/${academicYear})`);
+    }
+
+    try {
+      setLoadingTypeDetail(true);
+      const res = await fetchScholarshipTypeById(selectedTypeId);
+      const detail = res.data;
+      setSelectedTypeDetail(detail);
+
+      // 1. If detail has defaultCriteria with subCriteria, populate custom state from it
+      if (detail.defaultCriteria?.subCriteria && detail.defaultCriteria.subCriteria.length > 0) {
+        applyCriteriaToCustomState(
+          `เกณฑ์เฉพาะรอบ ${detail.name} (${semester}/${academicYear})`,
+          detail.defaultCriteria.targetScore ?? 100,
+          detail.defaultCriteria.subCriteria
+        );
+      } else if (detail.defaultCriteriaId) {
+        // Fallback: fetch directly from criteria service
+        try {
+          const critRes = await fetchCriteriaById(detail.defaultCriteriaId);
+          if (critRes.data?.subCriteria && critRes.data.subCriteria.length > 0) {
+            applyCriteriaToCustomState(
+              `เกณฑ์เฉพาะรอบ ${detail.name} (${semester}/${academicYear})`,
+              critRes.data.targetScore ?? 100,
+              critRes.data.subCriteria
+            );
+          }
+        } catch {
+          // Ignore fallback error
+        }
+      } else {
+        // Type has no default criteria: leave 1 clean blank scored row
+        setCustomTargetScore(100);
+        setCustomSubCriteria([
+          { sortOrder: 1, title: '', type: 'SCORED', maxScore: 100, allowComment: true },
+        ]);
+      }
+    } catch (err: unknown) {
+      console.warn('Failed to load scholarship type details:', err);
+    } finally {
+      setLoadingTypeDetail(false);
+    }
+  };
+
+  // Revert custom criteria back to the selected type's default criteria
+  const handleResetToDefaultCriteria = () => {
+    if (selectedTypeDetail?.defaultCriteria?.subCriteria && selectedTypeDetail.defaultCriteria.subCriteria.length > 0) {
+      applyCriteriaToCustomState(
+        `เกณฑ์เฉพาะรอบ ${selectedTypeDetail.name} (${semester}/${academicYear})`,
+        selectedTypeDetail.defaultCriteria.targetScore ?? 100,
+        selectedTypeDetail.defaultCriteria.subCriteria
+      );
+    } else if (selectedType?.defaultCriteriaId) {
+      void fetchCriteriaById(selectedType.defaultCriteriaId).then((res) => {
+        if (res.data?.subCriteria) {
+          applyCriteriaToCustomState(
+            `เกณฑ์เฉพาะรอบ ${selectedType.name} (${semester}/${academicYear})`,
+            res.data.targetScore ?? 100,
+            res.data.subCriteria
+          );
+        }
+      });
+    }
+  };
+
+  // Clone from any template criteria in system
+  const handleCloneFromTemplateCriteria = async (criteriaId: number) => {
+    if (!criteriaId) return;
+    try {
+      setLoadingTypeDetail(true);
+      const res = await fetchCriteriaById(criteriaId);
+      const crit = res.data;
+      if (crit && crit.subCriteria) {
+        applyCriteriaToCustomState(
+          `เกณฑ์เฉพาะรอบ ${selectedType?.name || name.trim() || 'ทุนการศึกษา'} (จาก ${crit.name})`,
+          crit.targetScore ?? 100,
+          crit.subCriteria
+        );
+      }
+    } catch (err: unknown) {
+      console.warn('Failed to clone criteria template:', err);
+    } finally {
+      setLoadingTypeDetail(false);
     }
   };
 
@@ -241,22 +377,29 @@ export default function CreateScholarshipRoundPage() {
     if (selectedType && (!name.trim() || name.includes('ประจำภาคเรียนที่'))) {
       setName(`${selectedType.name} ประจำภาคเรียนที่ ${newSem}/${newYear}`);
     }
+    if (selectedType && (!customCriteriaName.trim() || customCriteriaName.includes('เกณฑ์เฉพาะรอบ'))) {
+      setCustomCriteriaName(`เกณฑ์เฉพาะรอบ ${selectedType.name} (${newSem}/${newYear})`);
+    }
   };
 
   // Handle Quick Create Scholarship Type Success
   const handleQuickTypeSuccess = async (createdType: ScholarshipTypeDetail) => {
-    await loadTypes();
+    await loadInitialData();
     setScholarshipTypeId(createdType.id);
+    setSelectedTypeDetail(createdType);
     setName(`${createdType.name} ประจำภาคเรียนที่ ${semester}/${academicYear}`);
     setCustomCriteriaName(`เกณฑ์เฉพาะรอบ ${createdType.name} (${semester}/${academicYear})`);
-    if (createdType.defaultCriteria?.subCriteria) {
-      setCustomSubCriteria(createdType.defaultCriteria.subCriteria.map(s => ({
-        sortOrder: s.sortOrder,
-        title: s.title,
-        type: s.type as 'SCORED' | 'TEXT',
-        maxScore: s.maxScore,
-        allowComment: s.allowComment,
-      })));
+    if (createdType.defaultCriteria?.subCriteria && createdType.defaultCriteria.subCriteria.length > 0) {
+      applyCriteriaToCustomState(
+        `เกณฑ์เฉพาะรอบ ${createdType.name} (${semester}/${academicYear})`,
+        createdType.defaultCriteria.targetScore ?? 100,
+        createdType.defaultCriteria.subCriteria
+      );
+    } else {
+      setCustomTargetScore(100);
+      setCustomSubCriteria([
+        { sortOrder: 1, title: '', type: 'SCORED', maxScore: 100, allowComment: true },
+      ]);
     }
     setErrorMessage(null);
   };
@@ -487,7 +630,7 @@ export default function CreateScholarshipRoundPage() {
                   id="typeSelect"
                   value={scholarshipTypeId ?? ''}
                   onChange={(e) => {
-                    handleTypeChange(e.target.value ? parseInt(e.target.value) : undefined);
+                    void handleTypeChange(e.target.value ? parseInt(e.target.value) : undefined);
                     clearFieldError('scholarshipTypeId');
                   }}
                 >
@@ -693,6 +836,70 @@ export default function CreateScholarshipRoundPage() {
             {/* Custom Mode: Render Reusable CriteriaBuilder */}
             {criteriaMode === 'CUSTOM' && (
               <div className="pt-4 border-t border-border/80 space-y-4 animate-in fade-in">
+                {/* Status & Helper Toolbar for Custom Criteria */}
+                {loadingTypeDetail ? (
+                  <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200/80 text-blue-800 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300 text-xs flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin shrink-0" />
+                    <span>กำลังดึงรายการเกณฑ์การประเมินเริ่มต้นของประเภททุน...</span>
+                  </div>
+                ) : selectedTypeDetail?.defaultCriteria ? (
+                  <div className="p-3.5 rounded-xl bg-muted/40 border border-border/80 text-xs flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Sliders className="w-4 h-4 text-primary shrink-0" />
+                      <span>
+                        คัดลอกเกณฑ์เริ่มต้นจาก: <strong className="text-foreground">{selectedTypeDetail.defaultCriteria.name}</strong>{' '}
+                        ({selectedTypeDetail.defaultCriteria.subCriteria?.length || 0} ข้อ, เป้าหมาย {customTargetScore} คะแนน)
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResetToDefaultCriteria}
+                      className="text-xs h-7 px-2.5 flex items-center gap-1.5 hover:bg-background"
+                      title="คืนค่าเกณฑ์ย่อยและคะแนนกลับเป็นเกณฑ์มาตรฐานของประเภททุนนี้"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>รีเซ็ตเป็นเกณฑ์มาตรฐานของทุนนี้</span>
+                    </Button>
+                  </div>
+                ) : !scholarshipTypeId ? (
+                  <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-xs text-amber-800 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>ยังไม่ได้เลือกประเภททุนการศึกษาในข้อ 1 (แนะนำให้เลือกประเภททุนก่อน เพื่อให้ระบบดึงเกณฑ์มาตรฐานมาเป็นค่าเริ่มต้นให้อัตโนมัติ)</span>
+                  </div>
+                ) : (
+                  <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-xs text-amber-800 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>ประเภททุนนี้ไม่มีเกณฑ์มาตรฐานเริ่มต้น ท่านสามารถกำหนดหัวข้อประเมินใหม่ด้านล่าง หรือเลือกคัดลอกจากเกณฑ์แม่แบบอื่นในระบบ</span>
+                  </div>
+                )}
+
+                {/* Optional: Clone from another criteria in system */}
+                {availableCriteriaList.length > 0 && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/20 p-2.5 rounded-xl border border-border/60 flex-wrap">
+                    <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span>หรือเลือกคัดลอกจากชุดเกณฑ์อื่นในระบบ:</span>
+                    <select
+                      className="px-2.5 py-1 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                      defaultValue=""
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          void handleCloneFromTemplateCriteria(Number(e.target.value));
+                          e.target.value = '';
+                        }
+                      }}
+                    >
+                      <option value="" disabled>-- เลือกชุดเกณฑ์ที่ต้องการคัดลอก --</option>
+                      {availableCriteriaList.map((crit) => (
+                        <option key={crit.id} value={crit.id}>
+                          {crit.name} ({crit.subCriteria?.length || 0} ข้อ, {crit.targetScore} คะแนน)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 {/* Reused CriteriaBuilder Component with inline error container */}
                 <div id="field-criteriaScore" className="space-y-3">
                   {fieldErrors.criteriaScoreSum && (
@@ -752,13 +959,17 @@ export default function CreateScholarshipRoundPage() {
                     <div className="font-semibold text-foreground flex items-center gap-1.5">
                       <Check className="h-4 w-4 text-emerald-600 shrink-0" />
                       <span>
-                        {selectedType?.defaultCriteriaName
-                          ? `ระบบจะใช้เกณฑ์มาตรฐาน "${selectedType.defaultCriteriaName}"${
-                              selectedType.subCriteriaCount
-                                ? ` (${selectedType.subCriteriaCount} ข้อ)`
-                                : ''
-                            } โดยอัตโนมัติ`
-                          : 'ระบบจะใช้เกณฑ์แม่แบบเริ่มต้นประจำประเภททุนโดยอัตโนมัติ'}
+                        {loadingTypeDetail ? (
+                          'กำลังโหลดข้อมูลเกณฑ์มาตรฐานประจำประเภททุน...'
+                        ) : selectedType?.defaultCriteriaName || selectedTypeDetail?.defaultCriteria?.name ? (
+                          `ระบบจะใช้เกณฑ์มาตรฐาน "${selectedTypeDetail?.defaultCriteria?.name || selectedType?.defaultCriteriaName}"${
+                            (selectedTypeDetail?.defaultCriteria?.subCriteria?.length ?? selectedType?.subCriteriaCount)
+                              ? ` (${selectedTypeDetail?.defaultCriteria?.subCriteria?.length ?? selectedType?.subCriteriaCount} ข้อ, เป้าหมาย ${selectedTypeDetail?.defaultCriteria?.targetScore ?? 100} คะแนน)`
+                              : ''
+                          } โดยอัตโนมัติ`
+                        ) : (
+                          'ระบบจะใช้เกณฑ์แม่แบบเริ่มต้นประจำประเภททุนโดยอัตโนมัติ'
+                        )}
                       </span>
                     </div>
                     <p className="text-[11px]">
