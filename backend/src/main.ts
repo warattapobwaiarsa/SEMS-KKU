@@ -37,6 +37,9 @@ async function bootstrap() {
       'X-Requested-With',
       'X-User-Id',
       'x-user-id',
+      'X-User-Role',
+      'x-user-role',
+      'Accept',
     ],
   });
   app.setGlobalPrefix('api/v1');
