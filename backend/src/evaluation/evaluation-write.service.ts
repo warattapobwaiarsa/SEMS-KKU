@@ -482,23 +482,25 @@ export class EvaluationWriteService {
         });
       }
 
-      // (ง) score ต้องเป็นจำนวนเต็ม >= 0 ไม่งั้น 422 SCORE_OUT_OF_RANGE
-      //     ครอบคลุมทั้งค่าติดลบ ทศนิยม และไม่ใช่ตัวเลข [FR-EVL-05] [BR-EVL-03] (MSG-15)
+      // (ง) score ต้องเป็นจำนวนเต็ม 0 ถึง maxScore ไม่งั้น 422 SCORE_OUT_OF_RANGE
+      //     ครอบคลุมค่าติดลบ ทศนิยม ไม่ใช่ตัวเลข และค่าเกินคะแนนเต็ม [FR-EVL-05] [BR-EVL-03] (MSG-15)
       if (
         item.score !== undefined &&
         item.score !== null &&
         subCriteria.type === SubCriteriaType.SCORED
       ) {
         const score = item.score;
+        const maxScore = subCriteria.maxScore;
         if (
           typeof score !== 'number' ||
           !Number.isInteger(score) ||
-          score < 0
+          score < 0 ||
+          (maxScore !== null && score > maxScore)
         ) {
           throw new AppException(
             'SCORE_OUT_OF_RANGE',
             HttpStatus.UNPROCESSABLE_ENTITY,
-            { max: subCriteria.maxScore },
+            { max: maxScore },
           );
         }
       }

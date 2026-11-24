@@ -79,9 +79,11 @@ export function ScoreInputRow({
           {/* ช่องกรอกคะแนน (จำนวนเต็ม >= 0) */}
           <div className="flex items-center gap-2.5">
             <input
+              id={`score-input-${item.subCriteriaId}`}
               type="number"
               inputMode="numeric"
               min={0}
+              max={sub.maxScore ?? undefined}
               step={1}
               value={value.score}
               disabled={readOnly}
@@ -99,7 +101,7 @@ export function ScoreInputRow({
               className={`w-32 h-11 px-3 text-center text-base font-mono font-bold border rounded-xl bg-background
                 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition
                 disabled:cursor-not-allowed disabled:text-muted-foreground disabled:bg-muted/50
-                ${scoreError ? 'border-destructive bg-destructive/5 text-destructive' : 'border-border'}`}
+                ${scoreError ? 'border-destructive bg-destructive/5 text-destructive ring-2 ring-destructive/20' : 'border-border'}`}
               placeholder="0"
             />
             <span className="text-sm sm:text-base font-medium text-muted-foreground">
@@ -107,21 +109,34 @@ export function ScoreInputRow({
             </span>
           </div>
 
-          {/* ข้อผิดพลาดของคะแนน (เช่น ค่าเกินเต็ม หรือไม่ใช่จำนวนเต็ม) */}
-          {scoreError && <p className="text-xs sm:text-sm text-destructive mt-1 font-medium">{scoreError}</p>}
+          {/* ข้อผิดพลาดของคะแนน (เช่น ค่าเกินเต็ม หรือไม่ใช่จำนวนเต็ม หรือยังไม่ได้กรอก) */}
+          {scoreError && (
+            <p className="text-xs sm:text-sm text-destructive mt-1 font-medium flex items-center gap-1.5">
+              <span>•</span> {scoreError}
+            </p>
+          )}
         </div>
       ) : (
         /* แบบ TEXT: ช่องกรอกข้อความ */
-        <textarea
-          value={value.textValue}
-          disabled={readOnly}
-          onChange={(e) => onChange(item.subCriteriaId, 'textValue', e.target.value)}
-          rows={3}
-          placeholder="กรอกข้อความสรุปการประเมิน..."
-          className="w-full p-3 text-sm sm:text-base border border-border rounded-xl bg-background resize-y
-            focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition
-            disabled:cursor-not-allowed disabled:text-muted-foreground disabled:bg-muted/50"
-        />
+        <div className="space-y-1.5">
+          <textarea
+            id={`text-input-${item.subCriteriaId}`}
+            value={value.textValue}
+            disabled={readOnly}
+            onChange={(e) => onChange(item.subCriteriaId, 'textValue', e.target.value)}
+            rows={3}
+            placeholder="กรอกข้อความสรุปการประเมิน..."
+            className={`w-full p-3 text-sm sm:text-base border rounded-xl bg-background resize-y
+              focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition
+              disabled:cursor-not-allowed disabled:text-muted-foreground disabled:bg-muted/50
+              ${scoreError ? 'border-destructive bg-destructive/5 text-destructive ring-2 ring-destructive/20' : 'border-border'}`}
+          />
+          {scoreError && (
+            <p className="text-xs sm:text-sm text-destructive mt-1 font-medium flex items-center gap-1.5">
+              <span>•</span> {scoreError}
+            </p>
+          )}
+        </div>
       )}
 
       {/* ช่องคอมเมนต์ แสดงเฉพาะข้อที่เปิดรับคอมเมนต์ */}
