@@ -92,6 +92,19 @@ export function setAdminId(id: string): void {
   }
 }
 
+export function clearAuthSession(): void {
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.removeItem(EVALUATOR_STORAGE_KEY);
+      window.localStorage.removeItem(ADMIN_STORAGE_KEY);
+      window.dispatchEvent(new CustomEvent('sems_evaluator_changed', { detail: { id: null } }));
+      window.dispatchEvent(new CustomEvent('sems_admin_changed', { detail: { id: null } }));
+    } catch {
+      // Ignore
+    }
+  }
+}
+
 export function getCurrentAdminProfile(): MockAdminProfile {
   const currentId = getAdminId();
   const found = MOCK_ADMINS.find((ad) => ad.id === currentId);
